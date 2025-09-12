@@ -39,9 +39,11 @@ if (!file_exists($ruta)) {
     <?php if ($pagina !== "login"): ?>
         <div class="main-container">
             <?php include("views/components/sidebar.php"); ?>
-            <div class="container-fluid flex-grow-1">
+            <div class="container-fluid flex-grow-1 p-0">
                 <main class="page-container">
-                    <?php include($ruta); ?>
+                    <div class="page-content">
+                        <?php include($ruta); ?>
+                    </div>
                 </main>
                 <?php include("views/components/footer.php"); ?>
             </div>
