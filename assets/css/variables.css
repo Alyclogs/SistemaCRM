@@ -1,0 +1,14 @@
+:root {
+    --default-dark-bg: #1a002b;
+    --default-light-bg: #eef0f4;
+    --default-theme-color: #5e51ac;
+    --default-theme-color-light: #f1f2f6;
+    --default-theme-color-accent: #5e36ba;
+    --default-theme-color-dark: #5332af;
+    --default-border-color: #dddee4;
+    --default-shadow-color: #e6e6eb;
+    --default-text-color: #909198;
+    --large-text-color: #1c191c;
+    --medium-text-color: #909198;
+    --small-text-color: #a7a8ac;
+}

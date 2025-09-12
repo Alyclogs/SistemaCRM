@@ -1,0 +1,28 @@
+.text-large {
+    color: var(--large-text-color);
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.text-medium {
+    color: var(--large-text-color);
+    font-size: 14px;
+}
+
+.text-small {
+    color: var(--large-text-color);
+    font-size: 12px
+}
+
+a {
+    text-decoration: none !important;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5 {
+    margin: 0;
+}
