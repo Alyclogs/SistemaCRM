@@ -14,12 +14,22 @@ class ClienteModel
         }
     }
 
-    public function obtenerClientes()
+    public function obtenerClientes($idestado = null)
     {
         try {
-            $sql = "SELECT c.*, ec.estado FROM clientes c
-            INNER JOIN estados_clientes ec ON c.idestado = ec.idestado";
-            $stmt = $this->pdo->query($sql);
+            $sql = "SELECT c.*, ec.estado 
+                FROM clientes c
+                INNER JOIN estados_clientes ec ON c.idestado = ec.idestado";
+
+            $params = [];
+
+            if (!empty($idestado)) {
+                $sql .= " WHERE c.idestado = ?";
+                $params[] = $idestado;
+            }
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
             $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($clientes as &$cliente) {
@@ -32,14 +42,23 @@ class ClienteModel
         }
     }
 
-    public function buscarClientes($filtro)
+    public function buscarClientes($filtro, $idestado = null)
     {
         try {
-            $sql = "SELECT c.*, ec.estado FROM clientes c WHERE c.nombre LIKE ? OR c.dni LIKE ? OR c.ruc LIKE ?
-            INNER JOIN estados_clientes ec ON c.idestado = ec.idestado";
-            $filtro = '%' . $filtro . '%';
+            $sql = "SELECT c.*, ec.estado 
+                FROM clientes c
+                INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
+                WHERE (c.nombre LIKE ? OR c.num_doc LIKE ?)";
+
+            $params = ["%$filtro%", "%$filtro%"];
+
+            if (!empty($idestado)) {
+                $sql .= " AND c.idestado = ?";
+                $params[] = $idestado;
+            }
+
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$filtro, $filtro, $filtro]);
+            $stmt->execute($params);
             $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($clientes as &$cliente) {
@@ -63,6 +82,25 @@ class ClienteModel
         }
     }
 
+    public function obtenerClientesPorEstado($idestado)
+    {
+        try {
+            $sql = "SELECT c.*, ec.estado FROM clientes c WHERE c.idestado = ?
+            INNER JOIN estados_clientes ec ON c.idestado = ec.idestado";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$idestado]);
+            $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($clientes as &$cliente) {
+                $cliente['proyectos'] = $this->obtenerProyectosPorCliente($cliente['idcliente']);
+            }
+
+            return $clientes;
+        } catch (Exception $e) {
+            throw new Exception("Error al buscar clientes: " . $e->getMessage());
+        }
+    }
+
     public function obtenerCliente($id)
     {
         try {
@@ -71,7 +109,10 @@ class ClienteModel
             WHERE c.idcliente = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+            $cliente['proyectos'] = $this->obtenerProyectosPorCliente($cliente['idcliente']);
+
+            return $cliente;
         } catch (Exception $e) {
             throw new Exception("Error al obtener cliente: " . $e->getMessage());
         }
@@ -80,13 +121,13 @@ class ClienteModel
     public function crearCliente($data)
     {
         try {
-            $sql = "INSERT INTO clientes (nombre, dni, ruc, telefono, correo, idestado) 
+            $sql = "INSERT INTO clientes (nombre, tipo_doc, num_doc, telefono, correo, idestado) 
                 VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 $data['nombre'],
-                $data['dni'],
-                $data['ruc'],
+                $data['tipo_doc'],
+                $data['num_doc'],
                 $data['telefono'],
                 $data['correo'],
                 $data['idestado']
@@ -94,10 +135,16 @@ class ClienteModel
 
             $idcliente = $this->pdo->lastInsertId();
 
-            // Asignar proyecto al cliente
-            if (isset($data['idproyecto'])) {
-                $this->asignarProyectoACliente($idcliente, $data['idproyecto']);
+            /*
+            // Asignar proyectos al cliente
+            if (isset($data['proyectos'])) {
+                $proyectos = json_decode($data['proyectos'], true);
+
+                foreach ($proyectos as $proyecto) {
+                    $this->asignarProyectoACliente($idcliente, $proyecto);
+                }
             }
+                */
 
             return $idcliente;
         } catch (Exception $e) {
@@ -141,13 +188,13 @@ class ClienteModel
     public function actualizarCliente($id, $data)
     {
         try {
-            $sql = "UPDATE clientes SET nombre=?, dni=?, ruc=?, telefono=?, correo=?, idestado=? 
+            $sql = "UPDATE clientes SET nombre=?, tipo_doc=?, num_doc=?, telefono=?, correo=?, idestado=? 
                     WHERE idcliente=?";
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([
                 $data['nombre'],
-                $data['dni'],
-                $data['ruc'],
+                $data['tipo_doc'],
+                $data['num_doc'],
                 $data['telefono'],
                 $data['correo'],
                 $data['idestado'],

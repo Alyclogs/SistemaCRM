@@ -50,6 +50,27 @@ class ProyectoModel
         }
     }
 
+    public function obtenerProyectosPorCliente($idcliente)
+    {
+        try {
+            $sql = "SELECT p.* FROM proyectos p
+            LEFT JOIN clientes_proyectos cp ON cp.idproyecto = p.idproyecto
+            WHERE cp.idcliente = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$idcliente]);
+            $proyectos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Agregar colaboradores a cada proyecto
+            foreach ($proyectos as &$proyecto) {
+                $proyecto['colaboradores'] = $this->obtenerColaboradoresPorProyecto($proyecto['idproyecto']);
+            }
+
+            return $proyectos;
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener proyectos: " . $e->getMessage());
+        }
+    }
+
     public function crearProyecto($data, $colaboradores = [])
     {
         try {

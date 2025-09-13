@@ -2,9 +2,11 @@
 @import url('../css/sidebar.css');
 @import url('../css/typography.css');
 @import url('../css/buttons.css');
+@import url('../css/form.css');
 
 body {
-    font-family: "Fredoka", sans-serif;
+    font-family: "Montserrat", sans-serif;
+    font-size: 14px;
     color: var(--default-text-color);
     height: 100vh;
     width: 100%;
@@ -17,32 +19,104 @@ svg path {
     stroke: var(--default-text-color);
 }
 
-.bcg-default {
-    background-color: var(--default-theme-color);
+.bg-default {
+    background-color: var(--default-theme-color) !important;
 }
 
-.bcg-light {
-    background-color: var(--default-theme-color-light);
+.bg-light {
+    background-color: var(--default-theme-color-light) !important;
 }
 
-.bcg-white {
-    background-color: #fff;
+.bg-white {
+    background-color: #fff !important;
 }
 
-.bcg-accent {
-    background-color: var(--default-theme-color-accent);
+.bg-accent {
+    background-color: var(--default-theme-color-accent) !important;
 }
 
-.bcg-default:hover {
-    background-color: var(--default-theme-color-dark);
+.bg-default:hover {
+    background-color: var(--default-theme-color-dark) !important;
 }
 
-.bcg-accent:hover {
-    background-color: #562eb4;
+.bg-accent:hover {
+    background-color: #562eb4 !important;
 }
 
-.bcg-light:hover {
-    background-color: #e4e7f1;
+.bg-light:hover {
+    background-color: #e4e7f1 !important;
+}
+
+/* ✅ SUCCESS */
+.bg-success {
+    background-color: var(--success-bg-color) !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.bg-success:hover {
+    background-color: var(--success-bg-color-hover) !important;
+}
+
+.border-success {
+    border-color: var(--success-text-color) !important;
+}
+
+.text-success {
+    color: var(--success-text-color) !important;
+}
+
+/* ⚠️ WARNING */
+.bg-warning {
+    background-color: var(--warning-bg-color) !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.bg-warning:hover {
+    background-color: var(--warning-bg-color-hover) !important;
+}
+
+.border-warning {
+    border-color: var(--warning-text-color) !important;
+}
+
+.text-warning {
+    color: var(--warning-text-color) !important;
+}
+
+/* ℹ️ INFO */
+.bg-info {
+    background-color: var(--info-bg-color) !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.bg-info:hover {
+    background-color: var(--info-bg-color-hover) !important;
+}
+
+.border-info {
+    border-color: var(--info-text-color) !important;
+}
+
+.text-info {
+    color: var(--info-text-color) !important;
+}
+
+/* ❌ DANGER */
+.bg-danger {
+    background-color: var(--danger-bg-color) !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.bg-danger:hover {
+    background-color: var(--danger-bg-color-hover) !important;
+}
+
+.border-danger {
+    border-color: var(--danger-text-color) !important;
+}
+
+.text-danger {
+    color: var(--danger-text-color) !important;
 }
 
 .main-container {
@@ -98,6 +172,10 @@ svg path {
     gap: 1rem;
     display: flex;
     flex-direction: column;
+}
+
+.clickable {
+    cursor: pointer !important;
 }
 
 .user-icon {
@@ -166,7 +244,6 @@ svg path {
 .tab-item.selected {
     background-color: var(--default-theme-color-accent);
     color: #fff;
-    font-weight: 600;
 }
 
 .search-input {
@@ -203,23 +280,108 @@ svg path {
 }
 
 .chip {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    justify-items: center;
     border-radius: .5rem;
     padding: .25rem .5rem;
     font-size: 12px;
-    cursor: pointer;
 }
 
-.chip-outline {
+.chip.chip-outline {
     border-color: var(--default-border-color);
+    color: var(--default-border-color);
+}
+
+.chip.chip-success {
+    background-color: var(--success-bg-color);
+    color: var(--success-text-color);
+}
+
+.chip.chip-warning {
+    background-color: var(--warning-bg-color);
+    color: var(--warning-text-color);
+}
+
+.chip.chip-danger {
+    background-color: var(--danger-bg-color);
+    color: var(--danger-text-color);
+}
+
+.chip.chip-info {
+    background-color: var(--info-bg-color);
+    color: var(--info-text-color);
+}
+
+.chip.chip-success.chip-outline {
+    background: transparent;
+    border: 1px solid var(--success-text-color);
+    color: var(--success-text-color);
+}
+
+.chip.chip-warning.chip-outline {
+    background: transparent;
+    border: 1px solid var(--warning-text-color);
+    color: var(--warning-text-color);
+}
+
+.chip.chip-info.chip-outline {
+    background: transparent;
+    border: 1px solid var(--info-text-color);
+    color: var(--info-text-color);
+}
+
+.chip.chip-danger.chip-outline {
+    background: transparent;
+    border: 1px solid var(--danger-text-color);
+    color: var(--danger-text-color);
 }
 
 .info-row {
     display: flex;
     align-items: center;
-    gap: .25rem;
+    gap: .5rem;
 }
 
 .info-row svg,
 .info-row path {
     max-width: 16px;
+}
+
+.modal-content,
+.modal-header,
+.modal-footer {
+    border: none;
+    border-top: none;
+    border-bottom: none;
+}
+
+.modal-content {
+    border-radius: 1rem !important;
+    padding: .5rem !important;
+}
+
+.selector-items {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.selector-item {
+    padding: .5rem;
+    border-radius: .5rem;
+    border: 1px solid var(--default-border-color);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.selector-item:hover {
+    background-color: var(--default-theme-color-light);
+}
+
+.selector-item.selected {
+    border: 1px solid var(--default-bg-color);
+    background-color: var(--default-bg-color-light);
+    color: var(--default-theme-color);
 }

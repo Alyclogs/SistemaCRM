@@ -1,5 +1,21 @@
 @import url('../css/variables.css');
 
+button:focus {
+    box-shadow: none !important;
+}
+
+button.symmetrical {
+    width: 32px;
+    height: 32px;
+    padding: .25rem;
+}
+
+button.symmetrical-sm {
+    width: 24px;
+    height: 24px;
+    padding: .25rem;
+}
+
 .buttons-row {
     display: flex;
 }
@@ -29,6 +45,7 @@
     display: flex;
     gap: .25rem;
     align-items: center;
+    justify-content: center;
     padding: .5rem .75rem;
     border: none;
     outline: none;
@@ -36,6 +53,10 @@
     background-color: var(--default-theme-color);
     font-size: 14px;
     color: #fff;
+}
+
+.btn-default:hover {
+    background-color: var(--default-theme-color-accent) !important;
 }
 
 .btn-default svg,
@@ -46,10 +67,38 @@
     display: inline-flex;
 }
 
+.btn-cancelar {
+    border-radius: .5rem;
+    display: flex;
+    gap: .25rem;
+    align-items: center;
+    justify-content: center;
+    padding: .5rem .75rem;
+    border: none;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+    background-color: #8b919b;
+    font-size: 14px;
+    color: #fff;
+}
+
+.btn-cancelar:hover {
+    background-color: #7d8391 !important;
+}
+
+.btn-cancelar svg,
+.btn-cancelar path {
+    stroke: #fff;
+    color: #fff;
+    max-height: 18px;
+    display: inline-flex;
+}
+
 .btn-outline {
     border-radius: .5rem;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: .25rem;
     padding: .5rem .75rem;
     border: none;
@@ -62,7 +111,7 @@
 }
 
 .btn-outline:hover {
-    background-color: var(--default-theme-color-light);
+    background-color: var(--default-theme-color-light) !important;
 }
 
 .btn-outline svg,
@@ -88,4 +137,9 @@
 
 .btn-icon svg {
     max-height: 18px;
+}
+
+.btn-icon.sm {
+    width: 22px;
+    height: 22px;
 }

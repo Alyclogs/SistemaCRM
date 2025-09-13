@@ -1,5 +1,5 @@
 <?php
-require_once "TareaModel.php";
+require_once __DIR__ . "/../../models/tareas/TareaModel.php";
 
 header('Content-Type: application/json; charset=utf-8');
 

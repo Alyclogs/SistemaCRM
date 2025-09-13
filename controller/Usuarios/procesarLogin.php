@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../models/Usuarios/UsuarioModel.php';
+require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
 session_start();
 $base_url = 'http://localhost/SistemaCRM/';
 

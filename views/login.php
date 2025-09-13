@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../models/Usuarios/UsuarioModel.php';
+require_once __DIR__ . '/../models/usuarios/UsuarioModel.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

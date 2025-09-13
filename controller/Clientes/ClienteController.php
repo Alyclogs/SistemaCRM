@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../models/Clientes/ClienteModel.php';
+require_once __DIR__ . '/../../models/clientes/ClienteModel.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -12,14 +12,14 @@ try {
         switch ($_GET['action']) {
 
             case 'read':
-                $data = $clienteModel->obtenerClientes();
+                $data = $clienteModel->obtenerClientes(!empty($_GET['idestado']) ? $_GET['idestado'] : '');
                 echo json_encode($data);
                 exit;
                 break;
 
             case 'search':
                 if (!isset($_GET['filtro'])) throw new Exception("Filtro requerido");
-                $data = $clienteModel->buscarClientes($_GET['filtro']);
+                $data = $clienteModel->buscarClientes($_GET['filtro'], !empty($_GET['idestado']) ? $_GET['idestado'] : '');
                 echo json_encode($data);
                 exit;
                 break;

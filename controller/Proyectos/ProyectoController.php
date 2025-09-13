@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../../models/ProyectoModel.php";
+require_once __DIR__ . "/../../models/proyectos/ProyectoModel.php";
 
 header('Content-Type: application/json; charset=utf-8');
 

@@ -1,0 +1,44 @@
+@import url('../css/variables.css');
+
+input,
+select {
+    border-color: var(--default-border-color) !important;
+    border-radius: .5rem !important;
+}
+
+input:focus {
+    box-shadow: none !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    box-shadow: none !important;
+}
+
+.foto-user {
+    width: 17vh;
+    height: 17vh;
+    background-color: var(--default-theme-color-light);
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.foto-user img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.recomendacion-foto {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.recomendacion-foto p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--default-text-color);
+    font-weight: 500;
+    text-align: center;
+}
