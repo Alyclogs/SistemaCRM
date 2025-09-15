@@ -1,145 +1,145 @@
-@import url('../css/variables.css');
+@import url("../css/variables.css");
 
 button:focus {
-    box-shadow: none !important;
+  box-shadow: none !important;
 }
 
 button.symmetrical {
-    width: 32px;
-    height: 32px;
-    padding: .25rem;
+  width: 32px;
+  height: 32px;
+  padding: 0.25rem;
 }
 
 button.symmetrical-sm {
-    width: 24px;
-    height: 24px;
-    padding: .25rem;
+  width: 24px;
+  height: 24px;
+  padding: 0.25rem;
 }
 
 .buttons-row {
-    display: flex;
+  display: flex;
 }
 
 .buttons-row button {
-    border-radius: 0px;
+  border-radius: 0px;
 }
 
 .buttons-row button:first-child {
-    border-top-left-radius: .5rem;
-    border-bottom-left-radius: .5rem;
-    border-right: none;
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+  border-right: none;
 }
 
 .buttons-row button:last-child {
-    border-top-right-radius: .5rem;
-    border-bottom-right-radius: .5rem;
-    border-left: none;
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  border-left: none;
 }
 
 .buttons-row.buttons-2 button.btn-outline {
-    border-left: 1px solid var(--default-border-color);
+  border-left: 1px solid var(--default-border-color);
 }
 
 .btn-default {
-    border-radius: .5rem;
-    display: flex;
-    gap: .25rem;
-    align-items: center;
-    justify-content: center;
-    padding: .5rem .75rem;
-    border: none;
-    outline: none;
-    transition: all 0.2s ease-in-out;
-    background-color: var(--default-theme-color);
-    font-size: 14px;
-    color: #fff;
+  border-radius: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  background-color: var(--default-theme-color);
+  font-size: 14px;
+  color: #fff;
 }
 
 .btn-default:hover {
-    background-color: var(--default-theme-color-accent) !important;
+  background-color: var(--default-theme-color-accent) !important;
 }
 
 .btn-default svg,
 .btn-default path {
-    stroke: #fff;
-    color: #fff;
-    max-height: 18px;
-    display: inline-flex;
+  stroke: #fff;
+  color: #fff;
+  max-height: 18px;
+  display: inline-flex;
 }
 
 .btn-cancelar {
-    border-radius: .5rem;
-    display: flex;
-    gap: .25rem;
-    align-items: center;
-    justify-content: center;
-    padding: .5rem .75rem;
-    border: none;
-    outline: none;
-    transition: all 0.2s ease-in-out;
-    background-color: #8b919b;
-    font-size: 14px;
-    color: #fff;
+  border-radius: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  background-color: #8b919b;
+  font-size: 14px;
+  color: #fff;
 }
 
 .btn-cancelar:hover {
-    background-color: #7d8391 !important;
+  background-color: #7d8391 !important;
 }
 
 .btn-cancelar svg,
 .btn-cancelar path {
-    stroke: #fff;
-    color: #fff;
-    max-height: 18px;
-    display: inline-flex;
+  stroke: #fff;
+  color: #fff;
+  max-height: 18px;
+  display: inline-flex;
 }
 
 .btn-outline {
-    border-radius: .5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .25rem;
-    padding: .5rem .75rem;
-    border: none;
-    outline: none;
-    transition: all 0.2s ease-in-out;
-    background-color: #fff;
-    border: 1px solid var(--default-border-color);
-    font-size: 14px;
-    color: var(--default-text-color);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  background-color: #fff;
+  border: 1px solid var(--default-border-color);
+  font-size: 14px;
+  color: var(--default-text-color);
 }
 
 .btn-outline:hover {
-    background-color: var(--default-theme-color-light) !important;
+  background-color: var(--default-theme-color-light) !important;
 }
 
 .btn-outline svg,
 .btn-outline path {
-    stroke: var(--default-text-color);
-    color: var(--default-text-color);
-    max-height: 18px;
-    display: inline-flex;
+  stroke: var(--default-text-color);
+  color: var(--default-text-color);
+  max-height: 18px;
+  display: inline-flex;
 }
 
 .btn-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: .25rem;
-    border: none;
-    outline: none;
-    transition: all 0.2s ease-in-out;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease-in-out;
 }
 
 .btn-icon svg {
-    max-height: 18px;
+  max-height: 18px;
 }
 
 .btn-icon.sm {
-    width: 22px;
-    height: 22px;
+  width: 22px;
+  height: 22px;
 }

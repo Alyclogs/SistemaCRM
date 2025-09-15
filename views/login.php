@@ -5,6 +5,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+$logout = isset($_GET['logout']) ? boolval($_GET['logout']) : false;
+if ($logout) {
+    session_destroy();
+    header("Location: index.php?p=login");
+}
+
 // Si ya hay sesión completa, redirigir a home
 if (isset($_SESSION['usuario']) && isset($_SESSION['rol'])) {
     header("Location: index.php?p=home");
@@ -12,12 +18,6 @@ if (isset($_SESSION['usuario']) && isset($_SESSION['rol'])) {
 }
 
 $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
-$logout = isset($_GET['logout']) ? boolval($_GET['logout']) : false;
-
-if ($logout) {
-    session_destroy();
-    header("Location: index.php?p=login");
-}
 ?>
 
 <link rel="stylesheet" href="./assets/css/general.css">

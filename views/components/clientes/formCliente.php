@@ -79,40 +79,6 @@ $estados = $clienteModel->obtenerEstadosClientes();
                     </select>
                 </div>
             </div>
-            <div class="d-flex align-items-end gap-3 mb-2">
-                <span class="fw-bold text-black">Proyectos</span>
-                <button type="button" class="btn-default symmetrical-sm" id="addNuevoProyecto"><?php include('../../../assets/svg/add.svg') ?></button>
-            </div>
-            <div class="d-flex gap-2" id="proyectosContainer">
-                <?php
-                function proyectoEstado($estado)
-                {
-                    switch ($estado) {
-                        case 'PLANIFICADO':
-                            return 'info';
-                        case 'EN PROGRESO':
-                            return 'warning';
-                        case 'EN PAUSA':
-                        case 'CANCELADO':
-                            return 'danger';
-                        case 'TERMINADO':
-                            return 'success';
-                        default:
-                            return '';
-                    }
-                }
-                ?>
-                <?php if (!empty($cliente['proyectos'])): ?>
-                    <?php foreach ($cliente['proyectos'] as $proyecto): ?>
-                        <div class="chip chip-outline clickable chip-<?= proyectoEstado($proyecto['estado']) ?>" data-tipo="proyecto" data-id="<?= $proyecto['idproyecto'] ?>">
-                            <button type="button" class="btn-icon sm bg-<?= proyectoEstado($proyecto['estado']) ?>">
-                                <i class="bi bi-x text-<?= proyectoEstado($proyecto['estado']) ?>"></i>
-                            </button>
-                            <?= $proyecto['nombre'] ?>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
         </div>
     </div>
 </form>

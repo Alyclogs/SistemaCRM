@@ -15,7 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['idusuario']   = $datosUsuario['idusuario'];
         $_SESSION['usuario']     = $datosUsuario['usuario'];
         $_SESSION['nombre']      = $datosUsuario['nombres'] . ' ' . $datosUsuario['apellidos'];
+        $_SESSION['nombres']     = $datosUsuario['nombres'];
+        $_SESSION['apellidos']   = $datosUsuario['apellidos'];
         $_SESSION['rol']         = $datosUsuario['nombre_rol'];
+        $_SESSION['foto']         = $datosUsuario['foto'];
         header("Location: " . $base_url . "index.php?p=home");
         exit;
     } else {
