@@ -1,11 +1,11 @@
 <?php
-require_once __DIR__ . '/../models/clientes/ClienteModel.php';
+require_once __DIR__ . '/../../models/clientes/ClienteModel.php';
 
 $clienteModel = new ClienteModel();
 $estados = $clienteModel->obtenerEstadosClientes();
 ?>
 
-<div class="page-header">
+<div class="animate__animated animate__fadeInUp page-header">
     <div class="page-title text-large">Clientes</div>
     <button class="btn-default bg-accent" id="btnNuevoCliente" data-bs-toggle="modal" data-bs-target="#clienteModal">
         <?php include('assets/svg/add.svg') ?>
@@ -14,7 +14,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
 </div>
 
 <div class="page-main">
-    <div class="tabs-container">
+    <div class="animate__animated animate__fadeInUp tabs-container">
         <div class="tab-item selected">TODOS</div>
         <?php if (!empty($estados)): ?>
             <?php foreach ($estados as $estado): ?>
@@ -24,12 +24,12 @@ $estados = $clienteModel->obtenerEstadosClientes();
     </div>
 
     <div class="d-flex flex-column gap-3">
-        <div class="page-header">
+        <div class="animate__animated animate__fadeInUp page-header">
             <div class="buttons-row buttons-2">
                 <button class="btn-outline bg-white"><?php include('assets/svg/export-arrow-01.svg') ?>Exportar</button>
                 <button class="btn-outline bg-white"><?php include('assets/svg/refresh-arrow-01.svg') ?></button>
             </div>
-            <div class="d-flex gap-2 align-items-center">
+            <div class="animate__animated animate__fadeInUp d-flex gap-2 align-items-center">
                 <div class="search-input">
                     <?php include('assets/svg/search.svg') ?>
                     <input type="text" id="inputBuscarClientes" placeholder="Buscar clientes...">
@@ -38,7 +38,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
             </div>
         </div>
 
-        <div id="clientsContainer"></div>
+        <div class="animate__animated animate__fadeInUp" id="clientsContainer"></div>
     </div>
 </div>
 

@@ -4,7 +4,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $pagina = isset($_GET['p']) ? $_GET['p'] : 'home';
-$pagina = basename($pagina);
 
 if (!isset($_SESSION['usuario']) || !isset($_SESSION['rol'])) {
     if ($pagina !== "login") {
@@ -15,6 +14,7 @@ if (!isset($_SESSION['usuario']) || !isset($_SESSION['rol'])) {
 
 // Definir ruta de vista
 $ruta = "views/" . $pagina . ".php";
+
 if (!file_exists($ruta)) {
     $ruta = "views/home.php";
     $pagina = "home";
@@ -31,6 +31,9 @@ if (!file_exists($ruta)) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butteruptoasts@2.0.1/src/butterup.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/butteruptoasts@2.0.1/dist/butterup.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="./assets/css/general.css">
     <title>Sistema CRM</title>
 </head>

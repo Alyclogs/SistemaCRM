@@ -11,7 +11,7 @@ function isActive($url)
 $menuItems = [
     ["label" => "Inicio", "url" => "index.php?p=home", "icon" => "assets/svg/house.svg"],
     ["label" => "Agenda", "url" => "index.php?p=agenda", "icon" => "assets/svg/calendar.svg"],
-    ["label" => "Clientes", "url" => "index.php?p=clientes", "icon" => "assets/svg/people.svg"],
+    ["label" => "Clientes", "url" => "index.php?p=clientes/index", "icon" => "assets/svg/people.svg"],
     ["label" => "Usuarios", "url" => "index.php?p=usuarios", "icon" => "assets/svg/profile-2user.svg"],
     ["label" => "Proyectos", "url" => "index.php?p=proyectos", "icon" => "assets/svg/document-text-2.svg"],
     ["label" => "Tareas", "url" => "index.php?p=tareas", "icon" => "assets/svg/task-square.svg"]
@@ -32,7 +32,7 @@ $footerItems = [
     <div class="sidebar-content">
         <div class="sidebar-items">
             <?php foreach ($menuItems as $item): ?>
-                <div class="sidebar-item <?= isActive($item['url']) ?>">
+                <div class="sidebar-item <?= isActive($item['url']) ?>" data-url="<?= $item['url'] ?>">
                     <div class="sidebar-item-left"></div>
                     <div class="sidebar-item-content">
                         <div class="sidebar-item-content-main">

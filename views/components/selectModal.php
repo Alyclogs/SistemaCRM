@@ -94,6 +94,7 @@ if ($source) {
     aria-labelledby="selectorModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 34vh;">
+        <input type="hidden" id="selectedId" name="selectedId" value="<?= $id ?? '' ?>">
         <div class="modal-content">
             <div class="modal-header">
                 <h1 class="modal-title text-large" id="selectorModalLabel">Seleccione</h1>
@@ -148,15 +149,5 @@ if ($source) {
                 }
             });
         }
-
-        document.getElementById("btnSeleccionar").addEventListener("click", function() {
-            const seleccionados = [...document.querySelectorAll("#selectorItems .selector-item.selected")]
-                .map(el => ({
-                    id: el.dataset.id,
-                    nombre: el.textContent.trim()
-                }));
-
-            console.log("Seleccionados:", seleccionados);
-        });
     })();
 </script>

@@ -3,6 +3,7 @@
 @import url("../css/typography.css");
 @import url("../css/buttons.css");
 @import url("../css/form.css");
+@import url("../css/toast.css");
 
 body {
   font-family: "Montserrat", sans-serif;
@@ -47,7 +48,6 @@ svg path {
   background-color: #e4e7f1 !important;
 }
 
-/* ✅ SUCCESS */
 .bg-success {
   background-color: var(--success-bg-color) !important;
   transition: background-color 0.2s ease-in-out;
@@ -65,7 +65,6 @@ svg path {
   color: var(--success-text-color) !important;
 }
 
-/* ⚠️ WARNING */
 .bg-warning {
   background-color: var(--warning-bg-color) !important;
   transition: background-color 0.2s ease-in-out;
@@ -83,7 +82,6 @@ svg path {
   color: var(--warning-text-color) !important;
 }
 
-/* ℹ️ INFO */
 .bg-info {
   background-color: var(--info-bg-color) !important;
   transition: background-color 0.2s ease-in-out;
@@ -101,7 +99,6 @@ svg path {
   color: var(--info-text-color) !important;
 }
 
-/* ❌ DANGER */
 .bg-danger {
   background-color: var(--danger-bg-color) !important;
   transition: background-color 0.2s ease-in-out;
@@ -269,6 +266,13 @@ svg path {
 
 .search-input svg {
   max-height: 16px;
+}
+
+.container-shadow {
+  padding: 1rem;
+  border: 1px solid var(--default-border-color);
+  border-radius: 1rem;
+  box-shadow: 0px 4px 12px var(--default-shadow-color);
 }
 
 .container-border {

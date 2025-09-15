@@ -4,6 +4,7 @@ require_once __DIR__ . "/../../config/database.php";
 class ClienteModel
 {
     private $pdo;
+    private $baseurl = "http://localhost/SistemaCRM/";
 
     public function __construct()
     {
@@ -121,8 +122,8 @@ class ClienteModel
     public function crearCliente($data)
     {
         try {
-            $sql = "INSERT INTO clientes (nombre, tipo_doc, num_doc, telefono, correo, idestado) 
-                VALUES (?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO clientes (nombre, tipo_doc, num_doc, telefono, correo, idestado, foto) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 $data['nombre'],
@@ -130,7 +131,8 @@ class ClienteModel
                 $data['num_doc'],
                 $data['telefono'],
                 $data['correo'],
-                $data['idestado']
+                $data['idestado'],
+                $data['foto']
             ]);
 
             $idcliente = $this->pdo->lastInsertId();

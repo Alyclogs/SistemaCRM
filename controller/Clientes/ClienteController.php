@@ -31,8 +31,37 @@ try {
                 break;
 
             case 'create':
+                if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+                    $archivoFoto = $_FILES['foto'];
+                    $directorioDestino = __DIR__ . "/../../uploads/clientes/";
+                    if (!is_dir($directorioDestino)) {
+                        mkdir($directorioDestino, 0777, true);
+                    }
+                    $extension = pathinfo($archivoFoto['name'], PATHINFO_EXTENSION);
+                    $nombreArchivo = uniqid("cliente_") . "." . $extension;
+                    $rutaDestino = $directorioDestino . $nombreArchivo;
+
+                    if (move_uploaded_file($archivoFoto['tmp_name'], $rutaDestino)) {
+                        $_POST['foto'] = "uploads/clientes/" . $nombreArchivo;
+                    } else {
+                        $_POST['foto'] = "assets/img/usuariodefault.png";
+                    }
+                } else {
+                    $_POST['foto'] = "assets/img/usuariodefault.png";
+                }
+
                 $id = $clienteModel->crearCliente($_POST);
+
                 $response = ["success" => true, "message" => "Cliente creado", "id" => $id];
+                break;
+
+            case 'setProjects':
+                if (empty($_POST['projects'])) throw new Exception("Seleccione algun proyecto");
+                $projects = json_decode($_POST['projects'], true);
+                foreach ($projects as $project) {
+                    $clienteModel->asignarProyectoACliente($_POST['idcliente'], $project);
+                }
+                $response = ["success" => true, "message" => "Proyectos asignados"];
                 break;
 
             case 'update':

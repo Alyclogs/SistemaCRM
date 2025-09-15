@@ -1,4 +1,4 @@
-import { icons } from "./utils.js";
+import { icons, mostrarToast } from "./utils.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
 let filtroBuscado = '';
@@ -52,13 +52,13 @@ function fetchClientes(filtro = "", idestado = "") {
                     <div class="container-border">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <div class="info-row">
-                                <img src="${cliente.foto}" class="user-icon sm"></img>
+                                <img src="${baseurl + cliente.foto}" class="user-icon sm" data-type="cliente" data-id="${cliente.idcliente}"></img>
                                 <h5 class="text-large flex-grow-1">${cliente.nombre}</h5>
                                 <div class="chip ${clienteEstado(cliente.estado)}">${cliente.estado}</div>
                             </div>
                             <div class="icons-row">
-                                <button class="btn-icon bg-light" id="btnEditCliente" data-id="${cliente.idcliente}">${myIcons.edit}</button>
-                                <button class="btn-icon bg-light" id="btnProyectosCliente" data-id="${cliente.idcliente}">${myIcons.dni}</button>
+                                <button class="btn-icon bg-light" id="btnEditCliente" data-id="${cliente.idcliente}" title="Editar cliente">${myIcons.edit}</button>
+                                <button class="btn-icon bg-light" id="btnProyectosCliente" data-id="${cliente.idcliente}" title="Asignar proyectos">${myIcons.dni}</button>
                             </div>
                         </div>
                         <div class="row mb-4" style="max-width: 65%;">
@@ -96,16 +96,51 @@ function guardarCliente() {
     const idcliente = formData.get("idcliente");
     const action = idcliente ? "update" : "create";
 
-    fetch(baseurl + "controllers/clientes/ClienteController.php?action=" + action, {
+    fetch(baseurl + "controller/clientes/ClienteController.php?action=" + action, {
         method: "POST",
         body: formData
     })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
+                mostrarToast({
+                    message: data.message,
+                    type: "success"
+                });
                 fetchClientes();
                 $("#clienteModal").modal("hide");
+            } else {
+                mostrarToast({
+                    message: data.message,
+                    type: "danger"
+                });
+            }
+        })
+        .catch(err => {
+            console.error("Error en la solicitud:", err);
+        });
+}
+
+function asignarProyectos() {
+    const seleccionados = [...document.querySelectorAll("#selectorItems .selector-item.selected")]
+        .map(el => el.dataset.id);
+
+    const formData = new FormData();
+    formData.append("idcliente", document.getElementById('selectedId').value);
+    formData.append("projects", JSON.stringify(seleccionados));
+
+    fetch(baseurl + "controller/clientes/ClienteController.php?action=setProjects", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                mostrarToast({
+                    title: "Hola"
+                });
+                fetchClientes();
+                $("#selectorModal").modal("hide");
             } else {
                 alert("Error: " + data.message);
             }
@@ -138,6 +173,7 @@ document.addEventListener('click', function (e) {
     }
 
     if (e.target.closest('#btnEditCliente')) {
+        e.stopPropagation();
         const idcliente = e.target.closest('#btnEditCliente').dataset.id;
         fetch(baseurl + "views/components/clientes/formCliente.php?id=" + idcliente)
             .then(res => res.text())
@@ -150,6 +186,7 @@ document.addEventListener('click', function (e) {
     }
 
     if (e.target.closest('#btnProyectosCliente')) {
+        e.stopPropagation();
         const idcliente = e.target.closest('#btnProyectosCliente').dataset.id;
         fetch(baseurl + "views/components/selectModal.php?source=proyectos&type=multiple&id=" + idcliente)
             .then(res => res.text())
@@ -158,11 +195,16 @@ document.addEventListener('click', function (e) {
                 $("body").append(html);
                 $("#selectorModalLabel").text("Seleccione proyectos")
                 $("#selectorModal").modal("show");
+
+                $('#btnSeleccionar').on('click', function () {
+                    asignarProyectos();
+                });
             })
             .catch(e => console.error(e));
     }
 
     if (e.target.closest('#btnGuardarCliente')) {
+        console.log('Click en guardar cliente');
         guardarCliente();
     }
 });
