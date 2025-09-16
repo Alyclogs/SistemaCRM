@@ -76,10 +76,18 @@
     color: var(--success-text-color);
 }
 
+.toast.success svg path {
+    fill: var(--success-text-color);
+}
+
 .toast.danger {
     border-color: var(--danger-text-color);
     background-color: var(--danger-bg-color);
     color: var(--danger-text-color);
+}
+
+.toast.danger svg path {
+    fill: var(--danger-text-color);
 }
 
 .toast.warning {
@@ -88,15 +96,27 @@
     color: var(--warning-text-color);
 }
 
+.toast.warning svg path {
+    fill: var(--warning-text-color);
+}
+
 .toast.info {
     border-color: var(--info-text-color);
     background-color: var(--info-bg-color);
     color: var(--info-text-color);
 }
 
+.toast.info svg path {
+    fill: var(--info-text-color);
+}
+
 .toast-icon {
     font-size: 1.5rem;
     flex-shrink: 0;
+}
+
+.toast-icon path {
+    stroke: none;
 }
 
 .toast-content {

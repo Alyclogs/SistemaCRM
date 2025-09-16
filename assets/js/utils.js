@@ -130,8 +130,6 @@ export function mostrarToast({ title, message, location = "bottom-right", type =
 }
 
 function closeToast(toast) {
+    toast.classList.add("animate__fadeOutDown");
     toast.classList.remove("show");
-    toast.classList.add("hide");
-    // Esperar la animación antes de eliminar
-    toast.addEventListener("transitionend", () => toast.remove(), { once: true });
 }
