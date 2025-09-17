@@ -46,7 +46,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
         <div class="col-9">
             <div class="col-12 mb-3">
                 <label for="" class="form-label">Nombre <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="nombreInput" name="nombre" value="<?= $cliente['nombre'] ?? '' ?>">
+                <input type="text" class="form-control" id="nombreInput" name="nombre" value="<?= $cliente['nombre'] ?? '' ?>" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+">
             </div>
             <div class="col-12 mb-3">
                 <label for="" class="form-label">Correo <span class="text-danger">*</span></label>
@@ -55,20 +55,20 @@ $estados = $clienteModel->obtenerEstadosClientes();
             <div class="row mb-3">
                 <div class="col-6">
                     <label for="" class="form-label">Tipo de documento <span class="text-danger">*</span></label>
-                    <select class="form-select" id="tipoDocSelect" name="tipo_doc" value="<?= $cliente['tipo_doc'] ?? '' ?>">
+                    <select class="form-select" id="tipoDocSelect" name="tipo_doc" value="<?= $cliente['tipo_doc'] ?? '' ?>" required>
                         <option value="DNI">DNI</option>
                         <option value="RUC">RUC</option>
                     </select>
                 </div>
                 <div class="col-6">
                     <label for="" class="form-label">Número de documento <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="numDocInput" name="num_doc" value="<?= $cliente['num_doc'] ?? '' ?>">
+                    <input type="text" class="form-control" id="numDocInput" name="num_doc" value="<?= $cliente['num_doc'] ?? '' ?>" required maxlength="8">
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-6">
                     <label for="" class="form-label">Teléfono <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="telefonoInput" name="telefono" value="<?= $cliente['telefono'] ?? '' ?>">
+                    <input type="text" class="form-control" id="telefonoInput" name="telefono" value="<?= $cliente['telefono'] ?? '' ?>" required maxlength="9">
                 </div>
                 <div class="col-6">
                     <label for="" class="form-label">Estado <span class="text-danger">*</span></label>

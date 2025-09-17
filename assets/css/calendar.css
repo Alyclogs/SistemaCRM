@@ -1,0 +1,71 @@
+@import url('./variables.css');
+
+.fc .fc-scrollgrid-liquid {
+    border-radius: 1rem;
+    border: 1px solid var(--default-theme-color-light);
+    box-shadow: 0px 1px 6px var(--default-theme-color-light);
+}
+
+.fc thead .fc-scroller {
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    border-bottom: 1px solid var(--default-theme-color-light);
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+}
+
+.fc a {
+    color: var(--default-text-color);
+}
+
+.fc button {
+    background-color: #fff !important;
+    border: 1px solid var(--default-border-color) !important;
+    color: var(--default-text-color) !important;
+    border-radius: .5em !important;
+}
+
+.fc button:hover {
+    background-color: var(--default-theme-color-light) !important;
+}
+
+.fc button:not(:disabled).fc-button-active,
+.fc button:not(:disabled):active {
+    background-color: var(--default-theme-color-light) !important;
+}
+
+.fc-direction-ltr .fc-button-group>.fc-button:not(:first-child) {
+    border-bottom-left-radius: 0px !important;
+    border-top-left-radius: 0px !important;
+}
+
+.fc-direction-ltr .fc-button-group>.fc-button:not(:last-child) {
+    border-bottom-right-radius: 0px !important;
+    border-top-right-radius: 0px !important;
+}
+
+.fc .fc-day-today {
+    background: #d6daff20 !important;
+}
+
+.fc .fc-timegrid-slot {
+    height: 2.5em;
+}
+
+.fc table {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--default-theme-color-light);
+}
+
+.fc thead,
+.fc tbody,
+.fc tr,
+.fc th,
+.fc td {
+    border: 1px solid var(--default-theme-color-light);
+}
+
+.fc-highlight {
+    background-color: transparent !important;
+}

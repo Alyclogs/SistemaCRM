@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
+require_once __DIR__ . '/../../models/Usuarios/UsuarioModel.php';
 
 $id = $_GET['id'] ?? null;
 $model = new UsuarioModel();
@@ -22,9 +22,9 @@ if (!$usuario) {
 <?php endif; ?>
 <div class="row">
     <div class="col-3">
-        <div class="container-shadow">
+        <div class="container-shadow bg-white">
             <div class="d-flex justify-content-between">
-                <img class="user-icon" data-type="usuario" data-id="<?= $usuario['idusuario'] ?>" src="<?= $usuario['foto'] ?>" alt="Foto de <?= $usuario['nombre'] ?>">
+                <img class="user-icon" data-type="usuario" data-id="<?= $usuario['idusuario'] ?>" src="<?= $usuario['foto'] ?>" alt="Foto de <?= $usuario['nombres'] ?>">
                 <div class="icons-row">
                     <button class="btn-icon bg-light" id="btnEditUsuario" data-id="<?= $usuario['idusuario'] ?>" title="Editar usuario"><?php include('./assets/svg/edit.svg') ?></button>
                 </div>

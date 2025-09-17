@@ -60,11 +60,9 @@ class UsuarioModel
             $stmt = $pdo->prepare("
             SELECT 
                 u.*, 
-                r.idrol, r.rol AS nombre_rol, 
-                e.idestado, e.estado AS nombre_estado,
+                r.idrol, r.rol AS nombre_rol
             FROM usuarios u
             INNER JOIN roles r ON u.idrol = r.idRol
-            INNER JOIN estados e ON u.idestado = e.idestado
             WHERE u.idusuario = :id
         ");
 
@@ -90,12 +88,9 @@ class UsuarioModel
               SELECT 
     u.*,
     r.idrol, 
-    r.rol AS nombre_rol, 
-    e.idestado, 
-    e.estado AS nombre_estado
+    r.rol AS nombre_rol
 FROM usuarios u
 INNER JOIN roles r ON u.idrol = r.idrol
-INNER JOIN estados e ON u.idestado = e.idestado
 ORDER BY u.idusuario DESC;
 
             ");
@@ -118,12 +113,9 @@ ORDER BY u.idusuario DESC;
             SELECT 
                 u.*, 
                 r.idrol, 
-                r.rol AS nombre_rol, 
-                e.idestado, 
-                e.estado AS nombre_estado
+                r.rol AS nombre_rol
             FROM usuarios u
             INNER JOIN roles r ON u.idrol = r.idrol
-            INNER JOIN estados e ON u.idestado = e.idestado
         ";
 
             // Si hay filtro, se agrega la condición

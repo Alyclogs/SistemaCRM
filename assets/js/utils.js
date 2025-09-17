@@ -1,8 +1,10 @@
 const baseurl = 'http://localhost/SistemaCRM/';
 
 export const icons = async () => {
-    const [edit, menu, telefono, correo, dni, error, success, warning, info] = await Promise.all([
+    const [add, edit, trash, menu, telefono, correo, dni, error, success, warning, info] = await Promise.all([
+        fetch(baseurl + "assets/svg/add.svg").then(res => res.text()),
         fetch(baseurl + "assets/svg/edit.svg").then(res => res.text()),
+        fetch(baseurl + "assets/svg/trash.svg").then(res => res.text()),
         fetch(baseurl + "assets/svg/menu.svg").then(res => res.text()),
         fetch(baseurl + "assets/svg/call.svg").then(res => res.text()),
         fetch(baseurl + "assets/svg/sms.svg").then(res => res.text()),
@@ -14,7 +16,9 @@ export const icons = async () => {
     ]);
 
     return {
+        add,
         edit,
+        trash,
         menu,
         telefono,
         correo,
