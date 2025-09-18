@@ -30,7 +30,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
                 <button class="btn-outline bg-white"><?php include('assets/svg/refresh-arrow-01.svg') ?></button>
             </div>
             <div class="animate__animated animate__fadeInUp d-flex gap-2 align-items-center">
-                <div class="search-input">
+                <div class="grupo-input">
                     <?php include('assets/svg/search.svg') ?>
                     <input type="text" id="inputBuscarClientes" placeholder="Buscar clientes...">
                 </div>

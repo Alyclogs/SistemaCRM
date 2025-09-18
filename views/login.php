@@ -21,29 +21,38 @@ $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
 ?>
 
 <link rel="stylesheet" href="./assets/css/general.css">
-<div class="d-flex vh-100">
-    <div class="flex-grow-1">
-
-    </div>
-    <div class="h-100 d-flex align-items-center" style="width: 460px;">
-        <div class="p-3 d-flex flex-column">
-            <h2 class="text-center mb-3">Iniciar sesión</h2>
+<div class="d-flex vh-100 d-flex align-items-center justify-content-center">
+    <div class="p-4 container-shadow">
+        <div class="p-4 d-flex flex-column">
+            <h2 class="text-center text-large my-4">Iniciar sesión</h2>
 
             <?php if ($error === true): ?>
                 <div class="alert alert-danger">Usuario o contraseña incorrectos</div>
             <?php endif; ?>
 
-            <form method="POST" action="http://localhost/SistemaCRM/controller/Usuarios/procesarLogin.php">
-                <div class="mb-3">
-                    <label class="form-label">Usuario</label>
-                    <input type="text" class="form-control" name="usuario" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Contraseña</label>
-                    <input type="password" class="form-control" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Entrar</button>
-            </form>
+            <div class="mb-4">
+                <form method="POST" action="http://localhost/SistemaCRM/controller/Usuarios/procesarLogin.php">
+                    <div class="mb-3">
+                        <label class="form-label">Usuario</label>
+                        <div class="grupo-input login">
+                            <div class="px-1">
+                                <?php include('./assets/svg/user.svg') ?>
+                            </div>
+                            <input type="text" class="form-control underline pb-0" name="usuario" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <div class="grupo-input login mb-4">
+                            <div class="px-1">
+                                <?php include('./assets/svg/lock.svg') ?>
+                            </div>
+                            <input type="password" class="form-control underline pb-0" name="password" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

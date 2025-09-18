@@ -134,6 +134,6 @@ export function mostrarToast({ title, message, location = "bottom-right", type =
 }
 
 function closeToast(toast) {
-    toast.classList.add("animate__fadeOutDown");
+    toast.classList.add("animate__animated", "animate__fadeOutDown");
     toast.classList.remove("show");
 }

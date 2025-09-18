@@ -27,6 +27,8 @@ function fetchUsuarios(filtro = "", idestado = "") {
             }
             usuariosCache = usuarios;
 
+            const estadoUsuario = (estado) => estado === 'ACTIVO' ? 'success' : 'danger';
+
             usuarios.forEach(async (usuario) => {
                 html += `<tr>
                     <td>
@@ -36,15 +38,19 @@ function fetchUsuarios(filtro = "", idestado = "") {
                             ${usuario.idusuario == document.getElementById('idUsuario').value ? ' <div class="chip chip-success">ACTUAL</div>' : ''}
                         </div>
                     </td>
-                    <td>${usuario.dni}</td>
+                    <td>${usuario.num_doc}</td>
                     <td>${usuario.telefono}</td>
                     <td>${usuario.correo}</td>
                     <td>
-                        <div class="chip chip-info">${usuario.nombre_rol}</div>
+                        <div class="chip chip-outline chip-info">${usuario.nombre_rol}</div>
+                    </td>
+                    <td>
+                        <div class="chip chip-${estadoUsuario(usuario.estado)}">${usuario.estado}</div>
                     </td>
                     <td>
                         <div class="icons-row">
-                            <button class="btn-icon bg-light" id="btnEditUsuario">${window.icons.edit}</button>
+                            <button class="btn-icon bg-light" id="btnEditUsuario" data-id="${usuario.idusuario}">${window.icons.edit}</button>
+                            <button class="btn-icon bg-light" id="btnDeleteUsuario" data-id="${usuario.idusuario}">${window.icons.trash}</button>
                         </div>
                     </td>
                 </tr>`;
@@ -77,6 +83,34 @@ function guardarUsuario() {
                 });
                 fetchUsuarios();
                 $("#usuarioModal").modal("hide");
+            } else {
+                mostrarToast({
+                    message: data.message,
+                    type: "danger"
+                });
+            }
+        })
+        .catch(err => {
+            console.error("Error en la solicitud:", err);
+        });
+}
+
+function eliminarUsuario(idusuario) {
+    const formData = new FormData();
+    formData.append('idusuario', idusuario);
+
+    fetch(baseurl + "controller/usuarios/UsuarioController.php?action=delete", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                mostrarToast({
+                    message: data.message,
+                    type: "success"
+                });
+                fetchUsuarios();
             } else {
                 mostrarToast({
                     message: data.message,
@@ -151,6 +185,14 @@ document.addEventListener('click', function (e) {
                 $("#usuarioModal").modal("show");
             })
             .catch(e => console.error(e));
+    }
+
+    if (e.target.closest('#btnDeleteUsuario')) {
+        e.stopPropagation();
+        const idusuario = e.target.closest('#btnDeleteUsuario').dataset.id;
+        if (confirm("¿Seguro que desea eliminar al usuario del sistema?")) {
+            eliminarUsuario(idusuario);
+        }
     }
 
     if (e.target.closest('#btnProyectosUsuario')) {

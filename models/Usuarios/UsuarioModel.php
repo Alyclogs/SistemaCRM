@@ -1,12 +1,12 @@
 <?php
 // Importa la clase PDO
 require_once __DIR__ . '/../../config/database.php';
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 class UsuarioModel
 {
-
-    private $baseurl = "http://localhost/SistemaCRM/";
     public function verificarUsuario($usuario, $password)
     {
         try {
@@ -85,22 +85,28 @@ class UsuarioModel
             $pdo = connectDatabase();
 
             $stmt = $pdo->prepare("
-              SELECT 
-    u.*,
-    r.idrol, 
-    r.rol AS nombre_rol
-FROM usuarios u
-INNER JOIN roles r ON u.idrol = r.idrol
-ORDER BY u.idusuario DESC;
+            SELECT 
+                u.*,
+                r.idrol, 
+                r.rol AS nombre_rol,
+                e.idestado,
+                e.estado
+            FROM usuarios u
+            INNER JOIN roles r ON u.idrol = r.idrol
+            INNER JOIN estados_usuarios e ON u.idestado = e.idestado
+            ORDER BY (u.idusuario = :idusuario) DESC, u.idusuario DESC;
+        ");
 
-            ");
-            $stmt->execute();
+            $stmt->execute([
+                ':idusuario' => $_SESSION['idusuario']
+            ]);
+
             $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             closeDatabase($pdo);
 
             return $usuarios;
         } catch (PDOException $e) {
-            die("Error al obtener usuarios: " . $e->getMessage());
+            die('Error al obtener usuarios: ' . $e->getMessage());
         }
     }
 
@@ -113,9 +119,12 @@ ORDER BY u.idusuario DESC;
             SELECT 
                 u.*, 
                 r.idrol, 
-                r.rol AS nombre_rol
+                r.rol AS nombre_rol,
+                e.idestado,
+                e.estado
             FROM usuarios u
             INNER JOIN roles r ON u.idrol = r.idrol
+            INNER JOIN estados_usuarios e ON u.idestado = e.idestado
         ";
 
             // Si hay filtro, se agrega la condición
@@ -127,7 +136,7 @@ ORDER BY u.idusuario DESC;
             )";
             }
 
-            $sql .= " ORDER BY u.idusuario DESC";
+            $sql .= " ORDER BY (u.idusuario = :idusuario) DESC, u.idusuario DESC;";
 
             $stmt = $pdo->prepare($sql);
 
@@ -135,6 +144,7 @@ ORDER BY u.idusuario DESC;
                 $filtro = '%' . $filtro . '%';
                 $stmt->bindParam(':filtro', $filtro, PDO::PARAM_STR);
             }
+            $stmt->bindParam(':idusuario', $_SESSION['idusuario'], PDO::PARAM_INT);
 
             $stmt->execute();
             $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -151,7 +161,7 @@ ORDER BY u.idusuario DESC;
         try {
             $pdo = connectDatabase();
 
-            $stmt = $pdo->prepare("SELECT * FROM estados WHERE id = '1' OR id = '2';
+            $stmt = $pdo->prepare("SELECT * FROM estados_usuarios;
 ");
             $stmt->execute();
             $estados = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -169,59 +179,13 @@ ORDER BY u.idusuario DESC;
         $dni,
         $telefono,
         $correo,
-        $idestado,
         $idrol,
+        $idestado,
         $usuario,
         $passwordHash,
-        $sexo,
-        $archivoFoto = null
+        $foto
     ) {
-        $baseurl = $this->baseurl;
         $pdo = connectDatabase();
-
-        $uploadDir = __DIR__ . '/../../assets/img/';
-
-        $imagenesMujeres = [
-            $baseurl . "assets/img/usuariomujer1.png",
-            $baseurl . "assets/img/usuariomujer2.png",
-            $baseurl . "assets/img/usuariomujer3.png",
-            $baseurl . "assets/img/usuariomujer4.png",
-            $baseurl . "assets/img/usuariomujer5.png",
-            $baseurl . "assets/img/usuariomujer6.png",
-            $baseurl . "assets/img/usuariomujer7.png",
-            $baseurl . "assets/img/usuariomujer8.png",
-        ];
-
-        $imagenesHombres = [
-            $baseurl . "assets/img/usuariohombre1.png",
-            $baseurl . "assets/img/usuariohombre2.png",
-            $baseurl . "assets/img/usuariohombre3.png",
-            $baseurl . "assets/img/usuariohombre4.png",
-            $baseurl . "assets/img/usuariohombre5.png",
-            $baseurl . "assets/img/usuariohombre6.png",
-            $baseurl . "assets/img/usuariohombre7.png",
-            $baseurl . "assets/img/usuariohombre8.png",
-        ];
-
-        if ($archivoFoto && $archivoFoto['error'] === UPLOAD_ERR_OK) {
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            if (!in_array($archivoFoto['type'], $allowedTypes)) {
-                throw new Exception("Tipo de archivo no permitido.");
-            }
-
-            $ext = pathinfo($archivoFoto['name'], PATHINFO_EXTENSION);
-            $nombreArchivo = uniqid('usr_') . '.' . $ext;
-
-            if (!move_uploaded_file($archivoFoto['tmp_name'], $uploadDir . $nombreArchivo)) {
-                throw new Exception("Error al subir el archivo.");
-            }
-
-            $foto = $baseurl . "assets/img/" . $nombreArchivo;
-        } else {
-            $foto = (strtolower($sexo) === 'f')
-                ? $imagenesMujeres[array_rand($imagenesMujeres)]
-                : $imagenesHombres[array_rand($imagenesHombres)];
-        }
 
         try {
             // Iniciar transacción
@@ -229,9 +193,9 @@ ORDER BY u.idusuario DESC;
 
             $stmt = $pdo->prepare("
             INSERT INTO usuarios 
-                (nombres, apellidos, dni, telefono, correo, id_estado, id_rol, usuario, password, foto, sexo)
+                (nombres, apellidos, num_doc, telefono, correo, idrol, idestado, usuario, password, foto)
             VALUES 
-                (:nombres, :apellidos, :dni, :telefono, :correo, :idestado, :idrol, :usuario, :password, :foto, :sexo)
+                (:nombres, :apellidos, :dni, :telefono, :correo, :idrol, :idestado, :usuario, :password, :foto)
         ");
 
             $executed = $stmt->execute([
@@ -240,12 +204,11 @@ ORDER BY u.idusuario DESC;
                 'dni'       => $dni,
                 'telefono'  => $telefono,
                 'correo'    => $correo,
-                'idestado'  => $idestado,
                 'idrol'     => $idrol,
+                'idestado'  => $idestado,
                 'usuario'   => $usuario,
                 'password'  => $passwordHash,
-                'foto'      => $foto,
-                'sexo'      => $sexo,
+                'foto'      => $foto
             ]);
 
             if (!$executed) {
@@ -276,93 +239,35 @@ ORDER BY u.idusuario DESC;
         $dni,
         $telefono,
         $correo,
-        $idestado,
         $idrol,
+        $idestado,
         $usuario,
-        $sexo,
         $password = null,
-        $archivoFoto = null
+        $foto = null
     ) {
-        $baseurl = $this->baseurl;
         $pdo = connectDatabase();
-        $uploadDir = __DIR__ . '/../../assets/img/';
-
-        $imagenesMujeres = [
-            $baseurl . "assets/img/usuariomujer1.png",
-            $baseurl . "assets/img/usuariomujer2.png",
-            $baseurl . "assets/img/usuariomujer3.png",
-            $baseurl . "assets/img/usuariomujer4.png",
-            $baseurl . "assets/img/usuariomujer5.png",
-            $baseurl . "assets/img/usuariomujer6.png",
-            $baseurl . "assets/img/usuariomujer7.png",
-            $baseurl . "assets/img/usuariomujer8.png",
-        ];
-
-        $imagenesHombres = [
-            $baseurl . "assets/img/usuariohombre1.png",
-            $baseurl . "assets/img/usuariohombre2.png",
-            $baseurl . "assets/img/usuariohombre3.png",
-            $baseurl . "assets/img/usuariohombre4.png",
-            $baseurl . "assets/img/usuariohombre5.png",
-            $baseurl . "assets/img/usuariohombre6.png",
-            $baseurl . "assets/img/usuariohombre7.png",
-            $baseurl . "assets/img/usuariohombre8.png",
-        ];
 
         try {
             // Iniciamos transacción
             $pdo->beginTransaction();
 
-            // Obtener foto y sexo actuales
             $stmtFoto = $pdo->prepare("SELECT foto FROM usuarios WHERE idusuario = :id");
             $stmtFoto->execute(['id' => $id]);
             $fotoActual = $stmtFoto->fetchColumn();
-
-            $stmtSexo = $pdo->prepare("SELECT sexo FROM usuarios WHERE idusuario = :id");
-            $stmtSexo->execute(['id' => $id]);
-            $sexoActual = $stmtSexo->fetchColumn();
-
-            // Manejo de la foto
-            if ($archivoFoto && $archivoFoto['error'] === UPLOAD_ERR_OK) {
-                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                if (!in_array($archivoFoto['type'], $allowedTypes)) {
-                    throw new Exception("Tipo de archivo no permitido.");
-                }
-                $ext = pathinfo($archivoFoto['name'], PATHINFO_EXTENSION);
-                $nombreArchivo = uniqid('usr_') . '.' . $ext;
-
-                if (!move_uploaded_file($archivoFoto['tmp_name'], $uploadDir . $nombreArchivo)) {
-                    throw new Exception("Error al subir el archivo.");
-                }
-                $foto = $baseurl . "assets/img/" . $nombreArchivo;
-            } else {
-                if ($sexoActual !== $sexo) {
-                    $foto = strtolower($sexo) === 'f'
-                        ? $imagenesMujeres[array_rand($imagenesMujeres)]
-                        : $imagenesHombres[array_rand($imagenesHombres)];
-                } else {
-                    $foto = $fotoActual ?: (
-                        strtolower($sexo) === 'f'
-                        ? $imagenesMujeres[array_rand($imagenesMujeres)]
-                        : $imagenesHombres[array_rand($imagenesHombres)]
-                    );
-                }
-            }
 
             // Actualizar usuario
             $sql = "
             UPDATE usuarios
             SET nombres   = :nombres,
                 apellidos = :apellidos,
-                dni       = :dni,
+                num_doc   = :dni,
                 telefono  = :telefono,
                 correo    = :correo,
+                idrol     = :idrol,
                 idestado  = :idestado,
-                id_rol     = :idrol,
                 usuario   = :usuario,
                 " . ($password ? "password = :password," : "") . "
-                foto      = :foto,
-                sexo      = :sexo
+                foto      = :foto
             WHERE idusuario = :id
         ";
 
@@ -375,11 +280,10 @@ ORDER BY u.idusuario DESC;
                 'dni'       => $dni,
                 'telefono'  => $telefono,
                 'correo'    => $correo,
-                'idestado'  => $idestado,
                 'idrol'     => $idrol,
+                'idestado'  => $idestado,
                 'usuario'   => $usuario,
-                'foto'      => $foto,
-                'sexo'      => $sexo,
+                'foto'      => $foto ?? $fotoActual ?? "assets/img/usuariodefault.png"
             ];
 
             if ($password) {
@@ -407,7 +311,7 @@ ORDER BY u.idusuario DESC;
         try {
             $pdo = connectDatabase();
 
-            $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = :id");
+            $stmt = $pdo->prepare("DELETE FROM usuarios WHERE idusuario = :id");
             $stmt->execute(['id' => $id]);
             closeDatabase($pdo);
 

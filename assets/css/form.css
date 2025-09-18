@@ -3,16 +3,49 @@
 input,
 select {
     border-color: var(--default-border-color) !important;
-    border-radius: .5rem !important;
+    border-radius: .5rem;
 }
 
 input:focus {
     box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+.input-group:has(input:-internal-autofill-selected) {
+    background-color: light-dark(rgb(232, 240, 254), rgba(70, 90, 126, 0.4)) !important;
+}
+
+.input-group input {
+    border-right: none !important;
+}
+
+.input-group button {
+    border: 1px solid var(--default-border-color);
+    border-left: none !important;
+    padding-inline: .75rem;
+    background-color: #fff !important;
+    border-radius: .5rem;
 }
 
 .form-control:focus,
 .form-select:focus {
     box-shadow: none !important;
+}
+
+.form-control.underline {
+    border: none !important;
+    border-bottom: 1px solid var(--default-border-color) !important;
+    border-radius: 0% !important;
+}
+
+.grupo-input:has(.form-control.underline) {
+    border: none !important;
+    border-radius: 0% !important;
+}
+
+.grupo-input:has(.form-control.underline) input {
+    border: none !important;
+    border-bottom: 1px solid var(--default-border-color) !important;
 }
 
 .foto-user {

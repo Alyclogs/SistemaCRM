@@ -7,8 +7,9 @@ export default class CalendarUI {
             slotDuration: "00:30:00",
             slotLabelInterval: "00:60:00",
 
-            slotMinTime: "09:00",
-            slotMaxTime: "18:00",
+            slotMinTime: "06:00:00",
+            slotMaxTime: "20:00:00",
+            scrollTime: "08:00:00",
 
             selectable: true,
             editable: true,

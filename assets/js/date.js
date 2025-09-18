@@ -227,7 +227,7 @@ export function obtenerDiaSemana(fecha) {
     return nombreDia;
 }
 
-export function formatEventDate(start, end) {
+export function formatEventDate(start, end, pattern) {
     const timeFormatter = new Intl.DateTimeFormat('es-ES', {
         hour: 'numeric',
         minute: '2-digit',

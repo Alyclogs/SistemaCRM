@@ -1,10 +1,11 @@
 import CalendarUI from "./calendar.js";
-import { formatEventDate } from "./date.js";
+import { formatearFecha, formatearHora, formatEventDate } from "./date.js";
 
 const calendarUI = new CalendarUI();
 var calendar = null;
 var popup = document.getElementById('popup');
 var activeEvent = null;
+var actividadActual = {};
 
 document.addEventListener('DOMContentLoaded', function () {
     var calendarEl = document.getElementById('calendar');
@@ -47,7 +48,50 @@ document.addEventListener('DOMContentLoaded', function () {
         titleInput.oninput = function () {
             activeEvent.setProp("title", titleInput.value);
         };
+
+        actividadActual = {
+            title: activeEvent.title,
+            start: formatearHora(activeEvent.start),
+            end: formatearHora(activeEvent.end),
+            type: "llamada"
+        }
+        console.log(actividadActual);
+    });
+
+    calendar.setOption("eventResize", function (info) {
+        const infoDate = popup.querySelector('#infoDate');
+
+        if (activeEvent && info.event.id === activeEvent.id) {
+            infoDate.textContent = formatEventDate(info.event.start, info.event.end);
+        } else {
+            popup.style.display = "none";
+            // actualizar actividad
+        }
+    });
+
+    calendar.setOption("eventDrop", function (info) {
+        const infoDate = popup.querySelector('#infoDate');
+
+        if (activeEvent && info.event.id === activeEvent.id) {
+            infoDate.textContent = formatEventDate(info.event.start, info.event.end);
+        } else {
+            popup.style.display = "none";
+            // actualizar actividad
+        }
     });
 
     calendar.render();
 });
+
+function actualizarTipoActividad(type = "detalles", btn) {
+    btn.querySelectorAll('.buttons-row button').forEach(button => button.classList.remove('selected'));
+    btn.classList.add('selected');
+
+    if (type === "popup") {
+
+        return;
+    }
+    if (type === "detalles") {
+        return;
+    }
+}

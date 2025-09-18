@@ -46,7 +46,7 @@ button.symmetrical-sm {
   gap: 0.25rem;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem .75rem;
   border: none;
   outline: none;
   transition: all 0.2s ease-in-out;
@@ -55,7 +55,9 @@ button.symmetrical-sm {
   color: #fff;
 }
 
-.btn-default:hover {
+.btn-default:hover,
+.btn-default:active,
+.btn-default.selected {
   background-color: var(--default-theme-color-accent) !important;
 }
 
@@ -73,7 +75,7 @@ button.symmetrical-sm {
   gap: 0.25rem;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem .75rem;
   border: none;
   outline: none;
   transition: all 0.2s ease-in-out;
@@ -82,7 +84,9 @@ button.symmetrical-sm {
   color: #fff;
 }
 
-.btn-cancelar:hover {
+.btn-cancelar:hover,
+.btn-cancelar:active,
+.btn-cancelar.selected {
   background-color: #7d8391 !important;
 }
 
@@ -100,7 +104,7 @@ button.symmetrical-sm {
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem .75rem;
   border: none;
   outline: none;
   transition: all 0.2s ease-in-out;
@@ -110,7 +114,9 @@ button.symmetrical-sm {
   color: var(--default-text-color);
 }
 
-.btn-outline:hover {
+.btn-outline:hover,
+.btn-outline:active,
+.btn-outline.selected {
   background-color: var(--default-theme-color-light) !important;
 }
 

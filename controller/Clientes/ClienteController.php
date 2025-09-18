@@ -33,10 +33,35 @@ try {
             case 'create':
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                     $archivoFoto = $_FILES['foto'];
+
+                    // Validar tipo MIME
+                    $permitidos = ['image/jpeg', 'image/png'];
+                    if (!in_array($archivoFoto['type'], $permitidos)) {
+                        throw new Exception('Error: La imagen debe estar en formato JPG o PNG.');
+                    }
+
+                    // Validar peso (200 KB máximo)
+                    if ($archivoFoto['size'] > 200 * 1024) {
+                        throw new Exception('Error: La imagen debe pesar menos de 200 KB.');
+                    }
+
+                    // Validar dimensiones
+                    $dimensiones = getimagesize($archivoFoto['tmp_name']);
+                    if ($dimensiones === false) {
+                        throw new Exception('Error: No se pudo leer la imagen.');
+                    }
+
+                    $ancho = $dimensiones[0];
+                    $alto = $dimensiones[1];
+                    if ($ancho > 800 || $alto > 800) {
+                        throw new Exception('Error: La imagen debe tener dimensiones máximas de 800 x 800 píxeles.');
+                    }
+
                     $directorioDestino = __DIR__ . "/../../uploads/clientes/";
                     if (!is_dir($directorioDestino)) {
                         mkdir($directorioDestino, 0777, true);
                     }
+
                     $extension = pathinfo($archivoFoto['name'], PATHINFO_EXTENSION);
                     $nombreArchivo = uniqid("cliente_") . "." . $extension;
                     $rutaDestino = $directorioDestino . $nombreArchivo;

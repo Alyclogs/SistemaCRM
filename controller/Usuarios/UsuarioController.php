@@ -19,7 +19,7 @@ try {
             exit;
 
         case 'delete':
-            $id = $_POST['idUsuario']; // <-- cambio aquí
+            $id = $_POST['idusuario'];
             if (!is_numeric($id)) {
                 throw new Exception('Error: ID inválido.');
             }
@@ -42,25 +42,23 @@ try {
             break;
 
         case 'update':
-            $id = $_POST['idUsuario'];
+            $id = $_POST['idusuario'] ?? null;
             if (!is_numeric($id)) {
                 throw new Exception('Error: ID inválido.');
             }
 
             $nombres = ucwords($_POST['nombres']);
             $apellidos = ucwords($_POST['apellidos']);
-            $dni = $_POST['dni'];
+            $dni = !empty($_POST['num_doc']) ? $_POST['num_doc'] : null;
             $telefono = !empty($_POST['telefono']) ? $_POST['telefono'] : null;
             $correo = !empty($_POST['correo']) ? $_POST['correo'] : null;
-            $idrol = $_POST['idRol'];
-            $idestado = $_POST['idEstado'];
+            $idrol = $_POST['idrol'];
+            $idestado = $_POST['idestado'];
             $usuario = strtolower(trim($_POST['usuario']));
-            $sexo = $_POST['sexo'];
             $password = $_POST['password'];
-            $numero_caja = $_POST['num_caja'] ? $_POST['num_caja'] : null;
-            $area = isset($_POST['area']) ? $_POST['area'] : null;
             // Foto no es obligatoria
             $archivoFoto = null;
+            $rutaFoto = null;
             if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                 $archivoFoto = $_FILES['foto'];
 
@@ -86,10 +84,25 @@ try {
                 if ($ancho > 800 || $alto > 800) {
                     throw new Exception('Error: La imagen debe tener dimensiones máximas de 800 x 800 píxeles.');
                 }
+
+                $directorioDestino = __DIR__ . "/../../uploads/usuarios/";
+                if (!is_dir($directorioDestino)) {
+                    mkdir($directorioDestino, 0777, true);
+                }
+
+                $extension = pathinfo($archivoFoto['name'], PATHINFO_EXTENSION);
+                $nombreArchivo = uniqid("cliente_") . "." . $extension;
+                $rutaDestino = $directorioDestino . $nombreArchivo;
+
+                if (move_uploaded_file($archivoFoto['tmp_name'], $rutaDestino)) {
+                    $rutaFoto = "uploads/usuarios/" . $nombreArchivo;
+                } else {
+                    $rutaFoto = "assets/img/usuariodefault.png";
+                }
             }
 
             // Llamar al modelo para actualizar el usuario
-            $success = $modelo->actualizarUsuario($id, $nombres, $apellidos, $dni, $telefono, $correo, $idestado, $idrol, $usuario, $sexo, $password, $archivoFoto, $numero_caja, $area);
+            $success = $modelo->actualizarUsuario($id, $nombres, $apellidos, $dni, $telefono, $correo, $idrol, $idestado, $usuario, $password, $rutaFoto);
 
             $mensaje = $success ? 'Usuario actualizado correctamente.' : 'Error al actualizar el usuario.';
             break;
@@ -112,13 +125,14 @@ try {
                 // Procesamiento
                 $nombres = ucwords($_POST['nombres']);
                 $apellidos = ucwords($_POST['apellidos']);
-                $dni = $_POST['dni'];
+                $dni = !empty($_POST['num_doc']) ? $_POST['num_doc'] : null;
                 $telefono = !empty($_POST['telefono']) ? $_POST['telefono'] : null;
                 $correo = !empty($_POST['correo']) ? $_POST['correo'] : null;
                 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-                $idrol = $_POST['idRol'];
+                $idrol = $_POST['idrol'];
+                $idestado = $_POST['idestado'];
                 $archivoFoto = null;
-
+                $rutaFoto = "assets/img/usuariodefault.png";
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                     $archivoFoto = $_FILES['foto'];
 
@@ -144,12 +158,24 @@ try {
                     if ($ancho > 800 || $alto > 800) {
                         throw new Exception('Error: La imagen debe tener dimensiones máximas de 800 x 800 píxeles.');
                     }
+
+                    $directorioDestino = __DIR__ . "/../../uploads/usuarios/";
+                    if (!is_dir($directorioDestino)) {
+                        mkdir($directorioDestino, 0777, true);
+                    }
+
+                    $extension = pathinfo($archivoFoto['name'], PATHINFO_EXTENSION);
+                    $nombreArchivo = uniqid("cliente_") . "." . $extension;
+                    $rutaDestino = $directorioDestino . $nombreArchivo;
+
+                    if (move_uploaded_file($archivoFoto['tmp_name'], $rutaDestino)) {
+                        $rutaFoto = "uploads/usuarios/" . $nombreArchivo;
+                    } else {
+                        $rutaFoto = "assets/img/usuariodefault.png";
+                    }
                 }
 
-                $idestado = 1;
-                $sexo =  $_POST['sexo'];
-
-                $success = $modelo->guardarUsuario($nombres, $apellidos, $dni, $telefono, $correo, $idestado, $idrol, $usuario, $passwordHash, $sexo, $archivoFoto);
+                $success = $modelo->guardarUsuario($nombres, $apellidos, $dni, $telefono, $correo, $idrol, $idestado, $usuario, $passwordHash, $rutaFoto);
                 $mensaje = $success ? 'El registro de usuario se guardo de forma existosa.' : 'Error al registrar el usuario.';
 
                 // Respuesta en JSON

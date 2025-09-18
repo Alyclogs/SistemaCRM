@@ -18,7 +18,7 @@ require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
                 <button class="btn-outline bg-white"><?php include('assets/svg/refresh-arrow-01.svg') ?></button>
             </div>
             <div class="animate__animated animate__fadeInUp d-flex gap-2 align-items-center">
-                <div class="search-input">
+                <div class="grupo-input">
                     <?php include('assets/svg/search.svg') ?>
                     <input type="text" id="inputBuscarUsuarios" placeholder="Buscar usuarios...">
                 </div>
@@ -33,6 +33,7 @@ require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
                 <th>Teléfono</th>
                 <th>Correo</th>
                 <th>Rol</th>
+                <th>Estado</th>
                 <th></th>
             </thead>
             <tbody id="tablaUsuariosBody"></tbody>

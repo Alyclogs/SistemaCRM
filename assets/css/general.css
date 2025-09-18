@@ -263,9 +263,8 @@ svg path {
   color: #fff;
 }
 
-.search-input {
+.grupo-input {
   border-radius: 0.5rem;
-  padding: 0.75rem;
   border: 1px solid var(--default-border-color);
   display: flex;
   align-items: center;
@@ -273,21 +272,24 @@ svg path {
   font-size: 14px;
 }
 
-.search-input input {
+.grupo-input.login svg {
+  max-height: unset !important;
+}
+
+.grupo-input input {
   flex-grow: 1;
   outline: none;
   border: none;
   background-color: transparent;
-  padding: 0;
+  padding: 0.5rem;
 }
 
-.search-input svg {
+.grupo-input svg {
   max-height: 16px;
 }
 
 .container-shadow {
   padding: 1rem;
-  border: 1px solid var(--default-border-color);
   border-radius: 1rem;
   box-shadow: 0px 4px 12px var(--default-shadow-color);
 }
@@ -423,5 +425,5 @@ svg path {
   box-shadow: 0px 4px 10px var(--default-shadow-color);
   display: none;
   z-index: 1000;
-  width: 200px;
+  width: 280px;
 }
