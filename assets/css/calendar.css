@@ -2,14 +2,14 @@
 
 .fc .fc-scrollgrid-liquid {
     border-radius: 1rem;
-    border: 1px solid var(--default-theme-color-light);
-    box-shadow: 0px 1px 6px var(--default-theme-color-light);
+    border: 1px solid var(--default-bg-color-light);
+    box-shadow: 0px 1px 6px var(--default-bg-color-light);
 }
 
 .fc thead .fc-scroller {
     overflow-x: hidden !important;
     overflow-y: hidden !important;
-    border-bottom: 1px solid var(--default-theme-color-light);
+    border-bottom: 1px solid var(--default-bg-color-light);
     border-top-left-radius: 1rem;
     border-top-right-radius: 1rem;
 }
@@ -26,12 +26,12 @@
 }
 
 .fc button:hover {
-    background-color: var(--default-theme-color-light) !important;
+    background-color: var(--default-bg-color-light) !important;
 }
 
 .fc button:not(:disabled).fc-button-active,
 .fc button:not(:disabled):active {
-    background-color: var(--default-theme-color-light) !important;
+    background-color: var(--default-bg-color-light) !important;
 }
 
 .fc-direction-ltr .fc-button-group>.fc-button:not(:first-child) {
@@ -55,7 +55,7 @@
 .fc table {
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid var(--default-theme-color-light);
+    border: 1px solid var(--default-bg-color-light);
 }
 
 .fc thead,
@@ -63,7 +63,7 @@
 .fc tr,
 .fc th,
 .fc td {
-    border: 1px solid var(--default-theme-color-light);
+    border: 1px solid var(--default-bg-color-light);
 }
 
 .fc-highlight {

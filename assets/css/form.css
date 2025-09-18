@@ -38,6 +38,33 @@ input:focus {
     border-radius: 0% !important;
 }
 
+.grupo-input {
+    border-radius: 0.5rem;
+    border: 1px solid var(--default-border-color);
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.grupo-input.login svg {
+    max-height: unset !important;
+    margin-inline: 0;
+}
+
+.grupo-input input {
+    flex-grow: 1;
+    outline: none;
+    border: none;
+    background-color: transparent;
+    padding: 0.5rem;
+    padding-left: 0;
+}
+
+.grupo-input svg {
+    max-height: 16px;
+    margin-inline: .5rem;
+}
+
 .grupo-input:has(.form-control.underline) {
     border: none !important;
     border-radius: 0% !important;
@@ -48,10 +75,15 @@ input:focus {
     border-bottom: 1px solid var(--default-border-color) !important;
 }
 
+.grupo-input:has(.form-control.underline) svg {
+    border: none !important;
+    border-bottom: 1px solid var(--default-border-color) !important;
+}
+
 .foto-user {
     width: 17vh;
     height: 17vh;
-    background-color: var(--default-theme-color-light);
+    background-color: var(--default-bg-color-light);
     border-radius: 50%;
     overflow: hidden;
 }

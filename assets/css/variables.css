@@ -1,15 +1,19 @@
 :root {
   --default-dark-bg: #1a002b;
-  --default-light-bg: #eef0f4;
-  --default-theme-color: #5e51ac;
-  --default-bg-color: #d5d0f7;
-  --default-bg-color-light: #eeecfc;
-  --default-theme-color-light: #f1f2f6;
-  --default-theme-color-accent: #5e36ba;
-  --default-theme-color-dark: #5332af;
+  --default-light-bg: #fff;
+  --default-theme-color: #05c452;
+  --default-bg-color: #ffffff;
+  --default-bg-color-light: #f4f4f4;
+  --default-theme-color-light: #a8f8c8;
+  --default-theme-color-accent: #00c24e;
+  --default-theme-color-dark: #00b347;
   --default-border-color: #dddee4;
   --default-shadow-color: #d5d8df;
-  --default-text-color: #73707c;
+  --default-text-color: #494949;
+  --secondary-theme-color: #211c52;
+  --secondary-theme-color-light: #504897;
+  --secondary-theme-color-accent: #18105f;
+  --secondary-theme-color-dark: #1d164d;
   --large-text-color: #1c191c;
   --medium-text-color: #909198;
   --small-text-color: #a7a8ac;

@@ -25,24 +25,20 @@ $footerItems = [
 <div class="sidebar">
     <div class="sidebar-header">
         <a class="sidebar-item logo" href="index.php">
-            <?php include('assets/svg/logo.svg') ?>
+            <?php include('assets/svg/logo2.svg') ?>
         </a>
     </div>
 
     <div class="sidebar-content">
         <div class="sidebar-items">
             <?php foreach ($menuItems as $item): ?>
-                <div class="sidebar-item <?= isActive($item['url']) ?>" data-url="<?= $item['url'] ?>">
+                <div class="sidebar-item <?= isActive($item['url']) ?>" data-url="<?= $item['url'] ?>" data-bs-toggle="tooltip" data-bs-placement="right" title="<?= $item['label'] ?>">
                     <div class="sidebar-item-left"></div>
                     <div class="sidebar-item-content">
                         <div class="sidebar-item-content-main">
                             <div class="sidebar-item-content-divider"></div>
                             <div class="sidebar-link">
                                 <?php include($item['icon']) ?>
-                                <a class="sidebar-link-text" href="<?= $item['url'] ?>">
-                                    <?= $item['label'] ?>
-                                </a>
-                                <div class="sidebar-link-right"></div>
                             </div>
                             <div class="sidebar-item-content-divider"></div>
                         </div>
@@ -60,17 +56,13 @@ $footerItems = [
     <div class="sidebar-footer">
         <div class="sidebar-items">
             <?php foreach ($footerItems as $item): ?>
-                <div class="sidebar-item <?= isActive($item['url']) ?>">
+                <div class="sidebar-item <?= isActive($item['url']) ?>" data-bs-toggle="tooltip" data-bs-placement="right" title="<?= $item['label'] ?>">
                     <div class="sidebar-item-left"></div>
                     <div class="sidebar-item-content">
                         <div class="sidebar-item-content-main">
                             <div class="sidebar-item-content-divider"></div>
                             <div class="sidebar-link">
                                 <?php include($item['icon']) ?>
-                                <a class="sidebar-link-text" href="<?= $item['url'] ?>">
-                                    <?= $item['label'] ?>
-                                </a>
-                                <div class="sidebar-link-right"></div>
                             </div>
                             <div class="sidebar-item-content-divider"></div>
                         </div>
@@ -82,21 +74,6 @@ $footerItems = [
                     </div>
                 </div>
             <?php endforeach; ?>
-
-            <div class="menu-button" style="padding-inline: 1rem;">
-                <div class="sidebar-link">
-                    <div class="user-icon sm" style="width: 26px; height: 26px">
-                        <img src="<?= $_SESSION['foto'] ?>" alt="Foto de perfil">
-                    </div>
-                    <?php $nombreUsuario = explode(' ', $_SESSION['nombre'])[0] ?>
-                    <span><?= $nombreUsuario ?></span>
-                </div>
-                <div class="menu-submenu" style="left: 8rem;">
-                    <a class="submenu-item" href="index.php?p=perfil"><?php include('assets/svg/profile-circle.svg') ?>Mi perfil</a>
-                    <a class="submenu-item" href="index.php?p=buzon"><?php include('assets/svg/sms.svg') ?>Mi buzón</a>
-                    <a class="submenu-item text-danger" href="index.php?p=login&logout=true"><?php include('assets/svg/logout.svg') ?>Cerrar sesión</a>
-                </div>
-            </div>
         </div>
     </div>
 </div>

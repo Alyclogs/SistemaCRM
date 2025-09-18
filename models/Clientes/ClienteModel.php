@@ -86,8 +86,9 @@ class ClienteModel
     public function obtenerClientesPorEstado($idestado)
     {
         try {
-            $sql = "SELECT c.*, ec.estado FROM clientes c WHERE c.idestado = ?
-            INNER JOIN estados_clientes ec ON c.idestado = ec.idestado";
+            $sql = "SELECT c.*, ec.estado, e.razon_social AS empresa FROM clientes c WHERE c.idestado = ?
+            INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
+            INNER JOIN empresas e ON c.idempresa = e.id";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$idestado]);
             $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -105,8 +106,9 @@ class ClienteModel
     public function obtenerCliente($id)
     {
         try {
-            $sql = "SELECT c.*, ec.estado FROM clientes c
+            $sql = "SELECT c.*, ec.estado, e.razon_social AS empresa FROM clientes c
             INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
+            INNER JOIN empresas e ON c.idempresa = e.id
             WHERE c.idcliente = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id]);
@@ -122,7 +124,7 @@ class ClienteModel
     public function crearCliente($data)
     {
         try {
-            $sql = "INSERT INTO clientes (nombre, tipo_doc, num_doc, telefono, correo, idestado, foto) 
+            $sql = "INSERT INTO clientes (nombre, tipo_doc, num_doc, telefono, correo, idestado, foto, idempresa) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
@@ -132,7 +134,8 @@ class ClienteModel
                 $data['telefono'],
                 $data['correo'],
                 $data['idestado'],
-                $data['foto']
+                $data['foto'],
+                $data['idempresa']
             ]);
 
             $idcliente = $this->pdo->lastInsertId();
@@ -190,7 +193,11 @@ class ClienteModel
     public function actualizarCliente($id, $data)
     {
         try {
-            $sql = "UPDATE clientes SET nombre=?, tipo_doc=?, num_doc=?, telefono=?, correo=?, idestado=? 
+            $stmtFoto = $this->pdo->prepare("SELECT foto FROM clientes WHERE idcliente = :id");
+            $stmtFoto->execute(['id' => $id]);
+            $fotoActual = $stmtFoto->fetchColumn();
+
+            $sql = "UPDATE clientes SET nombre=?, tipo_doc=?, num_doc=?, telefono=?, correo=?, idestado=?, foto=?, idempresa=? 
                     WHERE idcliente=?";
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([
@@ -200,6 +207,7 @@ class ClienteModel
                 $data['telefono'],
                 $data['correo'],
                 $data['idestado'],
+                $data['foto'] ?? $fotoActual ?? "assets/img/usuariodefault.png",
                 $id
             ]);
         } catch (Exception $e) {

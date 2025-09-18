@@ -45,6 +45,7 @@ if (!file_exists($ruta)) {
         <div class="main-container">
             <?php include("views/components/sidebar.php"); ?>
             <div class="container-fluid flex-grow-1 p-0">
+                <?php include("views/components/header.php"); ?>
                 <main class="page-container">
                     <div class="page-content">
                         <?php include($ruta); ?>

@@ -117,7 +117,7 @@ button.symmetrical-sm {
 .btn-outline:hover,
 .btn-outline:active,
 .btn-outline.selected {
-  background-color: var(--default-theme-color-light) !important;
+  background-color: var(--default-bg-color-light) !important;
 }
 
 .btn-outline svg,

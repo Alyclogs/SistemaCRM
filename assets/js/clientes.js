@@ -48,36 +48,30 @@ function fetchClientes(filtro = "", idestado = "") {
                     }
                 }
 
-                html += `<div class="col col-xl-4 col-lg-6 col-md-6 col-sm-12">
-                    <div class="container-border">
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <div class="info-row">
-                                <img src="${baseurl + cliente.foto}" class="user-icon sm" data-type="cliente" data-id="${cliente.idcliente}"></img>
-                                <h5 class="text-large flex-grow-1">${cliente.nombre}</h5>
-                                <div class="chip ${clienteEstado(cliente.estado)}">${cliente.estado}</div>
-                            </div>
-                            <div class="icons-row">
-                                <button class="btn-icon bg-light" id="btnEditCliente" data-id="${cliente.idcliente}" title="Editar cliente">${myIcons.edit}</button>
-                                <button class="btn-icon bg-light" id="btnProyectosCliente" data-id="${cliente.idcliente}" title="Asignar proyectos">${myIcons.dni}</button>
-                            </div>
+                html += `<tr>
+                    <td>
+                        <div class="info-row">
+                            <img class="user-icon sm clickable" data-type="cliente" data-id="${cliente.idcliente}" src="${cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}"></img>
+                            <span class="fw-bold user-link clickable" data-type="cliente" data-id="${cliente.idcliente}">${cliente.nombre}</span>
                         </div>
-                        <div class="row mb-4" style="max-width: 65%;">
-                            <div class="col info-row">${cliente.tipo_doc}: ${cliente.num_doc}</div>
-                            <div class="col info-row">${myIcons.telefono}${cliente.telefono}</div>
-                            <div class="col info-row">${myIcons.correo}${cliente.correo}</div>
+                    </td>
+                    <td>${cliente.empresa || ''}</td>
+                    <td>${cliente.num_doc}</td>
+                    <td>${cliente.telefono}</td>
+                    <td>${cliente.correo}</td>
+                    <td>
+                        <div class="chip chip-outline chip-info">${cliente.nombre_rol}</div>
+                    </td>
+                    <td>
+                        <div class="chip chip-${estadoUsuario(cliente.estado)}">${cliente.estado}</div>
+                    </td>
+                    <td>
+                        <div class="icons-row">
+                            <button class="btn-icon bg-light" id="btnEditUsuario" data-id="${cliente.idcliente}">${window.icons.edit}</button>
+                            <button class="btn-icon bg-light" id="btnDeleteUsuario" data-id="${cliente.idcliente}">${window.icons.trash}</button>
                         </div>
-                        <div>
-                            <div class="d-flex flex-column gap-1">
-                                <p class="text-medium">Proyectos</p>
-                                <div class="d-flex gap-2">
-                                    ${cliente.proyectos.length
-                        ? cliente.proyectos.map(proyecto => `<div class="chip chip-outline clickable ${proyectoEstado(proyecto.estado)}" data-tipo="proyecto" data-id="${proyecto.idproyecto}">${proyecto.nombre}</div>`).join('')
-                        : 'N/A'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
+                    </td>
+                </tr>`;
             });
 
             html += '</div>';
