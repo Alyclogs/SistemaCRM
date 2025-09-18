@@ -21,24 +21,29 @@ $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
 ?>
 
 <link rel="stylesheet" href="./assets/css/general.css">
-<div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="card p-4 shadow-lg" style="width: 350px;">
-        <h2 class="text-center">Iniciar sesión</h2>
+<div class="d-flex vh-100">
+    <div class="flex-grow-1">
 
-        <?php if ($error === true): ?>
-            <div class="alert alert-danger">Usuario o contraseña incorrectos</div>
-        <?php endif; ?>
+    </div>
+    <div class="h-100 d-flex align-items-center" style="width: 460px;">
+        <div class="p-3 d-flex flex-column">
+            <h2 class="text-center mb-3">Iniciar sesión</h2>
 
-        <form method="POST" action="http://localhost/SistemaCRM/controller/Usuarios/procesarLogin.php">
-            <div class="mb-3">
-                <label class="form-label">Usuario</label>
-                <input type="text" class="form-control" name="usuario" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Contraseña</label>
-                <input type="password" class="form-control" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Entrar</button>
-        </form>
+            <?php if ($error === true): ?>
+                <div class="alert alert-danger">Usuario o contraseña incorrectos</div>
+            <?php endif; ?>
+
+            <form method="POST" action="http://localhost/SistemaCRM/controller/Usuarios/procesarLogin.php">
+                <div class="mb-3">
+                    <label class="form-label">Usuario</label>
+                    <input type="text" class="form-control" name="usuario" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Entrar</button>
+            </form>
+        </div>
     </div>
 </div>
