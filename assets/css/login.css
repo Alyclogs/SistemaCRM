@@ -1,0 +1,18 @@
+body {
+    background-image: linear-gradient(to right, #0e2b6d, rgba(0, 0, 0, 0)), url('../img/fondo-login2.png');
+    background-size: cover;
+}
+
+input {
+    width: 320px;
+}
+
+.login-container {
+    position: absolute;
+    right: 20%;
+}
+
+.fondo-logo {
+    position: absolute;
+    left: 20%;
+}

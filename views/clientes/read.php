@@ -13,7 +13,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
     </button>
 </div>
 
-<div class="page-main">
+<div class="page-content">
     <div class="animate__animated animate__fadeInUp tabs-container">
         <div class="tab-item selected">TODOS</div>
         <?php if (!empty($estados)): ?>
@@ -38,7 +38,18 @@ $estados = $clienteModel->obtenerEstadosClientes();
             </div>
         </div>
 
-        <div class="animate__animated animate__fadeInUp" id="clientsContainer"></div>
+        <table class="animate__animated animate__fadeInUp table align-middle">
+            <thead>
+                <th id="td-cliente">Cliente</th>
+                <th id="td-organizacion">Organización</th>
+                <th id="td-dni">DNI</th>
+                <th id="td-telefono">Teléfono</th>
+                <th id="td-correo">Correo</th>
+                <th id="td-estado">Estado</th>
+                <th></th>
+            </thead>
+            <tbody id="tablaClientesBody"></tbody>
+        </table>
     </div>
 </div>
 
@@ -51,7 +62,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
             </div>
             <div class="modal-body" id="clienteModalBody"></div>
             <div class="modal-footer">
-                <button type="button" class="btn-cancelar" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn-default" id="btnGuardarCliente">Guardar cambios</button>
             </div>
         </div>

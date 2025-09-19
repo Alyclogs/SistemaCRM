@@ -30,6 +30,13 @@ try {
                 $response = ["success" => true, "message" => "Cliente obtenido", "data" => $data];
                 break;
 
+            case 'searchOrganizaciones':
+                if (!isset($_GET['filtro'])) throw new Exception("Filtro requerido");
+                $data = $clienteModel->buscarOrganizaciones($_GET['filtro']);
+                echo json_encode($data);
+                exit;
+                break;
+
             case 'create':
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                     $archivoFoto = $_FILES['foto'];
@@ -144,6 +151,17 @@ try {
                 if (!isset($_POST['idcliente'])) throw new Exception("ID requerido");
                 $clienteModel->eliminarCliente($_POST['idcliente']);
                 $response = ["success" => true, "message" => "Cliente eliminado"];
+                break;
+
+            case 'createOrganizacion':
+                $clienteModel->crearEmpresa($_POST);
+                $response = ["success" => true, "message" => "Organización creada"];
+                break;
+
+            case 'updateOrganizacion':
+                if (!isset($_POST['idempresa'])) throw new Exception("ID requerido");
+                $clienteModel->actualizarEmpresa($_POST['idempresa'], $_POST);
+                $response = ["success" => true, "message" => "Organización actualizada"];
                 break;
         }
     }

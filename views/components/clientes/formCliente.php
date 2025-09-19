@@ -44,39 +44,41 @@ $estados = $clienteModel->obtenerEstadosClientes();
         </div>
 
         <div class="col-9">
-            <div class="col-12 mb-3">
-                <label for="" class="form-label">Nombre <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="nombreInput" name="nombre" value="<?= $cliente['nombre'] ?? '' ?>" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+">
-            </div>
-            <div class="col-12 mb-3">
-                <label for="" class="form-label">Correo <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="correoInput" name="correo" value="<?= $cliente['correo'] ?? '' ?>">
-            </div>
-            <div class="row mb-3">
-                <div class="col-6">
-                    <label for="" class="form-label">Tipo de documento <span class="text-danger">*</span></label>
-                    <select class="form-select" id="tipoDocSelect" name="tipo_doc" value="<?= $cliente['tipo_doc'] ?? '' ?>" required>
-                        <option value="DNI">DNI</option>
-                        <option value="RUC">RUC</option>
-                    </select>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label for="nombresInput" class="form-label">Nombres <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="nombresInput" name="nombres" value="<?= $cliente['nombres'] ?? '' ?>" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+">
                 </div>
-                <div class="col-6">
-                    <label for="" class="form-label">Número de documento <span class="text-danger">*</span></label>
+                <div class="col-6 mb-3">
+                    <label for="apellidosInput" class="form-label">Apellidos <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="apellidosInput" name="apellidos" value="<?= $cliente['apellidos'] ?? '' ?>" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+">
+                </div>
+                <div class="col-6 mb-3">
+                    <label for="numDocInput" class="form-label">Número de documento <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="numDocInput" name="num_doc" value="<?= $cliente['num_doc'] ?? '' ?>" required maxlength="8">
                 </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-6">
-                    <label for="" class="form-label">Teléfono <span class="text-danger">*</span></label>
+                <div class="col-6 mb-3">
+                    <label for="telefonoInput" class="form-label">Teléfono <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="telefonoInput" name="telefono" value="<?= $cliente['telefono'] ?? '' ?>" required maxlength="9">
                 </div>
-                <div class="col-6">
-                    <label for="" class="form-label">Estado <span class="text-danger">*</span></label>
+                <div class="col-6 mb-3">
+                    <label for="estadoSelect" class="form-label">Estado <span class="text-danger">*</span></label>
                     <select class="form-select" id="estadoSelect" name="idestado">
                         <?php foreach ($estados as $estado): ?>
                             <option value="<?= $estado['idestado'] ?>" <?= isset($cliente['idestado']) && $cliente['idestado'] == $estado['idestado'] ? 'selected' : '' ?>><?= $estado['estado'] ?></option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+                <div class="col-6 mb-3">
+                    <label for="organizacionInput" class="form-label">Organización <span class="text-danger">*</span></label>
+                    <div class="busqueda-input">
+                        <input type="text" class="form-control" id="organizacionInput" name="empresa" value="<?= $cliente['empresa'] ?? '' ?>" required>
+                        <div class="resultados-busqueda" data-parent="organizacionInput" style="top: 2.5rem;"></div>
+                    </div>
+                </div>
+                <div class="col-12 mb-3">
+                    <label for="correoInput" class="form-label">Correo <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="correoInput" name="correo" value="<?= $cliente['correo'] ?? '' ?>">
                 </div>
             </div>
         </div>

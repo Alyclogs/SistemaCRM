@@ -58,7 +58,7 @@ button.symmetrical-sm {
 .btn-default:hover,
 .btn-default:active,
 .btn-default.selected {
-  background-color: var(--default-theme-color-accent) !important;
+  background-color: var(--default-theme-color-dark) !important;
 }
 
 .btn-default svg,
@@ -79,7 +79,7 @@ button.symmetrical-sm {
   border: none;
   outline: none;
   transition: all 0.2s ease-in-out;
-  background-color: #8b919b;
+  background-color: var(--secondary-theme-color);
   font-size: 14px;
   color: #fff;
 }
@@ -87,7 +87,7 @@ button.symmetrical-sm {
 .btn-cancelar:hover,
 .btn-cancelar:active,
 .btn-cancelar.selected {
-  background-color: #7d8391 !important;
+  background-color: var(--secondary-theme-color-dark) !important;
 }
 
 .btn-cancelar svg,

@@ -10,7 +10,7 @@ require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
     </button>
 </div>
 
-<div class="page-main">
+<div class="page-content">
     <div class="d-flex flex-column gap-3">
         <div class="animate__animated animate__fadeInUp page-header">
             <div class="buttons-row buttons-2">

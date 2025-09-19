@@ -243,7 +243,7 @@
     }
 </style>
 
-<div class="page-main">
+<div class="page-content">
     <div class="container">
         <div class="controls">
             <div class="month-nav">

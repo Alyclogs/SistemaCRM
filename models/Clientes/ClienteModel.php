@@ -18,9 +18,11 @@ class ClienteModel
     public function obtenerClientes($idestado = null)
     {
         try {
-            $sql = "SELECT c.*, ec.estado 
+            $sql = "SELECT c.*, ec.estado, e.idempresa, e.razon_social AS empresa
                 FROM clientes c
-                INNER JOIN estados_clientes ec ON c.idestado = ec.idestado";
+                INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
+                LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
+                LEFT JOIN empresas e ON e.idempresa = emc.idempresa";
 
             $params = [];
 
@@ -46,12 +48,14 @@ class ClienteModel
     public function buscarClientes($filtro, $idestado = null)
     {
         try {
-            $sql = "SELECT c.*, ec.estado 
+            $sql = "SELECT c.*, ec.estado, e.idempresa, e.razon_social AS empresa
                 FROM clientes c
                 INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
-                WHERE (c.nombre LIKE ? OR c.num_doc LIKE ?)";
+                LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
+                LEFT JOIN empresas e ON e.idempresa = emc.idempresa
+                WHERE (c.nombres LIKE ? OR c.apellidos LIKE ? OR c.num_doc LIKE ?)";
 
-            $params = ["%$filtro%", "%$filtro%"];
+            $params = ["%$filtro%", "%$filtro%", "%$filtro%"];
 
             if (!empty($idestado)) {
                 $sql .= " AND c.idestado = ?";
@@ -86,9 +90,10 @@ class ClienteModel
     public function obtenerClientesPorEstado($idestado)
     {
         try {
-            $sql = "SELECT c.*, ec.estado, e.razon_social AS empresa FROM clientes c WHERE c.idestado = ?
+            $sql = "SELECT c.*, ec.estado, e.idempresa, e.razon_social AS empresa FROM clientes c WHERE c.idestado = ?
             INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
-            INNER JOIN empresas e ON c.idempresa = e.id";
+            LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
+            LEFT JOIN empresas e ON e.idempresa = emc.idempresa";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$idestado]);
             $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -106,9 +111,10 @@ class ClienteModel
     public function obtenerCliente($id)
     {
         try {
-            $sql = "SELECT c.*, ec.estado, e.razon_social AS empresa FROM clientes c
+            $sql = "SELECT c.*, ec.estado, e.idempresa, e.razon_social AS empresa FROM clientes c
             INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
-            INNER JOIN empresas e ON c.idempresa = e.id
+            LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
+            LEFT JOIN empresas e ON e.idempresa = emc.idempresa
             WHERE c.idcliente = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id]);
@@ -121,21 +127,37 @@ class ClienteModel
         }
     }
 
+    public function buscarOrganizaciones($filtro)
+    {
+        try {
+            $sql = "SELECT * FROM empresas
+                WHERE (razon_social LIKE ? OR ruc LIKE ?)";
+
+            $params = ["%$filtro%", "%$filtro%"];
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $clientes;
+        } catch (Exception $e) {
+            throw new Exception("Error al buscar clientes: " . $e->getMessage());
+        }
+    }
+
     public function crearCliente($data)
     {
         try {
-            $sql = "INSERT INTO clientes (nombre, tipo_doc, num_doc, telefono, correo, idestado, foto, idempresa) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO clientes (nombres, apellidos, num_doc, telefono, correo, idestado, foto) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
-                $data['nombre'],
-                $data['tipo_doc'],
+                $data['nombres'],
                 $data['num_doc'],
                 $data['telefono'],
                 $data['correo'],
                 $data['idestado'],
-                $data['foto'],
-                $data['idempresa']
+                $data['foto']
             ]);
 
             $idcliente = $this->pdo->lastInsertId();
@@ -197,12 +219,12 @@ class ClienteModel
             $stmtFoto->execute(['id' => $id]);
             $fotoActual = $stmtFoto->fetchColumn();
 
-            $sql = "UPDATE clientes SET nombre=?, tipo_doc=?, num_doc=?, telefono=?, correo=?, idestado=?, foto=?, idempresa=? 
+            $sql = "UPDATE clientes SET nombres=?, apellidos=?, num_doc=?, telefono=?, correo=?, idestado=?, foto=? 
                     WHERE idcliente=?";
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([
-                $data['nombre'],
-                $data['tipo_doc'],
+                $data['nombres'],
+                $data['apellidos'],
                 $data['num_doc'],
                 $data['telefono'],
                 $data['correo'],
@@ -223,6 +245,46 @@ class ClienteModel
             return $stmt->execute([$id]);
         } catch (Exception $e) {
             throw new Exception("Error al eliminar cliente: " . $e->getMessage());
+        }
+    }
+
+    public function crearEmpresa($data)
+    {
+        try {
+            $sql = "INSERT INTO empresas (razon_social, ruc, direccion, direccion_referencia) 
+                VALUES (?, ?, ?, ?)";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                $data['razon_social'],
+                $data['ruc'] ?? '',
+                $data['direccion'] ?? '',
+                $data['direccion_referencia'] ?? ''
+            ]);
+
+            return $this->pdo->lastInsertId();
+        } catch (Exception $e) {
+            throw new Exception("Error al crear empresa: " . $e->getMessage());
+        }
+    }
+
+    public function actualizarEmpresa($idempresa, $data)
+    {
+        try {
+            $sql = "UPDATE empresas 
+                SET razon_social = ?, ruc = ?, direccion = ?, direccion_referencia = ?
+                WHERE idempresa = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                $data['razon_social'],
+                $data['ruc'] ?? '',
+                $data['direccion'] ?? '',
+                $data['direccion_referencia'] ?? '',
+                $idempresa
+            ]);
+
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Error al actualizar empresa: " . $e->getMessage());
         }
     }
 }

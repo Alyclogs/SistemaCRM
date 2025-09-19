@@ -22,35 +22,35 @@ $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
 
 <link rel="stylesheet" href="./assets/css/general.css">
 <div class="d-flex vh-100 d-flex align-items-center justify-content-center">
-    <div class="p-4 container-shadow">
+    <img src="./assets/img/capedu-large.png" alt="Imagen de Capedu" class="fondo-logo">
+    <div class="p-4 container-backdrop login-container">
         <div class="p-4 d-flex flex-column">
-            <h2 class="text-center text-large my-4">Iniciar sesión</h2>
+            <h4 class="text-center my-4 text-white">Iniciar sesión</h4>
 
             <?php if ($error === true): ?>
                 <div class="alert alert-danger">Usuario o contraseña incorrectos</div>
             <?php endif; ?>
-
             <div class="mb-4">
                 <form method="POST" action="http://localhost/SistemaCRM/controller/Usuarios/procesarLogin.php">
                     <div class="mb-3">
-                        <label class="form-label">Usuario</label>
-                        <div class="grupo-input login">
+                        <label class="form-label text-white">Usuario</label>
+                        <div class="grupo-input">
                             <div class="px-1">
                                 <?php include('./assets/svg/user.svg') ?>
                             </div>
-                            <input type="text" class="form-control underline pb-0" name="usuario" required>
+                            <input type="text" class="form-control" name="usuario" required>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Contraseña</label>
-                        <div class="grupo-input login mb-4">
+                        <label class="form-label text-white">Contraseña</label>
+                        <div class="grupo-input mb-4">
                             <div class="px-1">
                                 <?php include('./assets/svg/lock.svg') ?>
                             </div>
-                            <input type="password" class="form-control underline pb-0" name="password" required>
+                            <input type="password" class="form-control" name="password" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                    <button type="submit" class="btn-default w-100">Ingresar</button>
                 </form>
             </div>
         </div>

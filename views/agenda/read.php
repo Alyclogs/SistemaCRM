@@ -1,4 +1,4 @@
-<div class="page-main">
+<div class="page-content">
     <div id="calendar" style="max-height: 100%;"></div>
 </div>
 

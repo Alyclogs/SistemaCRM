@@ -30,7 +30,7 @@ if (!file_exists($ruta)) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="./assets/css/general.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -44,12 +44,10 @@ if (!file_exists($ruta)) {
     <?php if ($pagina !== "login"): ?>
         <div class="main-container">
             <?php include("views/components/sidebar.php"); ?>
-            <div class="container-fluid flex-grow-1 p-0">
+            <div class="main-content">
                 <?php include("views/components/header.php"); ?>
                 <main class="page-container">
-                    <div class="page-content">
-                        <?php include($ruta); ?>
-                    </div>
+                    <?php include($ruta); ?>
                 </main>
                 <?php include("views/components/footer.php"); ?>
             </div>
@@ -58,5 +56,19 @@ if (!file_exists($ruta)) {
         <?php include($ruta); ?>
     <?php endif; ?>
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        document.querySelectorAll('.menu-button').forEach(button => {
+            button.addEventListener('click', function() {
+                button.querySelector('.menu-submenu').style.display = 'flex';
+            });
+        });
+    });
+</script>
 
 </html>

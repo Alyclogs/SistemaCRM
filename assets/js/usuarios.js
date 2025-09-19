@@ -1,3 +1,4 @@
+import api from "./api.js";
 import { mostrarToast } from "./utils.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
@@ -6,20 +7,24 @@ let selectedEstado = '';
 let usuariosCache = [];
 
 function fetchUsuarios(filtro = "", idestado = "") {
-    let url = baseurl + (filtro === ''
-        ? 'controller/Usuarios/UsuarioController.php?action=read'
-        : 'controller/Usuarios/UsuarioController.php?action=search&filtro=' + encodeURIComponent(filtro));
+    let params = [];
+
+    if (filtro !== '') {
+        params.push({ name: 'filtro', value: filtro });
+    }
 
     if (idestado !== '') {
-        url += ('&idestado=' + encodeURIComponent(idestado));
+        params.push({ name: 'idestado', value: idestado });
     }
 
     const container = document.getElementById('tablaUsuariosBody');
     container.innerHTML = 'Cargando...'; // Barra de carga proximamente uwu
 
-    fetch(url)
-        .then(res => res.json())
-        .then(async (usuarios) => {
+    api.get({
+        source: "usuarios",
+        action: filtro === '' ? "read" : "search",
+        params,
+        onSuccess: function (usuarios) {
             let html = '';
             if (usuarios.length === 0) {
                 container.innerHTML = `No se encontraron usuarios`;
@@ -57,10 +62,8 @@ function fetchUsuarios(filtro = "", idestado = "") {
             });
 
             container.innerHTML = html;
-        })
-        .catch(e => {
-            console.error(e);
-        });
+        }
+    });
 }
 
 function guardarUsuario() {
@@ -70,86 +73,26 @@ function guardarUsuario() {
     const idusuario = formData.get("idusuario");
     const action = idusuario ? "update" : "create";
 
-    fetch(baseurl + "controller/usuarios/UsuarioController.php?action=" + action, {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                mostrarToast({
-                    message: data.message,
-                    type: "success"
-                });
-                fetchUsuarios();
-                $("#usuarioModal").modal("hide");
-            } else {
-                mostrarToast({
-                    message: data.message,
-                    type: "danger"
-                });
-            }
-        })
-        .catch(err => {
-            console.error("Error en la solicitud:", err);
-        });
+    api.post({
+        source: "usuarios",
+        action,
+        data: formData,
+        onSuccess: function () {
+            fetchUsuarios();
+            $("#usuarioModal").modal("hide");
+        }
+    });
 }
 
 function eliminarUsuario(idusuario) {
     const formData = new FormData();
     formData.append('idusuario', idusuario);
 
-    fetch(baseurl + "controller/usuarios/UsuarioController.php?action=delete", {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                mostrarToast({
-                    message: data.message,
-                    type: "success"
-                });
-                fetchUsuarios();
-            } else {
-                mostrarToast({
-                    message: data.message,
-                    type: "danger"
-                });
-            }
-        })
-        .catch(err => {
-            console.error("Error en la solicitud:", err);
-        });
-}
-
-function asignarProyectos() {
-    const seleccionados = [...document.querySelectorAll("#selectorItems .selector-item.selected")]
-        .map(el => el.dataset.id);
-
-    const formData = new FormData();
-    formData.append("idusuario", document.getElementById('selectedId').value);
-    formData.append("projects", JSON.stringify(seleccionados));
-
-    fetch(baseurl + "controller/usuarios/UsuarioController.php?action=setProjects", {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                mostrarToast({
-                    title: "Hola"
-                });
-                fetchUsuarios();
-                $("#selectorModal").modal("hide");
-            } else {
-                alert("Error: " + data.message);
-            }
-        })
-        .catch(err => {
-            console.error("Error en la solicitud:", err);
-        });
+    api.post({
+        source: "usuarios",
+        action: "delete",
+        data: formData
+    });
 }
 
 document.addEventListener('click', function (e) {
@@ -193,24 +136,6 @@ document.addEventListener('click', function (e) {
         if (confirm("¿Seguro que desea eliminar al usuario del sistema?")) {
             eliminarUsuario(idusuario);
         }
-    }
-
-    if (e.target.closest('#btnProyectosUsuario')) {
-        e.stopPropagation();
-        const idusuario = e.target.closest('#btnProyectosUsuario').dataset.id;
-        fetch(baseurl + "views/components/selectModal.php?source=proyectos&type=multiple&id=" + idusuario)
-            .then(res => res.text())
-            .then(html => {
-                $("#selectorModal").remove();
-                $("body").append(html);
-                $("#selectorModalLabel").text("Seleccione proyectos")
-                $("#selectorModal").modal("show");
-
-                $('#btnSeleccionar').on('click', function () {
-                    asignarProyectos();
-                });
-            })
-            .catch(e => console.error(e));
     }
 
     if (e.target.closest('#btnGuardarUsuario')) {

@@ -1,7 +1,7 @@
 const baseurl = 'http://localhost/SistemaCRM/';
 
 export const icons = async () => {
-    const [add, edit, trash, menu, telefono, correo, dni, error, success, warning, info] = await Promise.all([
+    const [add, edit, trash, menu, telefono, correo, dni, error, success, warning, info, building] = await Promise.all([
         fetch(baseurl + "assets/svg/add.svg").then(res => res.text()),
         fetch(baseurl + "assets/svg/edit.svg").then(res => res.text()),
         fetch(baseurl + "assets/svg/trash.svg").then(res => res.text()),
@@ -12,7 +12,8 @@ export const icons = async () => {
         fetch(baseurl + "assets/svg/close-circle.svg").then(res => res.text()),
         fetch(baseurl + "assets/svg/success.svg").then(res => res.text()),
         fetch(baseurl + "assets/svg/warning.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/info-circle.svg").then(res => res.text())
+        fetch(baseurl + "assets/svg/info-circle.svg").then(res => res.text()),
+        fetch(baseurl + "assets/svg/building.svg").then(res => res.text())
     ]);
 
     return {
@@ -26,7 +27,8 @@ export const icons = async () => {
         error,
         success,
         warning,
-        info
+        info,
+        building
     };
 };
 
@@ -118,6 +120,7 @@ export function mostrarToast({ title, message, location = "bottom-right", type =
     }
 
     // Insertar en contenedor
+    container.querySelectorAll(".toast").forEach(t => t.remove());
     container.appendChild(toast);
 
     requestAnimationFrame(() => {

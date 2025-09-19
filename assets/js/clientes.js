@@ -1,4 +1,5 @@
-import { icons, mostrarToast } from "./utils.js";
+import api from "./api.js";
+import { mostrarToast } from "./utils.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
 let filtroBuscado = '';
@@ -6,25 +7,27 @@ let selectedEstado = '';
 let clientesCache = [];
 
 function fetchClientes(filtro = "", idestado = "") {
-    let url = baseurl + (filtro === ''
-        ? 'controller/Clientes/ClienteController.php?action=read'
-        : 'controller/Clientes/ClienteController.php?action=search&filtro=' + encodeURIComponent(filtro));
+    let params = [];
 
-    if (idestado !== '') {
-        url += ('&idestado=' + encodeURIComponent(idestado));
+    if (filtro !== '') {
+        params.push({ name: 'filtro', value: filtro });
     }
 
-    const container = document.getElementById('clientsContainer');
+    if (idestado !== '') {
+        params.push({ name: 'idestado', value: idestado });
+    }
+
+    const container = document.getElementById('tablaClientesBody');
     container.innerHTML = 'Cargando...'; // Barra de carga proximamente uwu
+    let html = '';
 
-    fetch(url)
-        .then(res => res.json())
-        .then(async (clientes) => {
-            let html = '';
-            const myIcons = await icons();
-
+    api.get({
+        source: "clientes",
+        action: filtro === '' ? "read" : "search",
+        params,
+        onSuccess: function (clientes) {
             if (clientes.length === 0) {
-                container.innerHTML = `No se encontraron clientes`;
+                container.innerHTML = "No se encontraron resultados";
                 return;
             }
             clientesCache = clientes;
@@ -32,19 +35,19 @@ function fetchClientes(filtro = "", idestado = "") {
             html += '<div class="row">';
 
             clientes.forEach(async (cliente) => {
-                const clienteEstado = (estado) => estado === 'CLIENTE' ? 'chip-success' : estado === 'INACTIVO' ? 'chip-danger' : 'chip-warning';
+                const clienteEstado = (estado) => estado === 'CLIENTE' ? 'success' : estado === 'INACTIVO' ? 'danger' : 'warning';
                 const proyectoEstado = (estado) => {
                     switch (estado) {
                         case 'PLANIFICADO':
-                            return 'chip-info';
+                            return 'info';
                         case 'EN PROGRESO':
-                            return 'chip-warning';
+                            return 'warning';
                         case 'EN PAUSA':
-                            return 'chip-danger';
+                            return 'danger';
                         case 'CANCELADO':
-                            return 'chip-danger';
+                            return 'danger';
                         case 'TERMINADO':
-                            return 'chip-success';
+                            return 'success';
                     }
                 }
 
@@ -52,7 +55,7 @@ function fetchClientes(filtro = "", idestado = "") {
                     <td>
                         <div class="info-row">
                             <img class="user-icon sm clickable" data-type="cliente" data-id="${cliente.idcliente}" src="${cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}"></img>
-                            <span class="fw-bold user-link clickable" data-type="cliente" data-id="${cliente.idcliente}">${cliente.nombre}</span>
+                            <span class="fw-bold user-link clickable" data-type="cliente" data-id="${cliente.idcliente}">${cliente.nombres} ${cliente.apellidos}</span>
                         </div>
                     </td>
                     <td>${cliente.empresa || ''}</td>
@@ -60,15 +63,12 @@ function fetchClientes(filtro = "", idestado = "") {
                     <td>${cliente.telefono}</td>
                     <td>${cliente.correo}</td>
                     <td>
-                        <div class="chip chip-outline chip-info">${cliente.nombre_rol}</div>
-                    </td>
-                    <td>
-                        <div class="chip chip-${estadoUsuario(cliente.estado)}">${cliente.estado}</div>
+                        <div class="chip chip-${clienteEstado(cliente.estado)}">${cliente.estado}</div>
                     </td>
                     <td>
                         <div class="icons-row">
-                            <button class="btn-icon bg-light" id="btnEditUsuario" data-id="${cliente.idcliente}">${window.icons.edit}</button>
-                            <button class="btn-icon bg-light" id="btnDeleteUsuario" data-id="${cliente.idcliente}">${window.icons.trash}</button>
+                            <button class="btn-icon bg-light" id="btnEditCliente" data-id="${cliente.idcliente}">${window.icons.edit}</button>
+                            <button class="btn-icon bg-light" id="btnDeleteCliente" data-id="${cliente.idcliente}">${window.icons.trash}</button>
                         </div>
                     </td>
                 </tr>`;
@@ -77,10 +77,8 @@ function fetchClientes(filtro = "", idestado = "") {
             html += '</div>';
 
             container.innerHTML = html;
-        })
-        .catch(e => {
-            console.error(e);
-        });
+        }
+    });
 }
 
 function guardarCliente() {
@@ -90,29 +88,26 @@ function guardarCliente() {
     const idcliente = formData.get("idcliente");
     const action = idcliente ? "update" : "create";
 
-    fetch(baseurl + "controller/clientes/ClienteController.php?action=" + action, {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                mostrarToast({
-                    message: data.message,
-                    type: "success"
-                });
-                fetchClientes();
-                $("#clienteModal").modal("hide");
-            } else {
-                mostrarToast({
-                    message: data.message,
-                    type: "danger"
-                });
-            }
-        })
-        .catch(err => {
-            console.error("Error en la solicitud:", err);
-        });
+    api.post({
+        source: "clientes",
+        action,
+        data: formData,
+        onSuccess: function () {
+            fetchClientes();
+            $("#clienteModal").modal("hide");
+        }
+    });
+}
+
+function eliminarCliente(idcliente) {
+    const formData = new FormData();
+    formData.append('idcliente', idcliente);
+
+    api.post({
+        source: "cliente",
+        action: "delete",
+        data: formData
+    });
 }
 
 function asignarProyectos() {
@@ -123,25 +118,15 @@ function asignarProyectos() {
     formData.append("idcliente", document.getElementById('selectedId').value);
     formData.append("projects", JSON.stringify(seleccionados));
 
-    fetch(baseurl + "controller/clientes/ClienteController.php?action=setProjects", {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                mostrarToast({
-                    title: "Hola"
-                });
-                fetchClientes();
-                $("#selectorModal").modal("hide");
-            } else {
-                alert("Error: " + data.message);
-            }
-        })
-        .catch(err => {
-            console.error("Error en la solicitud:", err);
-        });
+    api.post({
+        source: "clientes",
+        action: "setProjects",
+        data: formData,
+        onSuccess: function () {
+            fetchClientes();
+            $("#selectorModal").modal("hide");
+        }
+    });
 }
 
 document.addEventListener('click', function (e) {
@@ -179,6 +164,14 @@ document.addEventListener('click', function (e) {
             .catch(e => console.error(e));
     }
 
+    if (e.target.closest('#btnDeleteCliente')) {
+        e.stopPropagation();
+        const idcliente = e.target.closest('#btnDeleteCliente').dataset.id;
+        if (confirm("¿Seguro que desea eliminar al cliente del sistema?")) {
+            eliminarCliente(idcliente);
+        }
+    }
+
     if (e.target.closest('#btnProyectosCliente')) {
         e.stopPropagation();
         const idcliente = e.target.closest('#btnProyectosCliente').dataset.id;
@@ -198,8 +191,81 @@ document.addEventListener('click', function (e) {
     }
 
     if (e.target.closest('#btnGuardarCliente')) {
-        console.log('Click en guardar cliente');
         guardarCliente();
+    }
+
+    if (e.target.closest("#btnNuevaOrganizacion")) {
+        e.stopPropagation();
+        const value = e.target.closest("#btnNuevaOrganizacion").dataset.value;
+        const formData = new FormData();
+        formData.append("razon_social", value);
+
+        api.post({
+            source: "clientes",
+            action: "createOrganizacion",
+            data: formData
+        });
+        const resultados = document.querySelector(`[data-parent="organizacionInput"]`);
+        resultados.innerHTML = "";
+        resultados.style.display = "none";
+    }
+
+    if (e.target.closest(".resultado-item")) {
+        const target = e.target.closest(".resultado-item");
+        if (target.id === "btnNuevaOrganizacion") return;
+
+        const input = document.getElementById("organizacionInput");
+        input.value = target.dataset.value;
+
+        const resultados = document.querySelector(`[data-parent="organizacionInput"]`);
+        resultados.innerHTML = "";
+        resultados.style.display = "none";
+    }
+});
+
+document.addEventListener('input', function (e) {
+    if (e.target.closest('#organizacionInput')) {
+        const target = e.target.closest('#organizacionInput');
+        const value = target.value;
+        const resultados = document.querySelector(`[data-parent="${target.id}"]`);
+        let html = '';
+
+        const buttonNewOrganizacion = `
+        <div class="resultado-item bg-secondary text-white" id="btnNuevaOrganizacion" data-value="${value}">
+            ${window.getIcon("add", "white")}<span>Agregar ${value} como nueva organización</span>
+        </div>
+        `;
+
+        api.get({
+            source: "clientes",
+            action: "searchOrganizaciones",
+            params: [
+                { name: "filtro", value }
+            ],
+            onSuccess: (organizaciones) => {
+                if (organizaciones.length === 0) {
+                    html = buttonNewOrganizacion;
+                    resultados.innerHTML = html;
+                    resultados.style.display = "flex";
+                    return;
+                }
+
+                organizaciones.forEach(org => {
+                    html += `<div class="resultado-item" data-value="${org.razon_social}">
+                            ${window.icons.building}${org.razon_social}
+                        </div>`;
+                });
+
+                if (!organizaciones.some(org =>
+                    org.razon_social.toLowerCase().includes(value.toLowerCase().trim())
+                )) {
+                    html += buttonNewOrganizacion;
+                }
+
+                resultados.innerHTML = html;
+                resultados.style.display = "flex";
+            }
+        });
     }
 });
 
