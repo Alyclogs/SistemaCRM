@@ -18,7 +18,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
 ?>
 
 <form method="POST" id="formCliente">
-    <input type="hidden" name="idcliente" value="<?= $cliente['idcliente'] ?? '' ?>">
+    <input type="hidden" name="idexistente" value="<?= $cliente['idcliente'] ?? '' ?>">
 
     <div class="row">
         <div class="col-3 flex-column  d-flex align-items-center justify-content-center gap-3">
@@ -71,8 +71,9 @@ $estados = $clienteModel->obtenerEstadosClientes();
                 </div>
                 <div class="col-6 mb-3">
                     <label for="organizacionInput" class="form-label">Organización <span class="text-danger">*</span></label>
-                    <div class="busqueda-input">
+                    <div class="busqueda-grupo disable-auto">
                         <input type="text" class="form-control" id="organizacionInput" name="empresa" value="<?= $cliente['empresa'] ?? '' ?>" required>
+                        <input type="hidden" name="idempresa" id="idOrganizacionInput" value="">
                         <div class="resultados-busqueda" data-parent="organizacionInput" style="top: 2.5rem;"></div>
                     </div>
                 </div>

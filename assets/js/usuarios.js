@@ -114,7 +114,13 @@ document.addEventListener('click', function (e) {
                 $("#usuarioModalBody").html(html);
                 $("#usuarioModal").modal("show");
             })
-            .catch(e => console.error(e));
+            .catch(e => {
+                mostrarToast({
+                    message: "Ocurrió un error al mostrar el formulario",
+                    type: "danger"
+                });
+                console.error(e);
+            });
     }
 
     if (e.target.closest('#btnEditUsuario')) {
@@ -127,7 +133,13 @@ document.addEventListener('click', function (e) {
                 $("#usuarioModalBody").html(html);
                 $("#usuarioModal").modal("show");
             })
-            .catch(e => console.error(e));
+            .catch(e => {
+                mostrarToast({
+                    message: "Ocurrió un error al mostrar el formulario",
+                    type: "danger"
+                });
+                console.error(e);
+            });
     }
 
     if (e.target.closest('#btnDeleteUsuario')) {
@@ -142,11 +154,6 @@ document.addEventListener('click', function (e) {
         console.log('Click en guardar usuario');
         guardarUsuario();
     }
-});
-
-document.getElementById('inputBuscarUsuarios').addEventListener('input', function () {
-    filtroBuscado = this.value.trim().toLowerCase();
-    fetchUsuarios(filtroBuscado, selectedEstado);
 });
 
 document.addEventListener('DOMContentLoaded', function () {

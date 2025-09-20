@@ -1,11 +1,13 @@
 import CalendarUI from "./calendar.js";
 import { formatearFecha, formatearHora, formatEventDate } from "./date.js";
 
+const baseurl = 'http://localhost/SistemaCRM/';
 const calendarUI = new CalendarUI();
 var calendar = null;
 var popup = document.getElementById('popup');
 var activeEvent = null;
 var actividadActual = {};
+const defaultActividades = ["Llamada", "Videollamada", "Reunión"];
 
 document.addEventListener('DOMContentLoaded', function () {
     var calendarEl = document.getElementById('calendar');
@@ -43,19 +45,26 @@ document.addEventListener('DOMContentLoaded', function () {
         popup.style.display = "block";
 
         infoDate.textContent = formatEventDate(activeEvent.start, activeEvent.end);
-        titleInput.placeholder = "Llamada";
 
+        // Si el input ya tiene valor, usarlo como título del evento
+        if (titleInput.value.trim() !== "") {
+            activeEvent.setProp("title", titleInput.value.trim());
+        } else {
+            titleInput.placeholder = "Llamada";
+        }
+
+        // Mantener sincronía en tiempo real
         titleInput.oninput = function () {
             activeEvent.setProp("title", titleInput.value);
         };
 
         actividadActual = {
             title: activeEvent.title,
+            fecha: formatearFecha(activeEvent.start),
             start: formatearHora(activeEvent.start),
             end: formatearHora(activeEvent.end),
             type: "llamada"
         }
-        console.log(actividadActual);
     });
 
     calendar.setOption("eventResize", function (info) {
@@ -65,7 +74,8 @@ document.addEventListener('DOMContentLoaded', function () {
             infoDate.textContent = formatEventDate(info.event.start, info.event.end);
         } else {
             popup.style.display = "none";
-            // actualizar actividad
+            actividadActual.start = formatearHora(info.event.start);
+            actividadActual.end = formatearHora(info.event.end);
         }
     });
 
@@ -76,22 +86,57 @@ document.addEventListener('DOMContentLoaded', function () {
             infoDate.textContent = formatEventDate(info.event.start, info.event.end);
         } else {
             popup.style.display = "none";
-            // actualizar actividad
+            actividadActual.fecha = formatearFecha(info.event.start);
+            actividadActual.start = formatearHora(info.event.start);
+            actividadActual.end = formatearHora(info.event.end);
         }
     });
 
     calendar.render();
 });
 
-function actualizarTipoActividad(type = "detalles", btn) {
-    btn.querySelectorAll('.buttons-row button').forEach(button => button.classList.remove('selected'));
-    btn.classList.add('selected');
+document.addEventListener('click', function (e) {
+    if (e.target.closest('.btn-actividad')) {
+        const button = e.target.closest('.btn-actividad');
+        const esPopup = !!e.target.closest('.popup');
+        const source = e.target.closest(esPopup ? '.popup' : '#actividadModal');
+        const buttons = source.querySelector('.buttons-actividad');
+        const actividad = button.dataset.type;
 
-    if (type === "popup") {
+        buttons.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
+        button.classList.add('selected');
+        actividadActual.type = actividad;
 
-        return;
+        if (esPopup) {
+            const titleInput = source.querySelector('#titleInput');
+            const labels = {
+                llamada: "Llamada",
+                videollamada: "Videollamada",
+                reunion: "Reunión"
+            };
+
+            if (labels[actividad]) {
+                titleInput.placeholder = labels[actividad];
+                if (defaultActividades.includes(activeEvent.title)) {
+                    activeEvent.setProp("title", labels[actividad]);
+                }
+            }
+        }
     }
-    if (type === "detalles") {
-        return;
+    if (e.target.closest('#btnDetallesActividad')) {
+        e.target.closest('.popup').style.display = 'none';
+        fetch(baseurl + "views/components/agenda/formActividad.php")
+            .then(res => res.text())
+            .then(html => {
+                $("#actividadModalLabel").text("Editar actividad");
+                $("#actividadModalBody").html(html);
+                $("#actividadModal").modal('show');
+            }).catch(e => {
+                mostrarToast({
+                    message: "Ocurrió un error al mostrar el formulario",
+                    type: "danger"
+                });
+                console.error(e);
+            });
     }
-}
+});

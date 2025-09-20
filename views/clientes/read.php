@@ -5,41 +5,40 @@ $clienteModel = new ClienteModel();
 $estados = $clienteModel->obtenerEstadosClientes();
 ?>
 
-<div class="animate__animated animate__fadeInUp page-header">
-    <div class="page-title text-large">Clientes</div>
-    <button class="btn-default bg-accent" id="btnNuevoCliente" data-bs-toggle="modal" data-bs-target="#clienteModal">
-        <?php include('assets/svg/add.svg') ?>
-        <span>Nuevo registro</span>
-    </button>
+<div class="animate__animated animate__fadeInUp page-header bg-secondary text-white disable-hover">
+    <div class="d-flex gap-3 align-items-center">
+        <h5 class="page-title">Clientes</h5>
+        <button class="btn-default bg-accent" id="btnNuevoRegistro" data-bs-toggle="modal" data-bs-target="#clienteModal">
+            <?php include('assets/svg/add.svg') ?>
+            <span>Nuevo registro</span>
+        </button>
+    </div>
+    <div class="d-flex gap-3 align-items-center">
+        <button class="btn-symmetrical btn-secondary boton-filtro" id="btnRefresh"><?php include('./assets/svg/refresh-arrow-01.svg') ?></button>
+        <div class="busqueda-grupo" data-type="Tipo">
+            <button class="btn-secondary border boton-filtro selected" id="tiposClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="tiposClientes" id="tipoCliente">Clientes</span></button>
+            <div class="resultados-busqueda" data-parent="tiposClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
+                <div class="resultado-item filtro-item selected" data-id="1" data-value="Personas"><?php include('./assets/svg/profile.svg') ?><span>Personas</span></div>
+                <div class="resultado-item filtro-item" data-id="2" data-value="Organizaciones"><?php include('./assets/svg/building.svg') ?><span>Organizaciones</span></div>
+            </div>
+        </div>
+        <div class="busqueda-grupo" data-type="Estado">
+            <button class="btn-secondary border boton-filtro" id="estadosClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="estadosClientes" id="estadoCliente">Filtro</span></button>
+            <div class="resultados-busqueda" data-parent="estadosClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
+                <?php if (!empty($estados)): ?>
+                    <?php foreach ($estados as $estado): ?>
+                        <div class="resultado-item filtro-item" data-id="<?= $estado['idestado'] ?>" data-value="<?= $estado['estado'] ?>"><?= $estado['estado'] ?></div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="page-content">
-    <div class="animate__animated animate__fadeInUp tabs-container">
-        <div class="tab-item selected">TODOS</div>
-        <?php if (!empty($estados)): ?>
-            <?php foreach ($estados as $estado): ?>
-                <div class="tab-item" data-estado="<?= $estado['idestado'] ?>"><?= $estado['estado'] ?></div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-
     <div class="d-flex flex-column gap-3">
-        <div class="animate__animated animate__fadeInUp page-header">
-            <div class="buttons-row buttons-2">
-                <button class="btn-outline bg-white"><?php include('assets/svg/export-arrow-01.svg') ?>Exportar</button>
-                <button class="btn-outline bg-white"><?php include('assets/svg/refresh-arrow-01.svg') ?></button>
-            </div>
-            <div class="animate__animated animate__fadeInUp d-flex gap-2 align-items-center">
-                <div class="grupo-input">
-                    <?php include('assets/svg/search.svg') ?>
-                    <input type="text" id="inputBuscarClientes" placeholder="Buscar clientes...">
-                </div>
-                <button class="btn-outline bg-white"><?php include('assets/svg/filter.svg') ?>Filtrar</button>
-            </div>
-        </div>
-
-        <table class="animate__animated animate__fadeInUp table align-middle">
-            <thead>
+        <table class="animate__animated animate__fadeInUp table align-middle" id="tablaClientes" style="display: none;">
+            <thead id="tablaClientesHead">
                 <th id="td-cliente">Cliente</th>
                 <th id="td-organizacion">Organización</th>
                 <th id="td-dni">DNI</th>
@@ -49,6 +48,16 @@ $estados = $clienteModel->obtenerEstadosClientes();
                 <th></th>
             </thead>
             <tbody id="tablaClientesBody"></tbody>
+        </table>
+
+        <table class="animate__animated animate__fadeInUp table align-middle" id="tablaOrganizaciones" style="display: none;">
+            <thead id="tablaOrganizacionesHead">
+                <th id="td-organizacion">Organizacion</th>
+                <th id="td-ruc">RUC</th>
+                <th id="td-direccion">Dirección</th>
+                <th></th>
+            </thead>
+            <tbody id="tablaOrganizacionesBody"></tbody>
         </table>
     </div>
 </div>

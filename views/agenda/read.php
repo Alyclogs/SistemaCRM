@@ -1,9 +1,9 @@
 <div class="page-content">
-    <div id="calendar" style="max-height: 100%;"></div>
+    <div id="calendar"></div>
 </div>
 
 <div id="popup" class="popup">
-    <div class="buttons-row mb-3">
+    <div class="buttons-row buttons-actividad mb-3">
         <button class="btn-outline btn-actividad selected" data-type="llamada"><?php include('./assets/svg/call.svg') ?></button>
         <button class="btn-outline btn-actividad" data-type="videollamada"><?php include('./assets/svg/video.svg') ?></button>
         <button class="btn-outline btn-actividad" data-type="reunion"><?php include('./assets/svg/profile-2user.svg') ?></button>

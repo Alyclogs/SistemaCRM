@@ -2,30 +2,18 @@
 require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
 ?>
 
-<div class="animate__animated animate__fadeInUp page-header">
-    <div class="page-title text-large">Usuarios</div>
-    <button class="btn-default bg-accent" id="btnNuevoUsuario" data-bs-toggle="modal" data-bs-target="#usuarioModal">
-        <?php include('assets/svg/add.svg') ?>
-        <span>Nuevo registro</span>
-    </button>
+<div class="animate__animated animate__fadeInUp page-header bg-secondary text-white disable-hover">
+    <div class="d-flex gap-3 align-items-center">
+        <h5 class="page-title">Usuarios</h5>
+        <button class="btn-default bg-accent" id="btnNuevoUsuario" data-bs-toggle="modal" data-bs-target="#usuarioModal">
+            <?php include('assets/svg/add.svg') ?>
+            <span>Nuevo registro</span>
+        </button>
+    </div>
 </div>
 
 <div class="page-content">
     <div class="d-flex flex-column gap-3">
-        <div class="animate__animated animate__fadeInUp page-header">
-            <div class="buttons-row buttons-2">
-                <button class="btn-outline bg-white"><?php include('assets/svg/export-arrow-01.svg') ?>Exportar</button>
-                <button class="btn-outline bg-white"><?php include('assets/svg/refresh-arrow-01.svg') ?></button>
-            </div>
-            <div class="animate__animated animate__fadeInUp d-flex gap-2 align-items-center">
-                <div class="grupo-input">
-                    <?php include('assets/svg/search.svg') ?>
-                    <input type="text" id="inputBuscarUsuarios" placeholder="Buscar usuarios...">
-                </div>
-                <button class="btn-outline bg-white"><?php include('assets/svg/filter.svg') ?>Filtrar</button>
-            </div>
-        </div>
-
         <table class="animate__animated animate__fadeInUp table align-middle">
             <thead>
                 <th>Usuario</th>

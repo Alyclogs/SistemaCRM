@@ -20,7 +20,6 @@ if (isset($_SESSION['usuario']) && isset($_SESSION['rol'])) {
 $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
 ?>
 
-<link rel="stylesheet" href="./assets/css/general.css">
 <div class="d-flex vh-100 d-flex align-items-center justify-content-center">
     <img src="./assets/img/capedu-large.png" alt="Imagen de Capedu" class="fondo-logo">
     <div class="p-4 container-backdrop login-container">

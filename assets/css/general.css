@@ -12,6 +12,26 @@
   --animate-duration: 0.8s;
 }
 
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-internal-autofill-selected,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-internal-autofill-selected select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-internal-autofill-selected .form-control:-webkit-autofill:focus,
+.form-select:-webkit-autofill:focus,
+.form-control:-internal-autofill-selected,
+.form-select:-internal-autofill-selected {
+  background-color: transparent !important;
+  color: var(--default-text-color) !important;
+  font-family: 'Poppins', sans-serif !important;
+  transition: background-color 5000000s ease-in-out 0s;
+}
+
 body {
   font-family: "Poppins", sans-serif;
   font-size: 14px;
@@ -66,19 +86,19 @@ svg path {
   background-color: var(--default-theme-color-accent) !important;
 }
 
-.bg-default:hover {
+.bg-default:not(.disable-hover):hover {
   background-color: var(--default-theme-color-dark) !important;
 }
 
-.bg-secondary:hover {
+.bg-secondary:not(.disable-hover):hover {
   background-color: var(--secondary-theme-color-dark) !important;
 }
 
-.bg-accent:hover {
+.bg-accent:not(.disable-hover):hover {
   background-color: var(--default-theme-color-dark);
 }
 
-.bg-light:hover {
+.bg-light:not(.disable-hover):hover {
   background-color: #e4e7f1 !important;
 }
 
@@ -87,7 +107,7 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
-.bg-success:hover {
+.bg-success:not(.disable-hover):hover {
   background-color: var(--success-bg-color-hover) !important;
 }
 
@@ -104,7 +124,7 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
-.bg-warning:hover {
+.bg-warning:not(.disable-hover):hover {
   background-color: var(--warning-bg-color-hover) !important;
 }
 
@@ -121,7 +141,7 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
-.bg-info:hover {
+.bg-info:not(.disable-hover):hover {
   background-color: var(--info-bg-color-hover) !important;
 }
 
@@ -138,7 +158,7 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
-.bg-danger:hover {
+.bg-danger:not(.disable-hover):hover {
   background-color: var(--danger-bg-color-hover) !important;
 }
 
@@ -176,7 +196,6 @@ svg path {
 .page-container {
   height: 100%;
   background-color: var(--default-light-bg);
-  padding: 2.5rem;
   padding-top: 0;
   border-radius: 2rem;
   height: 100%;
@@ -189,6 +208,9 @@ svg path {
   display: flex;
   align-items: end;
   justify-content: space-between;
+  width: 100%;
+  z-index: 1;
+  padding: 1rem;
 }
 
 .page-header .page-title {
@@ -199,10 +221,15 @@ svg path {
   background-color: #fff;
   border-radius: 1rem;
   width: 100%;
-  height: 100%;
+  height: 95%;
+  max-height: 95%;
   gap: 1rem;
   display: flex;
   flex-direction: column;
+  padding: 2.5rem;
+  padding-top: 1rem;
+  z-index: 0;
+  overflow-y: auto;
 }
 
 .clickable {
@@ -245,7 +272,7 @@ svg path {
   z-index: 2000;
 }
 
-.busqueda-input {
+.busqueda-grupo {
   position: relative;
 }
 
@@ -255,9 +282,10 @@ svg path {
   border-radius: .5rem;
   position: absolute;
   background-color: #fff;
+  color: var(--default-text-color);
   width: 100%;
   box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.08);
-  z-index: 2000;
+  z-index: 10;
 }
 
 .resultado-item {
@@ -269,6 +297,10 @@ svg path {
   cursor: pointer;
 }
 
+.resultado-item:not(:last-child) {
+  border-bottom: 1px solid var(--default-border-color);
+}
+
 .resultado-item:first-child {
   border-top-left-radius: .5rem;
   border-top-right-radius: .5rem;
@@ -277,6 +309,11 @@ svg path {
 .resultado-item:last-child {
   border-bottom-left-radius: .5rem;
   border-bottom-right-radius: .5rem;
+}
+
+.resultado-item:hover,
+.resultado-item.selected {
+  background-color: var(--default-bg-color-light);
 }
 
 .tabs-container {

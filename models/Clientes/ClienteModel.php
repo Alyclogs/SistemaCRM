@@ -4,7 +4,6 @@ require_once __DIR__ . "/../../config/database.php";
 class ClienteModel
 {
     private $pdo;
-    private $baseurl = "http://localhost/SistemaCRM/";
 
     public function __construct()
     {
@@ -18,6 +17,8 @@ class ClienteModel
     public function obtenerClientes($idestado = null)
     {
         try {
+            $sql = '';
+
             $sql = "SELECT c.*, ec.estado, e.idempresa, e.razon_social AS empresa
                 FROM clientes c
                 INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
@@ -127,6 +128,20 @@ class ClienteModel
         }
     }
 
+    public function obtenerOrganizaciones()
+    {
+        try {
+            $sql = "SELECT * FROM empresas";
+
+            $stmt = $this->pdo->query($sql);
+            $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $clientes;
+        } catch (Exception $e) {
+            throw new Exception("Error al buscar clientes: " . $e->getMessage());
+        }
+    }
+
     public function buscarOrganizaciones($filtro)
     {
         try {
@@ -145,6 +160,21 @@ class ClienteModel
         }
     }
 
+    public function obtenerOrganizacion($id)
+    {
+        try {
+            $sql = "SELECT * FROM empresas
+            WHERE idempresa = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$id]);
+            $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return $cliente;
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener organización: " . $e->getMessage());
+        }
+    }
+
     public function crearCliente($data)
     {
         try {
@@ -157,21 +187,14 @@ class ClienteModel
                 $data['telefono'],
                 $data['correo'],
                 $data['idestado'],
-                $data['foto']
+                $data['foto'] ?? 'assets/img/usuariodefault.png'
             ]);
 
             $idcliente = $this->pdo->lastInsertId();
 
-            /*
-            // Asignar proyectos al cliente
-            if (isset($data['proyectos'])) {
-                $proyectos = json_decode($data['proyectos'], true);
-
-                foreach ($proyectos as $proyecto) {
-                    $this->asignarProyectoACliente($idcliente, $proyecto);
-                }
+            if (isset($data['idempresa'])) {
+                $this->asignarEmpresaACliente($idcliente, $data['idempresa']);
             }
-                */
 
             return $idcliente;
         } catch (Exception $e) {
@@ -212,17 +235,42 @@ class ClienteModel
         }
     }
 
+    public function asignarEmpresaACliente($idcliente, $idempresa)
+    {
+        try {
+            $stmtCheck = $this->pdo->prepare("SELECT idempresa FROM empresas_clientes WHERE idcliente=?");
+            $stmtCheck->execute([$idcliente]);
+            $empresaExistente = $stmtCheck->fetchColumn();
+
+            if ($empresaExistente) {
+                // Actualizar relación
+                $stmtUpdate = $this->pdo->prepare("UPDATE empresas_clientes SET idempresa=? WHERE idcliente=?");
+                $stmtUpdate->execute([$idempresa, $idcliente]);
+            } else {
+                $stmtInsert = $this->pdo->prepare("INSERT IGNORE INTO empresas_clientes (idcliente, idempresa) VALUES (?, ?)");
+                $stmtInsert->execute([$idcliente, $idempresa]);
+            }
+        } catch (Exception $e) {
+            throw new Exception("Error al asignar empresa al cliente: " . $e->getMessage());
+        }
+    }
+
     public function actualizarCliente($id, $data)
     {
         try {
+            $this->pdo->beginTransaction();
+
+            // --- 1) Obtener la foto actual
             $stmtFoto = $this->pdo->prepare("SELECT foto FROM clientes WHERE idcliente = :id");
             $stmtFoto->execute(['id' => $id]);
             $fotoActual = $stmtFoto->fetchColumn();
 
-            $sql = "UPDATE clientes SET nombres=?, apellidos=?, num_doc=?, telefono=?, correo=?, idestado=?, foto=? 
-                    WHERE idcliente=?";
+            // --- 2) Actualizar datos del cliente
+            $sql = "UPDATE clientes 
+                SET nombres=?, apellidos=?, num_doc=?, telefono=?, correo=?, idestado=?, foto=? 
+                WHERE idcliente=?";
             $stmt = $this->pdo->prepare($sql);
-            return $stmt->execute([
+            $stmt->execute([
                 $data['nombres'],
                 $data['apellidos'],
                 $data['num_doc'],
@@ -232,7 +280,16 @@ class ClienteModel
                 $data['foto'] ?? $fotoActual ?? "assets/img/usuariodefault.png",
                 $id
             ]);
+
+            // --- 3) Si viene una empresa en los datos, actualizar la relación
+            if (!empty($data['idempresa'])) {
+                $this->asignarEmpresaACliente($id, $data['idempresa']);
+            }
+
+            $this->pdo->commit();
+            return true;
         } catch (Exception $e) {
+            $this->pdo->rollBack();
             throw new Exception("Error al actualizar cliente: " . $e->getMessage());
         }
     }
@@ -251,14 +308,15 @@ class ClienteModel
     public function crearEmpresa($data)
     {
         try {
-            $sql = "INSERT INTO empresas (razon_social, ruc, direccion, direccion_referencia) 
-                VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO empresas (razon_social, ruc, direccion, direccion_referencia, foto) 
+                VALUES (?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 $data['razon_social'],
-                $data['ruc'] ?? '',
-                $data['direccion'] ?? '',
-                $data['direccion_referencia'] ?? ''
+                $data['ruc'] ?? null,
+                $data['direccion'] ?? null,
+                $data['direccion_referencia'] ?? null,
+                $data['foto'] ?? 'assets/img/organizaciondefault.png'
             ]);
 
             return $this->pdo->lastInsertId();
@@ -270,15 +328,20 @@ class ClienteModel
     public function actualizarEmpresa($idempresa, $data)
     {
         try {
+            $stmtFoto = $this->pdo->prepare("SELECT foto FROM empresas WHERE idempresa = :id");
+            $stmtFoto->execute(['id' => $idempresa]);
+            $fotoActual = $stmtFoto->fetchColumn();
+
             $sql = "UPDATE empresas 
-                SET razon_social = ?, ruc = ?, direccion = ?, direccion_referencia = ?
+                SET razon_social = ?, ruc = ?, direccion = ?, direccion_referencia = ?, foto = ?
                 WHERE idempresa = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 $data['razon_social'],
-                $data['ruc'] ?? '',
-                $data['direccion'] ?? '',
-                $data['direccion_referencia'] ?? '',
+                $data['ruc'] ?? null,
+                $data['direccion'] ?? null,
+                $data['direccion_referencia'] ?? null,
+                $data['foto'] ?? $fotoActual ?? "assets/img/organizaciondefault.png",
                 $idempresa
             ]);
 

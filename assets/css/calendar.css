@@ -7,8 +7,7 @@
 }
 
 .fc thead .fc-scroller {
-    overflow-x: hidden !important;
-    overflow-y: hidden !important;
+    overflow: hidden !important;
     border-bottom: 1px solid var(--default-bg-color-light);
     border-top-left-radius: 1rem;
     border-top-right-radius: 1rem;
@@ -68,4 +67,9 @@
 
 .fc-highlight {
     background-color: transparent !important;
+}
+
+#calendar {
+    max-height: 100% !important;
+    height: 100% !important;
 }

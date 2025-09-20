@@ -38,6 +38,21 @@ if (!file_exists($ruta)) {
     <script type="module" src="./assets/js/app.min.js"></script>
     <title>Sistema CRM</title>
 </head>
+<style>
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus,
+    select:-webkit-autofill,
+    select:-webkit-autofill:hover,
+    select:-webkit-autofill:focus {
+        background-color: transparent !important;
+        color: var(--default-text-color) !important;
+        font-family: 'Poppins', sans-serif !important;
+    }
+</style>
 
 <body>
     <input type="hidden" id="idUsuario" value="<?= $_SESSION['idusuario'] ?? '' ?>">
