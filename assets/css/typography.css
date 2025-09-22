@@ -1,21 +1,21 @@
 .text-large {
-    color: var(--large-text-color);
-    font-size: 20px;
-    font-weight: 600;
+  color: var(--large-text-color);
+  font-size: 20px;
+  font-weight: 600;
 }
 
 .text-medium {
-    color: var(--large-text-color);
-    font-size: 14px;
+  color: var(--large-text-color);
+  font-size: 14px;
 }
 
 .text-small {
-    color: var(--large-text-color);
-    font-size: 12px
+  color: var(--large-text-color);
+  font-size: 12px;
 }
 
 a {
-    text-decoration: none !important;
+  text-decoration: none !important;
 }
 
 p,
@@ -23,6 +23,19 @@ h1,
 h2,
 h3,
 h4,
-h5 {
-    margin: 0;
+h5,
+h6 {
+  margin: 0;
+}
+
+span.clickable:hover,
+a:hover,
+p.clickable:hover,
+h1.clickable:hover,
+h2.clickable:hover,
+h3.clickable:hover,
+h4.clickable:hover,
+h5.clickable:hover,
+h6.clickable:hover {
+  text-decoration: underline;
 }

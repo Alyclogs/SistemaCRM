@@ -179,10 +179,11 @@ class ClienteModel
     {
         try {
             $sql = "INSERT INTO clientes (nombres, apellidos, num_doc, telefono, correo, idestado, foto) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 $data['nombres'],
+                $data['apellidos'],
                 $data['num_doc'],
                 $data['telefono'],
                 $data['correo'],

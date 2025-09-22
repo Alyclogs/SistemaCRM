@@ -4,7 +4,7 @@ import { mostrarToast } from "./utils.js";
 const baseurl = 'http://localhost/SistemaCRM/';
 let filtroBuscado = '';
 let selectedEstado = '';
-let selectedTipo = '';
+let selectedTipo = '1';
 let clientesCache = [];
 
 function fetchClientes(filtro = "", idestado = "", tipo = "1") {
@@ -25,7 +25,7 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
     const container = tipo == '1' ? document.getElementById('tablaClientesBody')
         : document.getElementById('tablaOrganizacionesBody');
 
-    container.innerHTML = '<tr><td>Cargando...</td></tr>'; // Barra de carga proximamente uwu
+    container.innerHTML = 'Cargando...'; // Barra de carga proximamente uwu
     let html = '';
 
     api.get({
@@ -35,6 +35,7 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
         onSuccess: function (items) {
             if (items.length === 0) {
                 container.innerHTML = "No se encontraron resultados";
+                table.style.display = 'table';
                 return;
             }
 
@@ -61,7 +62,7 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
 
                     html += `<tr>
                             <td>
-                                <div class="info-row">
+                                <div class="info-row clickable">
                                     <img class="user-icon sm clickable" data-type="cliente" data-id="${cliente.idcliente}" src="${cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}"></img>
                                     <span class="fw-bold user-link clickable" data-type="cliente" data-id="${cliente.idcliente}">${cliente.nombres} ${cliente.apellidos}</span>
                                 </div>
@@ -221,8 +222,20 @@ document.addEventListener('click', function (e) {
     if (e.target.closest('#btnRefresh')) {
         fetchClientes();
         selectedEstado = '';
-        document.querySelectorAll('.selected-filtro').textContent = 'Filtro';
-        document.querySelectorAll('.boton-filtro').classList.remove('selected');
+        selectedTipo = '1';
+        document.querySelectorAll('.selected-filtro').forEach(el => {
+            const grupo = el.closest('.busqueda-grupo');
+            if (grupo.dataset.type !== "Tipo") {
+                el.textContent = el.closest('.busqueda-grupo').dataset.type;
+            }
+        });
+        document.querySelectorAll('.boton-filtro').forEach(el => {
+            console.log(el, el.closest('.busqueda-grupo'));
+            const grupo = el.closest('.busqueda-grupo');
+            if (grupo.dataset.type !== "Tipo") {
+                el.classList.remove('selected');
+            }
+        });
     }
 
     if (e.target.closest('.filtro-item')) {
@@ -236,10 +249,10 @@ document.addEventListener('click', function (e) {
 
         if (grupoBusqueda.dataset.type === "Estado") {
             selectedEstado = tab.dataset.id || '';
+            updateSelectedTipo('1');
         }
         if (grupoBusqueda.dataset.type === "Tipo") {
-            selectedTipo = tab.dataset.id || '1';
-            updateSelectedTipo(selectedTipo);
+            updateSelectedTipo(tab.dataset.id || '1');
         }
         selectedFiltro.textContent = tab.dataset?.value || grupoBusqueda.dataset.tipo;
         btnFiltro.classList.add('selected');
@@ -316,8 +329,8 @@ document.addEventListener('click', function (e) {
         resultados.style.display = "none";
     }
 
-    if (e.target.closest("#btnNuevaOrganizacion")) {
-        const target = e.target.closest("#btnNuevaOrganizacion");
+    if (e.target.closest(".org-item")) {
+        const target = e.target.closest(".org-item");
 
         const input = document.getElementById("organizacionInput");
         const hiddenId = document.getElementById("idOrganizacionInput");
@@ -343,36 +356,42 @@ document.addEventListener('input', function (e) {
         </div>
         `;
 
-        api.get({
-            source: "clientes",
-            action: "searchOrganizaciones",
-            params: [
-                { name: "filtro", value }
-            ],
-            onSuccess: (organizaciones) => {
-                if (organizaciones.length === 0) {
-                    html = buttonNewOrganizacion;
-                    resultados.innerHTML = html;
-                    resultados.style.display = "flex";
-                    return;
-                }
+        if (value.length > 2) {
+            api.get({
+                source: "clientes",
+                action: "searchOrganizaciones",
+                params: [
+                    { name: "filtro", value }
+                ],
+                onSuccess: (organizaciones) => {
+                    if (organizaciones.length === 0) {
+                        html = buttonNewOrganizacion;
+                        resultados.innerHTML = html;
+                        resultados.style.display = "flex";
+                        return;
+                    }
 
-                organizaciones.forEach(org => {
-                    html += `<div class="resultado-item" data-value="${org.razon_social}" data-id="${org.idempresa}">
+                    organizaciones.forEach(org => {
+                        html += `<div class="resultado-item org-item" data-value="${org.razon_social}" data-id="${org.idempresa}">
                             ${window.icons.building}${org.razon_social}
                         </div>`;
-                });
+                    });
 
-                if (!organizaciones.some(org =>
-                    org.razon_social.toLowerCase().trim() === value.toLowerCase().trim()
-                )) {
-                    html += buttonNewOrganizacion;
+                    if (!organizaciones.some(org =>
+                        org.razon_social.toLowerCase().trim() === value.toLowerCase().trim()
+                    )) {
+                        html += buttonNewOrganizacion;
+                    }
+
+
+                    resultados.innerHTML = html;
+                    resultados.style.display = "flex";
                 }
-
-                resultados.innerHTML = html;
-                resultados.style.display = "flex";
-            }
-        });
+            });
+        } else {
+            resultados.innerHTML = '';
+            resultados.style.display = "none";
+        }
     }
     if (e.target.closest('inputBuscarClientes')) {
         const input = e.target.closest('inputBuscarClientes');

@@ -1,3 +1,6 @@
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
 <div class="page-content">
     <div id="calendar"></div>
 </div>
@@ -17,10 +20,9 @@
 </div>
 
 <div class="modal fade" id="actividadModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="actividadModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title text-large" id="actividadModalLabel">Agregar nueva actividad</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="actividadModalBody"></div>

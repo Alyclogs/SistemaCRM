@@ -1,5 +1,5 @@
 <?php
-require_once "NotaModel.php";
+require_once __DIR__ . "/../notas/NotaModel.php";
 
 class ActividadModel
 {

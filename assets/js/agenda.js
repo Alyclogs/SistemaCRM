@@ -1,10 +1,11 @@
 import CalendarUI from "./calendar.js";
 import { formatearFecha, formatearHora, formatEventDate } from "./date.js";
+import { mostrarToast } from "./utils.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
 const calendarUI = new CalendarUI();
 var calendar = null;
-var popup = document.getElementById('popup');
+var miniCalendar = null;
 var activeEvent = null;
 var actividadActual = {};
 const defaultActividades = ["Llamada", "Videollamada", "Reunión"];
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     calendar.setOption("eventDidMount", function (info) {
         activeEvent = info.event;
+        const popup = document.getElementById('popup');
         const infoDate = popup.querySelector('#infoDate');
         const titleInput = popup.querySelector('#titleInput');
 
@@ -60,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         actividadActual = {
             title: activeEvent.title,
-            fecha: formatearFecha(activeEvent.start),
+            date: formatearFecha(activeEvent.start),
             start: formatearHora(activeEvent.start),
             end: formatearHora(activeEvent.end),
             type: "llamada"
@@ -68,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     calendar.setOption("eventResize", function (info) {
+        const popup = document.getElementById('popup');
         const infoDate = popup.querySelector('#infoDate');
 
         if (activeEvent && info.event.id === activeEvent.id) {
@@ -80,13 +83,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     calendar.setOption("eventDrop", function (info) {
+        const popup = document.getElementById('popup');
         const infoDate = popup.querySelector('#infoDate');
 
         if (activeEvent && info.event.id === activeEvent.id) {
             infoDate.textContent = formatEventDate(info.event.start, info.event.end);
         } else {
             popup.style.display = "none";
-            actividadActual.fecha = formatearFecha(info.event.start);
+            actividadActual.date = formatearFecha(info.event.start);
             actividadActual.start = formatearHora(info.event.start);
             actividadActual.end = formatearHora(info.event.end);
         }
@@ -125,12 +129,51 @@ document.addEventListener('click', function (e) {
     }
     if (e.target.closest('#btnDetallesActividad')) {
         e.target.closest('.popup').style.display = 'none';
-        fetch(baseurl + "views/components/agenda/formActividad.php")
+        fetch(baseurl + "views/components/actividades/formActividad.php")
             .then(res => res.text())
             .then(html => {
-                $("#actividadModalLabel").text("Editar actividad");
                 $("#actividadModalBody").html(html);
                 $("#actividadModal").modal('show');
+                $("#tituloActividadLabel").text(actividadActual.title || 'Nueva actividad');
+                $("#titleInput").val(actividadActual.title || 'Nueva actividad');
+
+                miniCalendar =
+                    calendarUI.buildCalendar(document.getElementById("miniCalendar"));
+
+                miniCalendar.setOption("eventResize", function (info) {
+                    const modal = document.getElementById('actividadModal');
+                    const horaInicioInput = modal.getElementById("horaInicioInput");
+                    const horaFinInput = modal.getElementById("horaFinInput");
+
+                    actividadActual.start = formatearHora(info.event.start);
+                    actividadActual.end = formatearHora(info.event.end);
+                    horaInicioInput.value = actividadActual.start;
+                    horaFinInput.value = actividadActual.end;
+                });
+
+                miniCalendar.setOption("eventDrop", function (info) {
+                    const modal = document.getElementById('actividadModal');
+                    const horaInicioInput = modal.getElementById("horaInicioInput");
+                    const horaFinInput = modal.getElementById("horaFinInput");
+
+                    actividadActual.start = formatearHora(info.event.start);
+                    actividadActual.end = formatearHora(info.event.end);
+                    horaInicioInput.value = actividadActual.start;
+                    horaFinInput.value = actividadActual.end;
+                });
+
+                const quill = new Quill('#notaEditor', {
+                    theme: 'snow'
+                });
+
+                miniCalendar.render();
+
+                miniCalendar.addEvent({
+                    title: actividadActual.title,
+                    start: activeEvent.start,
+                    end: activeEvent.end,
+                    extendedProps: { preview: true }
+                });
             }).catch(e => {
                 mostrarToast({
                     message: "Ocurrió un error al mostrar el formulario",

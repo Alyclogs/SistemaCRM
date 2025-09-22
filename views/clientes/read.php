@@ -14,7 +14,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
         </button>
     </div>
     <div class="d-flex gap-3 align-items-center">
-        <button class="btn-symmetrical btn-secondary boton-filtro" id="btnRefresh"><?php include('./assets/svg/refresh-arrow-01.svg') ?></button>
+        <button class="btn-symmetrical btn-secondary" id="btnRefresh"><?php include('./assets/svg/refresh-arrow-01.svg') ?></button>
         <div class="busqueda-grupo" data-type="Tipo">
             <button class="btn-secondary border boton-filtro selected" id="tiposClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="tiposClientes" id="tipoCliente">Clientes</span></button>
             <div class="resultados-busqueda" data-parent="tiposClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
@@ -23,7 +23,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
             </div>
         </div>
         <div class="busqueda-grupo" data-type="Estado">
-            <button class="btn-secondary border boton-filtro" id="estadosClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="estadosClientes" id="estadoCliente">Filtro</span></button>
+            <button class="btn-secondary border boton-filtro" id="estadosClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="estadosClientes" id="estadoCliente">Estado</span></button>
             <div class="resultados-busqueda" data-parent="estadosClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
                 <?php if (!empty($estados)): ?>
                     <?php foreach ($estados as $estado): ?>
