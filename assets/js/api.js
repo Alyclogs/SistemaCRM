@@ -8,6 +8,8 @@ function getController(source) {
             return 'controller/usuarios/UsuarioController.php?';
         case "clientes":
             return 'controller/clientes/ClienteController.php?';
+        case "actividades":
+            return 'controller/actividades/ActividadController.php?';
         case "proyectos":
             return 'controller/proyectos/ProyectoController.php?';
         case "tareas":
@@ -47,7 +49,7 @@ async function apiFetch(url, options = {}, responseType = "json") {
 export default {
     get: async function ({
         source = "usuarios",
-        action = "read",
+        action = "listar",
         params = [],
         onSuccess,
         onError

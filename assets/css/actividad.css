@@ -1,0 +1,42 @@
+@import url('./variables.css');
+
+#actividadModal svg {
+    max-width: 20px !important;
+    max-height: 20px !important;
+}
+
+#actividadModal {
+    font-size: 14px !important;
+}
+
+.titulo-actividad {
+    padding: .5rem;
+    padding-left: 0px;
+    border-radius: .5rem;
+    color: var(--default-color);
+    cursor: pointer;
+    width: fit-content;
+}
+
+.titulo-actividad:hover {
+    background-color: var(--default-bg-color-light);
+    border: 1px solid var(--default-border-color);
+    padding-left: .5rem;
+}
+
+#titleInput:focus {
+    background-color: #fff !important;
+}
+
+.ql-toolbar {
+    border: 1px solid var(--default-border-color) !important;
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+}
+
+.ql-container {
+    border: 1px solid var(--default-border-color) !important;
+    border-bottom-left-radius: 0.5rem !important;
+    border-bottom-right-radius: 0.5rem !important;
+    max-height: 140px !important;
+}

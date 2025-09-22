@@ -11,7 +11,7 @@ try {
     if (isset($_GET['action'])) {
         switch ($_GET['action']) {
 
-            case 'read':
+            case 'listar':
                 if (!isset($_GET['tipo']) || empty($_GET['tipo'])) throw new Exception("Tipo requerido");
                 if ($_GET['tipo'] == '1') {
                     $data = $clienteModel->obtenerClientes(!empty($_GET['idestado']) ? $_GET['idestado'] : '');
@@ -25,7 +25,7 @@ try {
                 }
                 break;
 
-            case 'search':
+            case 'buscar':
                 if (!isset($_GET['tipo']) || empty($_GET['tipo'])) throw new Exception("Tipo requerido");
                 if (!isset($_GET['filtro']) || empty($_GET['filtro'])) throw new Exception("Filtro requerido");
 
@@ -47,7 +47,7 @@ try {
                 $response = ["success" => true, "message" => "Cliente obtenido", "data" => $data];
                 break;
 
-            case 'searchOrganizaciones':
+            case 'buscarOrganizaciones':
                 if (!isset($_GET['filtro'])) throw new Exception("Filtro requerido");
                 $data = $clienteModel->buscarOrganizaciones($_GET['filtro']);
                 echo json_encode($data);
@@ -113,7 +113,7 @@ try {
                 $response = ["success" => true, "message" => "Proyectos asignados"];
                 break;
 
-            case 'update':
+            case 'actualizar':
                 if (!isset($_POST['idexistente'])) throw new Exception("ID requerido");
 
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
@@ -164,7 +164,7 @@ try {
                 $response = ["success" => true, "message" => "Cliente actualizado"];
                 break;
 
-            case 'delete':
+            case 'eliminar':
                 if (!isset($_POST['idcliente'])) throw new Exception("ID requerido");
                 $clienteModel->eliminarCliente($_POST['idcliente']);
                 $response = ["success" => true, "message" => "Cliente eliminado"];
@@ -219,7 +219,7 @@ try {
                 $response = ["success" => true, "message" => "Organización creada", "id" => $id];
                 break;
 
-            case 'updateOrganizacion':
+            case 'actualizarOrganizacion':
                 if (!isset($_POST['idexistente'])) throw new Exception("ID requerido");
 
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {

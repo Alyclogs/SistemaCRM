@@ -22,7 +22,7 @@ function fetchUsuarios(filtro = "", idestado = "") {
 
     api.get({
         source: "usuarios",
-        action: filtro === '' ? "read" : "search",
+        action: filtro === '' ? "listar" : "buscar",
         params,
         onSuccess: function (usuarios) {
             let html = '';
@@ -71,7 +71,7 @@ function guardarUsuario() {
     const formData = new FormData(formUsuario);
 
     const idusuario = formData.get("idusuario");
-    const action = idusuario ? "update" : "create";
+    const action = idusuario ? "actualizar" : "create";
 
     api.post({
         source: "usuarios",
@@ -90,7 +90,7 @@ function eliminarUsuario(idusuario) {
 
     api.post({
         source: "usuarios",
-        action: "delete",
+        action: "eliminar",
         data: formData
     });
 }

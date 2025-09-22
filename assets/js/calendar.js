@@ -40,27 +40,28 @@ export default class CalendarUI {
         return calendar;
     }
     buildCalendarCustom(calendarEl, {
-        initialView = "timeGridDay",
+        initialView = "timeGridWeek",
         initialDate = formatearFecha(new Date()),
         scrollTime = formatearHora(new Date()),
         allDaySlot = false,
-    }) {
+    } = {}) {
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView,
-            allDaySlot,
             initialDate,
+            scrollTime,
+            allDaySlot,
 
             slotDuration: "00:30:00",
             slotLabelInterval: "00:60:00",
 
             slotMinTime: "06:00:00",
             slotMaxTime: "20:00:00",
-            scrollTime,
+            scrollTime: "08:00:00",
 
+            headerToolbar: false,
             selectable: true,
             editable: true,
             locale: "es",
-            headerToolbar: false,
             slotLabelFormat: {
                 hour: "2-digit",
                 minute: "2-digit",

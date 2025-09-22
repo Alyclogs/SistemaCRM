@@ -15,57 +15,94 @@ if ($idactividad) {
 }
 ?>
 
-<div class="d-flex gap-3" style="min-height: 630px;">
+<div class="d-flex gap-4" style="height: 590px;">
     <div class="flex-grow-1">
         <form id="formActividad" method="POST">
+            <input type="hidden" name="idactividad" id="idactividad" value="<?= $actividad['idactividad'] ?? '' ?>">
             <div class="buttons-row buttons-actividad mb-3">
-                <button class="btn-outline btn-actividad" data-type="llamada"><?php include('../../../assets/svg/call.svg') ?></button>
-                <button class="btn-outline btn-actividad" data-type="videollamada"><?php include('../../../assets/svg/video.svg') ?></button>
-                <button class="btn-outline btn-actividad" data-type="reunion"><?php include('../../../assets/svg/profile-2user.svg') ?></button>
+                <button type="button" class="btn-outline btn-actividad" data-type="llamada"><?php include('../../../assets/svg/call.svg') ?></button>
+                <button type="button" class="btn-outline btn-actividad" data-type="videollamada"><?php include('../../../assets/svg/video.svg') ?></button>
+                <button type="button" class="btn-outline btn-actividad" data-type="reunion"><?php include('../../../assets/svg/profile-2user.svg') ?></button>
             </div>
             <div class="mb-4">
-                <div class="d-flex gap-4 align-items-center titulo-actividad">
-                    <h5 class="text-large" id="tituloActividadLabel">Nueva actividad</h5>
-                    <button type="button" class="btn-icon" id="btnEditarTituloActividad">
-                        <?php include('../../../assets/svg/edit.svg') ?>
-                    </button>
-                </div>
-                <input type="text" class="form-control titulo-actividad-editando" id="titleInput" name="nombre" style="display: none;">
-            </div>
-            <div class="horas-container d-flex flex-column gap-2">
-                <h6>Configure las horas:</h6>
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <div class="d-flex align-items-center gap-2">
-                        <?php include('../../../assets/svg/clock.svg') ?>
-                        <input type="time" class="form-control w-auto" name="hora_inicio" id="horaInicioInput">
+                <div class="titulo-actividad">
+                    <div class="d-flex gap-4 align-items-center">
+                        <h5 class="text-large" id="tituloActividadLabel">Nueva actividad</h5>
+                        <div class="svg-editar" style="display: none;">
+                            <?php include('../../../assets/svg/edit.svg') ?>
+                        </div>
                     </div>
-                    <span class="p-3">a</span>
-                    <div class="d-flex align-items-center gap-2">
-                        <?php include('../../../assets/svg/clock.svg') ?>
-                        <input type="time" class="form-control w-auto" name="hora_fin" id="horaFinInput">
-                    </div>
+                    <input type="text" class="form-control titulo-actividad-editando" id="titleInput" name="nombre" style="display: none;">
                 </div>
             </div>
-            <div class="notas-container w-100 d-flex flex-column gap-2 mb-4">
-                <h6>Notas de la actividad:</h6>
+            <div class="horas-container d-flex gap-2 mb-3">
+                <div data-bs-toggle="tooltip" data-bs-placement="top" title="Duración de la actividad">
+                    <?php include('../../../assets/svg/clock.svg') ?>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="time" class="form-control w-auto" name="hora_inicio" id="horaInicioInput">
+                    <span class="px-3">a</span>
+                    <input type="time" class="form-control w-auto" name="hora_fin" id="horaFinInput">
+                </div>
+            </div>
+            <div class="notas-container w-100 d-flex gap-2 mb-3" style="height: 180px;">
+                <div data-bs-toggle="tooltip" data-bs-placement="top" title="Notas de la actividad">
+                    <?php include('../../../assets/svg/document-text-2.svg') ?>
+                </div>
                 <div>
                     <div id="notaEditor"></div>
                 </div>
             </div>
-            <div class="cliente-container d-flex flex-column gap-2">
-                <h6>Cliente:</h6>
-                <div class="d-flex align-items-center gap-2">
+            <div class="cliente-container d-flex gap-2 w-100">
+                <div data-bs-toggle="tooltip" data-bs-placement="top" title="Asignada al cliente">
                     <?php include('../../../assets/svg/profile.svg') ?>
-                    <div class="busqueda-grupo disable-auto">
-                        <input type="text" class="form-control" id="clienteInput">
-                        <input type="hidden" name="idcliente">
-                        <div class="resultados-busqueda" data-parent="clienteInput" style="top: 2.5rem;"></div>
-                    </div>
+                </div>
+                <div class="busqueda-grupo">
+                    <input type="text" class="form-control w-100" id="clienteInput">
+                    <input type="hidden" name="idcliente">
+                    <div class="resultados-busqueda disable-auto" data-parent="clienteInput" style="top: 2.5rem; min-width: 300px;"></div>
                 </div>
             </div>
         </form>
     </div>
-    <div style="width: 380px; height: 100%">
+    <div style="width: 280px; height: 100%;">
         <div id="miniCalendar"></div>
     </div>
 </div>
+
+<script>
+    (() => {
+        const tituloActividad = document.querySelector('.titulo-actividad');
+        const tituloActividadLabel = document.getElementById('tituloActividadLabel');
+        const titleInput = tituloActividad.querySelector('#titleInput');
+        const svgEditar = tituloActividad.querySelector('.svg-editar');
+
+        tituloActividad.addEventListener('mouseover', function() {
+            if (titleInput.style.display === 'none') {
+                svgEditar.style.display = 'inline';
+            }
+        });
+
+        tituloActividad.addEventListener('mouseout', function() {
+            svgEditar.style.display = 'none';
+        });
+
+        tituloActividad.addEventListener('click', function() {
+            titleInput.value = tituloActividadLabel.innerText;
+            tituloActividadLabel.style.display = 'none';
+            svgEditar.style.display = 'none';
+            titleInput.style.display = 'block';
+        });
+
+        tituloActividad.addEventListener('change', function() {
+            tituloActividadLabel.innerText = titleInput.value;
+            titleInput.style.display = 'none';
+            tituloActividadLabel.style.display = 'block';
+        });
+
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    })();
+</script>

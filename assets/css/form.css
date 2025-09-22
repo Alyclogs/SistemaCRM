@@ -15,10 +15,8 @@ input:focus {
 }
 
 .input-group:has(input:-internal-autofill-selected) {
-  background-color: light-dark(
-    rgb(232, 240, 254),
-    rgba(70, 90, 126, 0.4)
-  ) !important;
+  background-color: light-dark(rgb(232, 240, 254),
+      rgba(70, 90, 126, 0.4)) !important;
 }
 
 .input-group input:-internal-autofill-selected {
@@ -98,7 +96,7 @@ input:focus {
 }
     */
 
-.grupo-input:has(input:-internal-autofill-selected) > * {
+.grupo-input:has(input:-internal-autofill-selected)>* {
   background-color: transparent !important;
 }
 

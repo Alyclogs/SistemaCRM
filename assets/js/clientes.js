@@ -30,7 +30,7 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
 
     api.get({
         source: "clientes",
-        action: filtro === '' ? "read" : "search",
+        action: filtro === '' ? "listar" : "buscar",
         params,
         onSuccess: function (items) {
             if (items.length === 0) {
@@ -129,8 +129,8 @@ function guardarRegistro(tipo) {
     };
 
     const acciones = {
-        1: { create: "create", update: "update" },
-        2: { create: "createOrganizacion", update: "updateOrganizacion" }
+        1: { create: "create", update: "actualizar" },
+        2: { create: "createOrganizacion", update: "actualizarOrganizacion" }
     };
 
     const form = document.getElementById(forms[tipo]);
@@ -152,8 +152,8 @@ function guardarRegistro(tipo) {
 
 function eliminarRegistro(tipo, id) {
     const acciones = {
-        1: { action: "delete", mensaje: "¿Seguro que desea eliminar al cliente del sistema?" },
-        2: { action: "deleteOrganizacion", mensaje: "¿Seguro que desea eliminar a la organización del sistema?" }
+        1: { action: "eliminar", mensaje: "¿Seguro que desea eliminar al cliente del sistema?" },
+        2: { action: "eliminarOrganizacion", mensaje: "¿Seguro que desea eliminar a la organización del sistema?" }
     };
 
     if (!confirm(acciones[tipo].mensaje)) return;
@@ -359,7 +359,7 @@ document.addEventListener('input', function (e) {
         if (value.length > 2) {
             api.get({
                 source: "clientes",
-                action: "searchOrganizaciones",
+                action: "buscarOrganizaciones",
                 params: [
                     { name: "filtro", value }
                 ],
@@ -379,10 +379,10 @@ document.addEventListener('input', function (e) {
 
                     if (!organizaciones.some(org =>
                         org.razon_social.toLowerCase().trim() === value.toLowerCase().trim()
+                        || org.ruc.toLowerCase().trim() === value.toLowerCase().trim()
                     )) {
                         html += buttonNewOrganizacion;
                     }
-
 
                     resultados.innerHTML = html;
                     resultados.style.display = "flex";

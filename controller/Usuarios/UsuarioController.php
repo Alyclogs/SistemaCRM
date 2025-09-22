@@ -13,12 +13,12 @@ try {
     $action = $_GET['action'];
 
     switch ($action) {
-        case 'read':
+        case 'listar':
             $usuarios = $modelo->obtenerUsuarios();
             echo json_encode($usuarios);
             exit;
 
-        case 'delete':
+        case 'eliminar':
             $id = $_POST['idusuario'];
             if (!is_numeric($id)) {
                 throw new Exception('Error: ID inválido.');
@@ -41,7 +41,7 @@ try {
             exit;
             break;
 
-        case 'update':
+        case 'actualizar':
             $id = $_POST['idusuario'] ?? null;
             if (!is_numeric($id)) {
                 throw new Exception('Error: ID inválido.');

@@ -33,12 +33,12 @@
   background-color: var(--default-bg-color-light) !important;
 }
 
-.fc-direction-ltr .fc-button-group > .fc-button:not(:first-child) {
+.fc-direction-ltr .fc-button-group>.fc-button:not(:first-child) {
   border-bottom-left-radius: 0px !important;
   border-top-left-radius: 0px !important;
 }
 
-.fc-direction-ltr .fc-button-group > .fc-button:not(:last-child) {
+.fc-direction-ltr .fc-button-group>.fc-button:not(:last-child) {
   border-bottom-right-radius: 0px !important;
   border-top-right-radius: 0px !important;
 }
@@ -93,19 +93,4 @@
 #miniCalendar {
   min-height: 100% !important;
   height: 100% !important;
-  width: 100% !important;
-}
-
-.ql-toolbar {
-  border-top-left-radius: 0.5rem !important;
-  border-top-right-radius: 0.5rem !important;
-}
-
-.ql-container {
-  border-bottom-left-radius: 0.5rem !important;
-  border-bottom-right-radius: 0.5rem !important;
-}
-
-.ql-editor {
-  min-height: 240px !important;
 }

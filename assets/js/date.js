@@ -166,9 +166,9 @@ export function formatearFecha(fecha) {
  * @returns {string} hora formateada en formato 'HH:mm:ss'
  */
 export function formatearHora(fecha) {
-    const HH = fecha.getHours();
-    const mm = fecha.getMinutes();
-    const ss = fecha.getSeconds();
+    const HH = String(fecha.getHours()).padStart(2, "0");
+    const mm = String(fecha.getMinutes()).padStart(2, "0");
+    const ss = String(fecha.getSeconds()).padStart(2, "0");
     return `${HH}:${mm}:${ss}`;
 }
 
@@ -196,7 +196,8 @@ export function formatearFechaLocalSimple(fechaStr) {
 }
 
 export function formatearFechaFull(fechaStr) {
-    const fecha = new Date(fechaStr);
+    const [anio, mes, dia] = fechaStr.split('-').map(Number);
+    const fecha = new Date(anio, mes - 1, dia);
     const opciones = {
         year: 'numeric',
         month: 'long',
@@ -227,7 +228,7 @@ export function obtenerDiaSemana(fecha) {
     return nombreDia;
 }
 
-export function formatEventDate(start, end, pattern) {
+export function formatEventDate(start, end) {
     const timeFormatter = new Intl.DateTimeFormat('es-ES', {
         hour: 'numeric',
         minute: '2-digit',
@@ -243,4 +244,26 @@ export function formatEventDate(start, end, pattern) {
     const endTime = timeFormatter.format(end).replace('.', '').toLowerCase();
     const date = dateFormatter.format(start);
     return `${startTime} - ${endTime}, ${date}`;
+}
+
+export function formatearRangoFecha(fecha, horaInicio, horaFin, locale = "es-ES", timeZone = "America/Mexico_City") {
+    const inicio = new Date(`${fecha}T${horaInicio}`);
+    const fin = new Date(`${fecha}T${horaFin}`);
+
+    const fmtHora = new Intl.DateTimeFormat(locale, {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+        timeZone
+    });
+    const fmtFecha = new Intl.DateTimeFormat(locale, {
+        day: "numeric",
+        month: "long",
+        timeZone
+    });
+
+    let texto = `${fmtHora.format(inicio)} - ${fmtHora.format(fin)}, ${fmtFecha.format(inicio)}`;
+    texto = texto.toLowerCase().replace("a. m.", "a m.").replace("p. m.", "p m.");
+
+    return texto;
 }

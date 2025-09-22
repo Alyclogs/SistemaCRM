@@ -1,6 +1,7 @@
 import CalendarUI from "./calendar.js";
-import { formatearFecha, formatearHora, formatEventDate } from "./date.js";
+import { formatearFecha, formatearHora, formatearRangoFecha, formatEventDate } from "./date.js";
 import { mostrarToast } from "./utils.js";
+import api from "./api.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
 const calendarUI = new CalendarUI();
@@ -8,11 +9,49 @@ var calendar = null;
 var miniCalendar = null;
 var activeEvent = null;
 var actividadActual = {};
-const defaultActividades = ["Llamada", "Videollamada", "Reunión"];
+var actividadesCache = new Map();
+const labels = {
+    llamada: "Llamada",
+    videollamada: "Videollamada",
+    reunion: "Reunión"
+};
+
+function fetchActividades() {
+    api.get({
+        source: "actividades",
+        action: "listar",
+        onSuccess: function (actividades) {
+            if (actividades.length === 0) {
+                return;
+            }
+
+            calendar.getEvents().forEach(ev => {
+                if (!ev.extendedProps.preview) ev.remove()
+            });
+
+            actividades.forEach(act => {
+                actividadesCache.set(`${act.idactividad}`, act);
+
+                const start = `${act.fecha}T${act.hora_inicio}`;
+                const end = `${act.fecha}T${act.hora_fin}`;
+
+                calendar.addEvent({
+                    id: act.idactividad,
+                    title: act.nombre,
+                    start: start,
+                    end: end
+                });
+            });
+        }
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     var calendarEl = document.getElementById('calendar');
     calendar = calendarUI.buildCalendar(calendarEl);
+
+    calendar.render();
+    fetchActividades();
 
     calendar.setOption("dateClick", function (info) {
         let start = new Date(info.date);
@@ -35,69 +74,290 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     calendar.setOption("eventDidMount", function (info) {
-        activeEvent = info.event;
-        const popup = document.getElementById('popup');
-        const infoDate = popup.querySelector('#infoDate');
-        const titleInput = popup.querySelector('#titleInput');
+        if (info.event.extendedProps.preview) {
+            activeEvent = info.event;
+            const popup = document.getElementById('popupPreview');
+            const infoDate = popup.querySelector('#infoDate');
+            const titleInput = popup.querySelector('#titleInput');
 
-        // Posicionar popup al costado del evento
-        var rect = info.el.getBoundingClientRect();
-        popup.style.top = (rect.top + window.scrollY) + "px";
-        popup.style.left = (rect.right + window.scrollX + 10) + "px";
-        popup.style.display = "block";
+            // Posicionar popup al costado del evento
+            var rect = info.el.getBoundingClientRect();
+            popup.style.top = (rect.top + window.scrollY) + "px";
+            popup.style.left = (rect.right + window.scrollX + 10) + "px";
+            popup.style.display = "block";
 
-        infoDate.textContent = formatEventDate(activeEvent.start, activeEvent.end);
+            infoDate.textContent = formatEventDate(activeEvent.start, activeEvent.end);
 
-        // Si el input ya tiene valor, usarlo como título del evento
-        if (titleInput.value.trim() !== "") {
-            activeEvent.setProp("title", titleInput.value.trim());
-        } else {
-            titleInput.placeholder = "Llamada";
-        }
+            // Si el input ya tiene valor, usarlo como título del evento
+            if (titleInput.value.trim() !== "") {
+                activeEvent.setProp("title", titleInput.value.trim());
+            } else {
+                titleInput.placeholder = "Llamada";
+            }
 
-        // Mantener sincronía en tiempo real
-        titleInput.oninput = function () {
-            activeEvent.setProp("title", titleInput.value);
-        };
+            // Mantener sincronía en tiempo real
+            titleInput.oninput = function () {
+                actividadActual.title = titleInput.value;
+                activeEvent.setProp("title", titleInput.value);
+                if (titleInput.value.length === 0) {
+                    titleInput.value = labels[actividadActual.type];
+                }
+            };
 
-        actividadActual = {
-            title: activeEvent.title,
-            date: formatearFecha(activeEvent.start),
-            start: formatearHora(activeEvent.start),
-            end: formatearHora(activeEvent.end),
-            type: "llamada"
+            actividadActual = {
+                title: activeEvent.title,
+                date: formatearFecha(activeEvent.start),
+                start: formatearHora(activeEvent.start),
+                end: formatearHora(activeEvent.end),
+                type: "llamada"
+            }
         }
     });
 
     calendar.setOption("eventResize", function (info) {
-        const popup = document.getElementById('popup');
-        const infoDate = popup.querySelector('#infoDate');
+        if (info.event.extendedProps.preview) {
+            const popup = document.getElementById('popupPreview');
+            const infoDate = popup.querySelector('#infoDate');
 
-        if (activeEvent && info.event.id === activeEvent.id) {
-            infoDate.textContent = formatEventDate(info.event.start, info.event.end);
+            if (activeEvent && info.event.id === activeEvent.id) {
+                infoDate.textContent = formatEventDate(info.event.start, info.event.end);
+            } else {
+                popup.style.display = "none";
+                actividadActual.start = formatearHora(info.event.start);
+                actividadActual.end = formatearHora(info.event.end);
+            }
         } else {
-            popup.style.display = "none";
-            actividadActual.start = formatearHora(info.event.start);
-            actividadActual.end = formatearHora(info.event.end);
+            actualizarActividad(info.event.id, formatearFecha(info.event.start), formatearHora(info.event.start), formatearHora(info.event.end));
         }
     });
 
     calendar.setOption("eventDrop", function (info) {
-        const popup = document.getElementById('popup');
-        const infoDate = popup.querySelector('#infoDate');
+        if (info.event.extendedProps.preview) {
+            const popup = document.getElementById('popupPreview');
+            const infoDate = popup.querySelector('#infoDate');
 
-        if (activeEvent && info.event.id === activeEvent.id) {
-            infoDate.textContent = formatEventDate(info.event.start, info.event.end);
+            if (activeEvent && info.event.id === activeEvent.id) {
+                infoDate.textContent = formatEventDate(info.event.start, info.event.end);
+            } else {
+                popup.style.display = "none";
+                actividadActual.date = formatearFecha(info.event.start);
+                actividadActual.start = formatearHora(info.event.start);
+                actividadActual.end = formatearHora(info.event.end);
+            }
         } else {
-            popup.style.display = "none";
-            actividadActual.date = formatearFecha(info.event.start);
-            actividadActual.start = formatearHora(info.event.start);
-            actividadActual.end = formatearHora(info.event.end);
+            actualizarActividad(info.event.id, formatearFecha(info.event.start), formatearHora(info.event.start), formatearHora(info.event.end));
         }
     });
 
-    calendar.render();
+    calendar.setOption("eventClick", function (info) {
+        if (!info.event.extendedProps.preview) {
+            const actividad = actividadesCache.get(info.event.id);
+            if (!actividad) return;
+
+            const popup = document.getElementById('popupActividad');
+
+            const icons = {
+                "llamada": window.icons.telefono,
+                "videollamada": window.icons.video,
+                "reunion": window.icons.video,
+            }
+
+            let html = `
+                <div class="info-row">
+                    ${icons[actividad.tipo]}
+                    <h5>${actividad.usuario} / ${actividad.nombre}</h5>
+                </div>
+                <span class="text-small mb-3">${formatearRangoFecha(actividad.fecha, actividad.hora_inicio, actividad.hora_fin)}</span>
+                <div class="info-row">
+                    ${window.icons.user} <span>${actividad.cliente}</span>
+                </div>
+                <div class="info-row">
+                    ${actividad.notas?.length > 0 ? `${window.icons.document} <span>${actividad.notas[0].contenido}</span>` : ''}
+                </div>
+                `;
+
+            popup.innerHTML = html;
+
+            var rect = info.el.getBoundingClientRect();
+            popup.style.top = (rect.top + window.scrollY) + "px";
+            popup.style.left = (rect.right + window.scrollX + 10) + "px";
+            popup.style.display = 'block';
+
+            info.el.addEventListener("mouseleave", function () {
+                setTimeout(() => {
+                    popup.style.display = "none";
+                }, 1000);
+            });
+            popup.addEventListener("mouseleave", function () {
+                setTimeout(() => {
+                    popup.style.display = "none";
+                }, 1000);
+            });
+        }
+    });
 });
+
+function abrirFormActividad(actividad = {}) {
+    const url = baseurl + "views/components/actividades/formActividad.php";
+    if (actividad.idactividad) {
+        url += "?id=" + actividad.idactividad;
+    }
+
+    fetch(url)
+        .then(res => res.text())
+        .then(html => {
+            $("#actividadModalBody").html(html);
+            $("#actividadModal").modal('show');
+
+            // valores por defecto
+            const defaults = {
+                title: "Llamada",
+                type: "llamada",
+                date: formatearFecha(new Date()),
+                start: formatearHora(new Date()),
+                end: formatearHora(new Date())
+            };
+
+            // combinar actividad con defaults
+            actividadActual = { ...defaults, ...actividad };
+
+            $("#tituloActividadLabel").text(actividadActual.title);
+
+            const quill = new Quill("#notaEditor", { theme: "snow" });
+
+            const modal = document.getElementById("actividadModal");
+            const horaInicioInput = modal.querySelector("#horaInicioInput");
+            const horaFinInput = modal.querySelector("#horaFinInput");
+            const titleInput = modal.querySelector("#titleInput");
+
+            setTimeout(() => {
+                miniCalendar = calendarUI.buildCalendarCustom(
+                    document.getElementById("miniCalendar"),
+                    {
+                        initialDate: actividadActual.date,
+                        scrollTime: actividadActual.start,
+                        initialView: "timeGridDay"
+                    }
+                );
+
+                miniCalendar.setOption("eventResize", function (info) {
+                    actividadActual.start = formatearHora(info.event.start);
+                    actividadActual.end = formatearHora(info.event.end);
+                    horaInicioInput.value = actividadActual.start;
+                    horaFinInput.value = actividadActual.end;
+                });
+
+                miniCalendar.setOption("eventDrop", function (info) {
+                    actividadActual.start = formatearHora(info.event.start);
+                    actividadActual.end = formatearHora(info.event.end);
+                    horaInicioInput.value = actividadActual.start;
+                    horaFinInput.value = actividadActual.end;
+                });
+
+                miniCalendar.render();
+
+                activeEvent = miniCalendar.addEvent({
+                    title: actividadActual.title,
+                    start: actividadActual.date + "T" + actividadActual.start,
+                    end: actividadActual.date + "T" + actividadActual.end,
+                    extendedProps: { preview: true }
+                });
+            }, 500);
+
+            // seleccionar tipo
+            const button = modal.querySelector(
+                `.btn-actividad[data-type="${actividadActual.type}"]`
+            );
+            if (button) button.classList.add("selected");
+
+            // inputs iniciales
+            titleInput.value = actividadActual.title;
+            horaInicioInput.value = actividadActual.start;
+            horaFinInput.value = actividadActual.end;
+
+            // eventos
+            titleInput.addEventListener("input", function () {
+                actividadActual.title = titleInput.value;
+                activeEvent.setProp("title", titleInput.value);
+                if (titleInput.value.length === 0) {
+                    titleInput.value = labels[actividadActual.type];
+                }
+            });
+
+            horaInicioInput.addEventListener("change", function () {
+                const startDate = new Date(actividadActual.date + "T" + horaInicioInput.value);
+                actividadActual.start = horaInicioInput.value;
+                activeEvent.setStart(startDate);
+            });
+
+            horaFinInput.addEventListener("change", function () {
+                const endDate = new Date(actividadActual.date + "T" + horaFinInput.value);
+                actividadActual.end = horaFinInput.value;
+                activeEvent.setEnd(endDate);
+            });
+        })
+        .catch(e => {
+            mostrarToast({
+                message: "Ocurrió un error al mostrar el formulario",
+                type: "danger"
+            });
+            console.error(e);
+        });
+}
+
+function guardarActividad() {
+    const formActividad = document.getElementById("formActividad");
+    const modal = $("#actividadModal");
+
+    if (formActividad.checkValidity()) {
+        const formData = new FormData(formActividad);
+        const action = formData.get("idactividad") ? "actualizar" : "crear";
+
+        formData.append('idusuario', document.getElementById('idUsuario').value);
+        formData.append('tipo', actividadActual.type || modal.querySelector('.btn-actividad.selected').dataset.type);
+        formData.append('fecha', actividadActual.date);
+
+        api.post({
+            source: "actividades",
+            action,
+            data: formData,
+            onSuccess: function () {
+                activeEvent = null;
+                actividadActual = {};
+                modal.modal('hide');
+                fetchActividades();
+            }
+        });
+    } else {
+        formActividad.reportValidity();
+    }
+}
+
+function actualizarActividad(idactividad, fecha, horaInicio, horaFin) {
+    const actividad = actividadesCache.get(idactividad);
+    if (!actividad) return;
+
+    const payload = {
+        idactividad: actividad.idactividad,
+        nombre: actividad.nombre,
+        fecha,
+        hora_inicio: horaInicio,
+        hora_fin: horaFin,
+        idusuario: actividad.idusuario,
+        idcliente: actividad.idcliente,
+        tipo: actividad.tipo
+    };
+
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => formData.append(key, value));
+
+    api.post({
+        source: "actividades",
+        action: "actualizar",
+        data: formData,
+        onSuccess: fetchActividades
+    });
+}
 
 document.addEventListener('click', function (e) {
     if (e.target.closest('.btn-actividad')) {
@@ -111,75 +371,119 @@ document.addEventListener('click', function (e) {
         button.classList.add('selected');
         actividadActual.type = actividad;
 
-        if (esPopup) {
-            const titleInput = source.querySelector('#titleInput');
-            const labels = {
-                llamada: "Llamada",
-                videollamada: "Videollamada",
-                reunion: "Reunión"
-            };
+        const titleInput = source.querySelector('#titleInput');
+        const defaultActividades = ["Llamada", "Videollamada", "Reunión"];
 
-            if (labels[actividad]) {
-                titleInput.placeholder = labels[actividad];
-                if (defaultActividades.includes(activeEvent.title)) {
-                    activeEvent.setProp("title", labels[actividad]);
-                }
+        if (labels[actividad]) {
+            titleInput.placeholder = labels[actividad];
+            if (source.id === 'actividadModal') {
+                source.querySelector('#tituloActividadLabel').textContent = labels[actividad];
+            }
+            if (defaultActividades.includes(activeEvent.title)) {
+                activeEvent.setProp("title", labels[actividad]);
             }
         }
     }
+
+    if (e.target.closest('#btnNuevaActividad')) {
+        e.target.closest('.popup').style.display = 'none';
+        abrirFormActividad();
+    }
+
     if (e.target.closest('#btnDetallesActividad')) {
         e.target.closest('.popup').style.display = 'none';
-        fetch(baseurl + "views/components/actividades/formActividad.php")
-            .then(res => res.text())
-            .then(html => {
-                $("#actividadModalBody").html(html);
-                $("#actividadModal").modal('show');
-                $("#tituloActividadLabel").text(actividadActual.title || 'Nueva actividad');
-                $("#titleInput").val(actividadActual.title || 'Nueva actividad');
+        abrirFormActividad(actividadActual);
+    }
 
-                miniCalendar =
-                    calendarUI.buildCalendar(document.getElementById("miniCalendar"));
+    if (e.target.closest('.cliente-item')) {
+        const target = e.target.closest('.cliente-item');
+        const value = target.dataset.value;
+        const id = target.dataset.id;
+        const grupo = target.closest('.busqueda-grupo');
+        const resultados = grupo.querySelector('.resultados-busqueda');
+        const input = grupo.querySelector(`input[id="${resultados.dataset.parent}"]`);
+        const hidden = grupo.querySelector(`input[name="idcliente"]`);
+        input.value = value;
+        hidden.value = id;
+        resultados.innerHTML = '';
+        resultados.style.display = 'none';
+    }
 
-                miniCalendar.setOption("eventResize", function (info) {
-                    const modal = document.getElementById('actividadModal');
-                    const horaInicioInput = modal.getElementById("horaInicioInput");
-                    const horaFinInput = modal.getElementById("horaFinInput");
+    if (e.target.closest('#btnGuardarActividad')) {
+        guardarActividad();
+    }
+});
 
-                    actividadActual.start = formatearHora(info.event.start);
-                    actividadActual.end = formatearHora(info.event.end);
-                    horaInicioInput.value = actividadActual.start;
-                    horaFinInput.value = actividadActual.end;
-                });
+document.addEventListener('input', function (e) {
+    if (e.target.id === 'clienteInput') {
+        const input = e.target;
+        const value = input.value;
+        const resultados = input.closest('.busqueda-grupo').querySelector('.resultados-busqueda');
 
-                miniCalendar.setOption("eventDrop", function (info) {
-                    const modal = document.getElementById('actividadModal');
-                    const horaInicioInput = modal.getElementById("horaInicioInput");
-                    const horaFinInput = modal.getElementById("horaFinInput");
+        if (value.length > 2) {
+            api.get({
+                source: "clientes",
+                action: "buscar",
+                params: [
+                    { name: "filtro", value },
+                    { name: "tipo", value: 1 }
+                ],
+                onSuccess: function (clientes) {
 
-                    actividadActual.start = formatearHora(info.event.start);
-                    actividadActual.end = formatearHora(info.event.end);
-                    horaInicioInput.value = actividadActual.start;
-                    horaFinInput.value = actividadActual.end;
-                });
+                    const buttonNewCliente = `
+                        <div class="resultado-item bg-secondary text-white" id="btnNuevoCliente" data-value="${value}">
+                            ${window.getIcon("add", "white")}<span>Agregar ${value} como nuevo cliente</span>
+                        </div>`;
 
-                const quill = new Quill('#notaEditor', {
-                    theme: 'snow'
-                });
+                    if (clientes.length === 0) {
+                        resultados.innerHTML = buttonNewCliente;
+                        resultados.style.display = 'flex';
+                        return;
+                    }
 
-                miniCalendar.render();
+                    let html = '';
 
-                miniCalendar.addEvent({
-                    title: actividadActual.title,
-                    start: activeEvent.start,
-                    end: activeEvent.end,
-                    extendedProps: { preview: true }
-                });
-            }).catch(e => {
-                mostrarToast({
-                    message: "Ocurrió un error al mostrar el formulario",
-                    type: "danger"
-                });
-                console.error(e);
+                    clientes.forEach(cliente => {
+                        html += `
+                            <div class="resultado-item cliente-item" 
+                                data-id="${cliente.idcliente}" 
+                                data-value="${cliente.nombres} ${cliente.apellidos}">
+                                    <div class="d-flex flex-column gap-2 w-100">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img class="user-icon sm" src="${baseurl + cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}">
+                                            <span>${cliente.nombres} ${cliente.apellidos}</span>
+                                        </div>
+                                        <div class="row w-100" style="font-size: 12px">
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center gap-1">
+                                                    ${window.icons.telefono} <span>${cliente.telefono}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center gap-1">
+                                                ${window.icons.building} <span>${cliente.empresa}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>`;
+                    });
+
+                    if (!clientes.some(cliente =>
+                        cliente.nombres.toLowerCase().trim() === value.toLowerCase().trim()
+                        || cliente.apellidos.toLowerCase().trim() === value.toLowerCase().trim()
+                        || cliente.dni.trim() === value.toLowerCase().trim()
+                    )) {
+                        html += buttonNewCliente;
+                    }
+
+                    resultados.innerHTML = html;
+                    resultados.style.display = 'flex';
+                }
             });
+        } else {
+            resultados.innerHTML = '';
+            resultados.style.display = 'none';
+        }
     }
 });

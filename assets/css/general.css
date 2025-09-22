@@ -221,8 +221,8 @@ svg path {
   background-color: #fff;
   border-radius: 1rem;
   width: 100%;
-  height: 95%;
-  max-height: 95%;
+  height: 85%;
+  max-height: 85%;
   gap: 1rem;
   display: flex;
   flex-direction: column;
@@ -279,6 +279,7 @@ svg path {
 .resultados-busqueda {
   display: none;
   flex-direction: column;
+  border: 1px solid var(--default-border-color);
   border-radius: 0.5rem;
   position: absolute;
   background-color: #fff;
@@ -293,8 +294,13 @@ svg path {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem;
   cursor: pointer;
+}
+
+.resultado-item svg {
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .resultado-item:not(:last-child) {
@@ -314,6 +320,12 @@ svg path {
 .resultado-item:hover,
 .resultado-item.selected {
   background-color: var(--default-bg-color-light);
+  color: var(--secondary-theme-color);
+}
+
+.resultado-item:hover svg path,
+.resultado-item.selected svg path {
+  stroke: var(--secondary-theme-color);
 }
 
 .tabs-container {

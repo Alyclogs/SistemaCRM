@@ -1,34 +1,41 @@
 const baseurl = 'http://localhost/SistemaCRM/';
 
 export const icons = async () => {
-    const [add, edit, trash, menu, telefono, correo, dni, error, success, warning, info, building] = await Promise.all([
-        fetch(baseurl + "assets/svg/add.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/edit.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/trash.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/menu.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/call.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/sms.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/document-text-2.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/close-circle.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/success.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/warning.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/info-circle.svg").then(res => res.text()),
-        fetch(baseurl + "assets/svg/building.svg").then(res => res.text())
-    ]);
+    const [add, edit, trash, menu, user, telefono, correo, document, error,
+        success, warning, info, building, video, reunion] = await Promise.all([
+            fetch(baseurl + "assets/svg/add.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/edit.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/trash.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/menu.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/user.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/call.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/sms.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/document-text-2.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/close-circle.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/success.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/warning.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/info-circle.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/building.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/video.svg").then(res => res.text()),
+            fetch(baseurl + "assets/svg/profile-2user.svg").then(res => res.text())
+        ]);
 
     return {
         add,
         edit,
         trash,
         menu,
+        user,
         telefono,
         correo,
-        dni,
+        document,
         error,
         success,
         warning,
         info,
-        building
+        building,
+        video,
+        reunion
     };
 };
 

@@ -184,10 +184,10 @@ class ClienteModel
             $stmt->execute([
                 $data['nombres'],
                 $data['apellidos'],
-                $data['num_doc'],
-                $data['telefono'],
-                $data['correo'],
-                $data['idestado'],
+                $data['num_doc'] ?? null,
+                $data['telefono'] ?? null,
+                $data['correo'] ?? null,
+                $data['idestado'] ?? null,
                 $data['foto'] ?? 'assets/img/usuariodefault.png'
             ]);
 
@@ -274,10 +274,10 @@ class ClienteModel
             $stmt->execute([
                 $data['nombres'],
                 $data['apellidos'],
-                $data['num_doc'],
-                $data['telefono'],
-                $data['correo'],
-                $data['idestado'],
+                $data['num_doc'] ?? null,
+                $data['telefono'] ?? null,
+                $data['correo'] ?? null,
+                $data['idestado'] ?? null,
                 $data['foto'] ?? $fotoActual ?? "assets/img/usuariodefault.png",
                 $id
             ]);

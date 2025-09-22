@@ -1,11 +1,38 @@
+<?php
+require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
+
+$usuarioModel = new UsuarioModel();
+$usuarios = $usuarioModel->obtenerUsuarios();
+?>
+
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 
+<div class="page-header bg-secondary disable-hover text-white">
+    <div class="d-flex align-items-center gap-3">
+        <h5 class="page-title">Calendario</h5>
+        <button class="btn-default bg-accent" id="btnNuevaActividad">
+            <?php include('assets/svg/add.svg') ?>
+            <span>Nueva Actividad</span>
+        </button>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <button class="btn-symmetrical btn-secondary" id="btnRefresh"><?php include('./assets/svg/refresh-arrow-01.svg') ?></button>
+        <div class="busqueda-grupo" data-type="Estado">
+            <button class="btn-secondary border boton-filtro" id="usuarios"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="usuarios" id="usuarioActual">Usuario</span></button>
+            <div class="resultados-busqueda" data-parent="usuarios" style="min-width: 180px; right: 0px; top: 2.5rem;">
+                <?php foreach ($usuarios as $usuario): ?>
+                    <div class="resultado-item filtro-item" data-id="<?= $usuario['idusuario'] ?>" data-value="<?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?>"><?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?></div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="page-content">
     <div id="calendar"></div>
 </div>
 
-<div id="popup" class="popup">
+<div id="popupPreview" class="popup">
     <div class="buttons-row buttons-actividad mb-3">
         <button class="btn-outline btn-actividad selected" data-type="llamada"><?php include('./assets/svg/call.svg') ?></button>
         <button class="btn-outline btn-actividad" data-type="videollamada"><?php include('./assets/svg/video.svg') ?></button>
@@ -19,8 +46,10 @@
     </div>
 </div>
 
+<div id="popupActividad" class="popup"></div>
+
 <div class="modal fade" id="actividadModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="actividadModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
