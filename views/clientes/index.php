@@ -1,4 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $pagina = isset($_GET['action']) ? $_GET['action'] : 'read';
 $pagina = basename($pagina);
 

@@ -96,6 +96,9 @@ function eliminarUsuario(idusuario) {
 }
 
 document.addEventListener('click', function (e) {
+    if (e.target.closest("#btnRefresh")) {
+        fetchUsuarios();
+    }
     if (e.target.closest('.tab-item')) {
         const tab = e.target.closest('.tab-item');
         selectedEstado = tab.dataset.estado || '';

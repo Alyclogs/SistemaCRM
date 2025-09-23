@@ -5,7 +5,7 @@
     <div class="col d-flex justify-content-center">
         <div class="grupo-input buscador-global">
             <?php include('./assets/svg/search.svg') ?>
-            <input type="text" class="form-control" id="InputBuscarGlobal">
+            <input type="text" class="form-control" id="InputBuscarGlobal" placeholder="Búsqueda en CAPEDU">
         </div>
     </div>
     <div class="col d-flex justify-content-end">

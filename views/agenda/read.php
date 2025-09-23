@@ -19,10 +19,10 @@ $usuarios = $usuarioModel->obtenerUsuarios();
     <div class="d-flex align-items-center gap-3">
         <button class="btn-symmetrical btn-secondary" id="btnRefresh"><?php include('./assets/svg/refresh-arrow-01.svg') ?></button>
         <div class="busqueda-grupo" data-type="Estado">
-            <button class="btn-secondary border boton-filtro" id="usuarios"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="usuarios" id="usuarioActual">Usuario</span></button>
+            <button class="btn-secondary border boton-filtro selected" id="usuarios"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="usuarios" id="usuarioActual"><?= $_SESSION['nombre'] ?></span></button>
             <div class="resultados-busqueda" data-parent="usuarios" style="min-width: 180px; right: 0px; top: 2.5rem;">
                 <?php foreach ($usuarios as $usuario): ?>
-                    <div class="resultado-item filtro-item" data-id="<?= $usuario['idusuario'] ?>" data-value="<?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?>"><?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?></div>
+                    <div class="resultado-item filtro-item <?= $usuario['idusuario'] === $_SESSION['idusuario'] ? 'selected' : '' ?>" data-id="<?= $usuario['idusuario'] ?>" data-value="<?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?>"><?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?></div>
                 <?php endforeach; ?>
             </div>
         </div>

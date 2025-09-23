@@ -131,8 +131,9 @@ class UsuarioModel
             if (!empty($filtro)) {
                 $sql .= " AND (
                 u.nombres LIKE :filtro 
-                OR u.apellidos LIKE :filtro 
-                OR u.dni LIKE :filtro
+                OR u.apellidos LIKE :filtro
+                OR CONCAT(u.nombres, ' ', u.apellidos) LIKE :filtro
+                OR CONCAT(u.apellidos, ' ', u.nombres) LIKE :filtro
             )";
             }
 

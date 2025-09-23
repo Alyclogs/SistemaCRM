@@ -1,5 +1,5 @@
 import CalendarUI from "./calendar.js";
-import { formatearFecha, formatearHora, formatearRangoFecha, formatEventDate } from "./date.js";
+import { formatearFecha, formatearHora, formatearRangoFecha, formatEventDate, sumarMinutos } from "./date.js";
 import { mostrarToast } from "./utils.js";
 import api from "./api.js";
 
@@ -15,19 +15,21 @@ const labels = {
     videollamada: "Videollamada",
     reunion: "Reunión"
 };
+const usuarioActual = document.getElementById('idUsuario').value;
 
-function fetchActividades() {
+function fetchActividades(idusuario = usuarioActual) {
     api.get({
         source: "actividades",
         action: "listar",
+        params: [{ name: "idusuario", value: idusuario }],
         onSuccess: function (actividades) {
-            if (actividades.length === 0) {
-                return;
-            }
-
             calendar.getEvents().forEach(ev => {
                 if (!ev.extendedProps.preview) ev.remove()
             });
+
+            if (actividades.length === 0) {
+                return;
+            }
 
             actividades.forEach(act => {
                 actividadesCache.set(`${act.idactividad}`, act);
@@ -97,19 +99,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Mantener sincronía en tiempo real
             titleInput.oninput = function () {
-                actividadActual.title = titleInput.value;
+                actividadActual.nombre = titleInput.value;
                 activeEvent.setProp("title", titleInput.value);
                 if (titleInput.value.length === 0) {
-                    titleInput.value = labels[actividadActual.type];
+                    titleInput.value = labels[actividadActual.tipo];
                 }
             };
 
             actividadActual = {
-                title: activeEvent.title,
-                date: formatearFecha(activeEvent.start),
-                start: formatearHora(activeEvent.start),
-                end: formatearHora(activeEvent.end),
-                type: "llamada"
+                nombre: activeEvent.title,
+                fecha: formatearFecha(activeEvent.start),
+                hora_inicio: formatearHora(activeEvent.start),
+                hora_fin: formatearHora(activeEvent.end),
+                tipo: "llamada"
             }
         }
     });
@@ -123,8 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 infoDate.textContent = formatEventDate(info.event.start, info.event.end);
             } else {
                 popup.style.display = "none";
-                actividadActual.start = formatearHora(info.event.start);
-                actividadActual.end = formatearHora(info.event.end);
+                actividadActual.hora_inicio = formatearHora(info.event.start);
+                actividadActual.hora_fin = formatearHora(info.event.end);
             }
         } else {
             actualizarActividad(info.event.id, formatearFecha(info.event.start), formatearHora(info.event.start), formatearHora(info.event.end));
@@ -140,9 +142,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 infoDate.textContent = formatEventDate(info.event.start, info.event.end);
             } else {
                 popup.style.display = "none";
-                actividadActual.date = formatearFecha(info.event.start);
-                actividadActual.start = formatearHora(info.event.start);
-                actividadActual.end = formatearHora(info.event.end);
+                actividadActual.fecha = formatearFecha(info.event.start);
+                actividadActual.hora_inicio = formatearHora(info.event.start);
+                actividadActual.hora_fin = formatearHora(info.event.end);
             }
         } else {
             actualizarActividad(info.event.id, formatearFecha(info.event.start), formatearHora(info.event.start), formatearHora(info.event.end));
@@ -163,42 +165,57 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             let html = `
+            <div class="info-row">
+                ${icons[actividad.tipo]}
+                <h5>${actividad.usuario} / ${actividad.nombre}</h5>
+            </div>
+            <div class="mb-2">
+                <span class="text-small">${formatearRangoFecha(actividad.fecha, actividad.hora_inicio, actividad.hora_fin)}</span>
+            </div>
+            <div class="mb-3">
                 <div class="info-row">
-                    ${icons[actividad.tipo]}
-                    <h5>${actividad.usuario} / ${actividad.nombre}</h5>
-                </div>
-                <span class="text-small mb-3">${formatearRangoFecha(actividad.fecha, actividad.hora_inicio, actividad.hora_fin)}</span>
-                <div class="info-row">
-                    ${window.icons.user} <span>${actividad.cliente}</span>
+                ${window.icons.user} <span>${actividad.cliente}</span>
                 </div>
                 <div class="info-row">
                     ${actividad.notas?.length > 0 ? `${window.icons.document} <span>${actividad.notas[0].contenido}</span>` : ''}
                 </div>
-                `;
+            </div>
+            <div class="d-flex gap-2 align-items-center justify-content-end">
+                <button class="btn-outline" id="btnDetallesActividad" data-id="${actividad.idactividad}">Editar</button>
+                <button class="btn-default bg-text-danger" id="btnEliminarActividad">Eliminar</button>
+            </div>
+        `;
 
             popup.innerHTML = html;
 
-            var rect = info.el.getBoundingClientRect();
+            const rect = info.el.getBoundingClientRect();
             popup.style.top = (rect.top + window.scrollY) + "px";
             popup.style.left = (rect.right + window.scrollX + 10) + "px";
             popup.style.display = 'block';
 
-            info.el.addEventListener("mouseleave", function () {
-                setTimeout(() => {
+            let hideTimeout;
+
+            function scheduleHide() {
+                hideTimeout = setTimeout(() => {
                     popup.style.display = "none";
-                }, 1000);
-            });
-            popup.addEventListener("mouseleave", function () {
-                setTimeout(() => {
-                    popup.style.display = "none";
-                }, 1000);
-            });
+                }, 300);
+            }
+
+            function cancelHide() {
+                clearTimeout(hideTimeout);
+            }
+
+            info.el.addEventListener("mouseleave", scheduleHide);
+            info.el.addEventListener("mouseenter", cancelHide);
+
+            popup.addEventListener("mouseleave", scheduleHide);
+            popup.addEventListener("mouseenter", cancelHide);
         }
     });
 });
 
 function abrirFormActividad(actividad = {}) {
-    const url = baseurl + "views/components/actividades/formActividad.php";
+    let url = baseurl + "views/components/actividades/formActividad.php";
     if (actividad.idactividad) {
         url += "?id=" + actividad.idactividad;
     }
@@ -209,23 +226,21 @@ function abrirFormActividad(actividad = {}) {
             $("#actividadModalBody").html(html);
             $("#actividadModal").modal('show');
 
-            // valores por defecto
-            const defaults = {
-                title: "Llamada",
-                type: "llamada",
-                date: formatearFecha(new Date()),
-                start: formatearHora(new Date()),
-                end: formatearHora(new Date())
+            // combinar actividad con defaults
+            actividadActual = {
+                nombre: actividadActual?.nombre ?? "Llamada",
+                tipo: actividadActual?.tipo ?? "llamada",
+                fecha: actividadActual?.fecha ?? formatearFecha(new Date()),
+                hora_inicio: actividadActual?.hora_inicio ?? formatearHora(new Date()),
+                hora_fin: actividadActual?.hora_fin ?? sumarMinutos(formatearHora(new Date()), 30)
             };
 
-            // combinar actividad con defaults
-            actividadActual = { ...defaults, ...actividad };
+            $("#tituloActividadLabel").text(actividadActual.nombre);
 
-            $("#tituloActividadLabel").text(actividadActual.title);
-
-            const quill = new Quill("#notaEditor", { theme: "snow" });
+            //const quill = new Quill("#notaEditor", { theme: "snow" });
 
             const modal = document.getElementById("actividadModal");
+            const fechaInput = modal.querySelector("#fechaInput");
             const horaInicioInput = modal.querySelector("#horaInicioInput");
             const horaFinInput = modal.querySelector("#horaFinInput");
             const titleInput = modal.querySelector("#titleInput");
@@ -234,65 +249,77 @@ function abrirFormActividad(actividad = {}) {
                 miniCalendar = calendarUI.buildCalendarCustom(
                     document.getElementById("miniCalendar"),
                     {
-                        initialDate: actividadActual.date,
-                        scrollTime: actividadActual.start,
+                        initialDate: actividadActual.fecha,
+                        scrollTime: actividadActual.hora_inicio,
                         initialView: "timeGridDay"
                     }
                 );
 
                 miniCalendar.setOption("eventResize", function (info) {
-                    actividadActual.start = formatearHora(info.event.start);
-                    actividadActual.end = formatearHora(info.event.end);
-                    horaInicioInput.value = actividadActual.start;
-                    horaFinInput.value = actividadActual.end;
+                    actividadActual.hora_inicio = formatearHora(info.event.start);
+                    actividadActual.hora_fin = formatearHora(info.event.end);
+                    horaInicioInput.value = actividadActual.hora_inicio.slice(0, 5);
+                    horaFinInput.value = actividadActual.hora_fin.slice(0, 5);
                 });
 
                 miniCalendar.setOption("eventDrop", function (info) {
-                    actividadActual.start = formatearHora(info.event.start);
-                    actividadActual.end = formatearHora(info.event.end);
-                    horaInicioInput.value = actividadActual.start;
-                    horaFinInput.value = actividadActual.end;
+                    actividadActual.hora_inicio = formatearHora(info.event.start);
+                    actividadActual.hora_fin = formatearHora(info.event.end);
+                    horaInicioInput.value = actividadActual.hora_inicio.slice(0, 5);
+                    horaFinInput.value = actividadActual.hora_fin.slice(0, 5);
                 });
 
                 miniCalendar.render();
 
                 activeEvent = miniCalendar.addEvent({
-                    title: actividadActual.title,
-                    start: actividadActual.date + "T" + actividadActual.start,
-                    end: actividadActual.date + "T" + actividadActual.end,
+                    title: actividadActual.nombre,
+                    start: actividadActual.fecha + "T" + actividadActual.hora_inicio,
+                    end: actividadActual.fecha + "T" + actividadActual.hora_fin,
                     extendedProps: { preview: true }
                 });
             }, 500);
 
             // seleccionar tipo
             const button = modal.querySelector(
-                `.btn-actividad[data-type="${actividadActual.type}"]`
+                `.btn-actividad[data-type="${actividadActual.tipo}"]`
             );
             if (button) button.classList.add("selected");
 
             // inputs iniciales
-            titleInput.value = actividadActual.title;
-            horaInicioInput.value = actividadActual.start;
-            horaFinInput.value = actividadActual.end;
+            titleInput.value = actividadActual.nombre;
+            fechaInput.value = actividadActual.fecha;
+            horaInicioInput.value = actividadActual.hora_inicio.slice(0, 5);
+            horaFinInput.value = actividadActual.hora_fin.slice(0, 5);
 
             // eventos
             titleInput.addEventListener("input", function () {
-                actividadActual.title = titleInput.value;
+                actividadActual.nombre = titleInput.value;
                 activeEvent.setProp("title", titleInput.value);
                 if (titleInput.value.length === 0) {
-                    titleInput.value = labels[actividadActual.type];
+                    titleInput.value = labels[actividadActual.tipo];
                 }
             });
 
+            fechaInput.addEventListener("change", function () {
+                actividadActual.fecha = fechaInput.value;
+                miniCalendar.gotoDate(actividadActual.fecha);
+                const startDate = new Date(`${actividadActual.fecha}T${horaInicioInput.value}`);
+                actividadActual.hora_inicio = horaInicioInput.value;
+                activeEvent.setStart(startDate);
+                const endDate = new Date(`${actividadActual.fecha}T${horaFinInput.value}`);
+                actividadActual.hora_fin = horaFinInput.value;
+                activeEvent.setEnd(endDate);
+            });
+
             horaInicioInput.addEventListener("change", function () {
-                const startDate = new Date(actividadActual.date + "T" + horaInicioInput.value);
-                actividadActual.start = horaInicioInput.value;
+                const startDate = new Date(actividadActual.fecha + "T" + horaInicioInput.value);
+                actividadActual.hora_inicio = horaInicioInput.value;
                 activeEvent.setStart(startDate);
             });
 
             horaFinInput.addEventListener("change", function () {
-                const endDate = new Date(actividadActual.date + "T" + horaFinInput.value);
-                actividadActual.end = horaFinInput.value;
+                const endDate = new Date(actividadActual.fecha + "T" + horaFinInput.value);
+                actividadActual.hora_fin = horaFinInput.value;
                 activeEvent.setEnd(endDate);
             });
         })
@@ -313,9 +340,9 @@ function guardarActividad() {
         const formData = new FormData(formActividad);
         const action = formData.get("idactividad") ? "actualizar" : "crear";
 
-        formData.append('idusuario', document.getElementById('idUsuario').value);
-        formData.append('tipo', actividadActual.type || modal.querySelector('.btn-actividad.selected').dataset.type);
-        formData.append('fecha', actividadActual.date);
+        formData.append('idusuario', usuarioActual);
+        formData.append('tipo', actividadActual.tipo || modal.find('.btn-actividad.selected').data('type'));
+        formData.append('fecha', actividadActual.fecha);
 
         api.post({
             source: "actividades",
@@ -360,6 +387,32 @@ function actualizarActividad(idactividad, fecha, horaInicio, horaFin) {
 }
 
 document.addEventListener('click', function (e) {
+    if (e.target.closest("#btnRefresh")) {
+        actividadActual = {};
+        activeEvent = null;
+        const usuarioActualEl = document.querySelector(`.filtro-item[data-id="${usuarioActual}"]`);
+        document.querySelectorAll('.filtro-item').forEach(el => el.classList.remove('selected'));
+        document.querySelector('.selected-filtro').textContent = usuarioActualEl.dataset.value;
+        const resultados = usuarioActualEl.closest('.busqueda-grupo').querySelector('.resultados-busqueda');
+        usuarioActualEl.classList.add('selected');
+        resultados.style.display = "none";
+        fetchActividades();
+    }
+
+    if (e.target.closest('.filtro-item')) {
+        const target = e.target.closest('.filtro-item');
+        const idusuario = target.dataset.id;
+        const nombreUsuario = target.dataset.value;
+        const grupo = target.closest('.busqueda-grupo');
+        const selected = grupo.querySelector('.selected-filtro');
+        const resultados = grupo.querySelector('.resultados-busqueda');
+        grupo.querySelectorAll('.filtro-item').forEach(el => el.classList.remove('selected'));
+        target.classList.add('selected');
+        selected.textContent = nombreUsuario;
+        resultados.style.display = 'none';
+        fetchActividades(idusuario);
+    }
+
     if (e.target.closest('.btn-actividad')) {
         const button = e.target.closest('.btn-actividad');
         const esPopup = !!e.target.closest('.popup');
@@ -369,7 +422,7 @@ document.addEventListener('click', function (e) {
 
         buttons.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
         button.classList.add('selected');
-        actividadActual.type = actividad;
+        actividadActual.tipo = actividad;
 
         const titleInput = source.querySelector('#titleInput');
         const defaultActividades = ["Llamada", "Videollamada", "Reunión"];
@@ -386,11 +439,15 @@ document.addEventListener('click', function (e) {
     }
 
     if (e.target.closest('#btnNuevaActividad')) {
-        e.target.closest('.popup').style.display = 'none';
+        document.querySelector('#popupPreview').style.display = 'none';
+        actividadActual = {};
+        activeEvent = null;
         abrirFormActividad();
     }
 
     if (e.target.closest('#btnDetallesActividad')) {
+        const idactividad = e.target.closest('#btnDetallesActividad').dataset.id;
+        actividadActual = actividadesCache.get(idactividad);
         e.target.closest('.popup').style.display = 'none';
         abrirFormActividad(actividadActual);
     }
@@ -409,6 +466,20 @@ document.addEventListener('click', function (e) {
         resultados.style.display = 'none';
     }
 
+    if (e.target.closest('.usuario-item')) {
+        const target = e.target.closest('.usuario-item');
+        const value = target.dataset.value;
+        const id = target.dataset.id;
+        const grupo = target.closest('.busqueda-grupo');
+        const resultados = grupo.querySelector('.resultados-busqueda');
+        const input = grupo.querySelector(`input[id="${resultados.dataset.parent}"]`);
+        const hidden = grupo.querySelector(`input[name="idusuario"]`);
+        input.value = value;
+        hidden.value = id;
+        resultados.innerHTML = '';
+        resultados.style.display = 'none';
+    }
+
     if (e.target.closest('#btnGuardarActividad')) {
         guardarActividad();
     }
@@ -417,7 +488,7 @@ document.addEventListener('click', function (e) {
 document.addEventListener('input', function (e) {
     if (e.target.id === 'clienteInput') {
         const input = e.target;
-        const value = input.value;
+        const value = input.value.trim();
         const resultados = input.closest('.busqueda-grupo').querySelector('.resultados-busqueda');
 
         if (value.length > 2) {
@@ -429,14 +500,78 @@ document.addEventListener('input', function (e) {
                     { name: "tipo", value: 1 }
                 ],
                 onSuccess: function (clientes) {
-
                     const buttonNewCliente = `
-                        <div class="resultado-item bg-secondary text-white" id="btnNuevoCliente" data-value="${value}">
-                            ${window.getIcon("add", "white")}<span>Agregar ${value} como nuevo cliente</span>
-                        </div>`;
+                    <div class="resultado-item bg-secondary text-white" id="btnNuevoCliente" data-value="${value}">
+                        ${window.getIcon("add", "white")} <span>Agregar "${value}" como nuevo cliente</span>
+                    </div>`;
+
+                    let html = '';
+
+                    if (clientes.length > 0) {
+                        clientes.forEach(cliente => {
+                            html += `
+                            <div class="resultado-item cliente-item" 
+                                data-id="${cliente.idcliente}" 
+                                data-value="${cliente.nombres} ${cliente.apellidos}">
+                                <div class="d-flex flex-column gap-2 w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img class="user-icon sm" src="${baseurl + cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}">
+                                        <span>${cliente.nombres} ${cliente.apellidos}</span>
+                                    </div>
+                                    <div class="row w-100" style="font-size: 12px">
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center gap-1">
+                                                ${window.icons.telefono} <span>${cliente.telefono}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center gap-1">
+                                                ${window.icons.building} <span>${cliente.empresa}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+                        const existeSimilar = clientes.some(cliente =>
+                            (`${cliente.nombres} ${cliente.apellidos}`).toLowerCase().includes(value.toLowerCase().trim())
+                            || cliente.dni.trim().toLowerCase().includes(value.toLowerCase().trim())
+                        );
+
+                        if (!existeSimilar) {
+                            html += buttonNewCliente;
+                        }
+                    } else {
+                        // si no hay clientes → solo botón
+                        html = buttonNewCliente;
+                    }
+
+                    resultados.innerHTML = html;
+                    resultados.style.display = 'flex';
+                }
+            });
+        } else {
+            resultados.innerHTML = '';
+            resultados.style.display = 'none';
+        }
+    }
+
+    if (e.target.id === 'usuarioInput') {
+        const input = e.target;
+        const value = input.value;
+        const resultados = input.closest('.busqueda-grupo').querySelector('.resultados-busqueda');
+
+        if (value.length > 2) {
+            api.get({
+                source: "usuarios",
+                action: "buscar",
+                params: [
+                    { name: "filtro", value }
+                ],
+                onSuccess: function (clientes) {
 
                     if (clientes.length === 0) {
-                        resultados.innerHTML = buttonNewCliente;
+                        resultados.innerHTML = `<div class="resultado-item not-found">No se encontraron resultados</div>`;
                         resultados.style.display = 'flex';
                         return;
                     }
@@ -445,27 +580,11 @@ document.addEventListener('input', function (e) {
 
                     clientes.forEach(cliente => {
                         html += `
-                            <div class="resultado-item cliente-item" 
+                            <div class="resultado-item usuario-item" 
                                 data-id="${cliente.idcliente}" 
                                 data-value="${cliente.nombres} ${cliente.apellidos}">
-                                    <div class="d-flex flex-column gap-2 w-100">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <img class="user-icon sm" src="${baseurl + cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}">
-                                            <span>${cliente.nombres} ${cliente.apellidos}</span>
-                                        </div>
-                                        <div class="row w-100" style="font-size: 12px">
-                                            <div class="col-6">
-                                                <div class="d-flex align-items-center gap-1">
-                                                    ${window.icons.telefono} <span>${cliente.telefono}</span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="d-flex align-items-center gap-1">
-                                                ${window.icons.building} <span>${cliente.empresa}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <img class="user-icon sm" src="${baseurl + cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}">
+                                <span>${cliente.nombres} ${cliente.apellidos}</span>
                             </div>`;
                     });
 

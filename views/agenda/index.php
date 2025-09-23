@@ -1,7 +1,8 @@
-<link rel="stylesheet" href="./assets/css/calendar.css">
-<link rel="stylesheet" href="./assets/css/actividad.css">
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $pagina = isset($_GET['action']) ? $_GET['action'] : 'read';
 $pagina = basename($pagina);
 
@@ -14,4 +15,7 @@ if (!file_exists($ruta)) {
 }
 ?>
 
+<link rel="stylesheet" href="./assets/css/calendar.css">
+<link rel="stylesheet" href="./assets/css/actividad.css">
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
 <?php include($ruta); ?>

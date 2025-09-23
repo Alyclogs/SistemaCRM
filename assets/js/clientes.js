@@ -230,7 +230,6 @@ document.addEventListener('click', function (e) {
             }
         });
         document.querySelectorAll('.boton-filtro').forEach(el => {
-            console.log(el, el.closest('.busqueda-grupo'));
             const grupo = el.closest('.busqueda-grupo');
             if (grupo.dataset.type !== "Tipo") {
                 el.classList.remove('selected');

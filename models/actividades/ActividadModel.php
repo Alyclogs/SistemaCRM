@@ -17,7 +17,13 @@ class ActividadModel
     public function obtenerActividades()
     {
         try {
-            $sql = "SELECT * FROM actividades ORDER BY fecha DESC, hora_inicio ASC";
+            $sql = "SELECT a.*,
+                CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                CONCAT(c.nombres, ' ', c.apellidos) AS cliente
+            FROM actividades a
+            INNER JOIN usuarios u ON u.idusuario = a.idusuario
+            INNER JOIN clientes c ON c.idcliente = a.idcliente
+            ORDER BY fecha DESC, hora_inicio ASC";
             $stmt = $this->pdo->query($sql);
             $actividades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -38,7 +44,13 @@ class ActividadModel
     public function obtenerActividad($id)
     {
         try {
-            $sql = "SELECT * FROM actividades WHERE idactividad = ?";
+            $sql = "SELECT a.*,
+                CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                CONCAT(c.nombres, ' ', c.apellidos) AS cliente
+            FROM actividades a
+            INNER JOIN usuarios u ON u.idusuario = a.idusuario
+            INNER JOIN clientes c ON c.idcliente = a.idcliente
+            WHERE a.idactividad = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id]);
             $actividad = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -59,7 +71,14 @@ class ActividadModel
     public function obtenerActividadesPorCliente($idcliente)
     {
         try {
-            $sql = "SELECT * FROM actividades WHERE idcliente = ? ORDER BY fecha DESC, hora_inicio ASC";
+            $sql = "SELECT a.*,
+                CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                CONCAT(c.nombres, ' ', c.apellidos) AS cliente
+            FROM actividades a
+            INNER JOIN usuarios u ON u.idusuario = a.idusuario
+            INNER JOIN clientes c ON c.idcliente = a.idcliente
+            WHERE a.idcliente = ?
+            ORDER BY fecha DESC, hora_inicio ASC";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$idcliente]);
             $actividades = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -74,6 +93,34 @@ class ActividadModel
             return $actividades;
         } catch (Exception $e) {
             throw new Exception("Error al obtener actividades por cliente: " . $e->getMessage());
+        }
+    }
+
+    public function obtenerActividadesPorUsuario($idusuario)
+    {
+        try {
+            $sql = "SELECT a.*,
+                CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                CONCAT(c.nombres, ' ', c.apellidos) AS cliente
+            FROM actividades a
+            INNER JOIN usuarios u ON u.idusuario = a.idusuario
+            INNER JOIN clientes c ON c.idcliente = a.idcliente
+            WHERE a.idusuario = ?
+            ORDER BY fecha DESC, hora_inicio ASC";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$idusuario]);
+            $actividades = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($actividades as &$actividad) {
+                $actividad['notas'] = $this->obtenerNotasActividad($actividad['idactividad']);
+                if (!empty($actividad['extra'])) {
+                    $actividad['extra'] = json_decode($actividad['extra'], true);
+                }
+            }
+
+            return $actividades;
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener actividades por usuario: " . $e->getMessage());
         }
     }
 
@@ -98,7 +145,7 @@ class ActividadModel
 
             // Si se envía nota inicial
             if (!empty($data['nota'])) {
-                $this->guardarNotaActividad($idactividad, $data['nota']);
+                $this->guardarNotaActividad($idactividad, $data['idusuario'], $data['nota']);
             }
 
             return $idactividad;
@@ -128,7 +175,7 @@ class ActividadModel
 
             // Si se actualiza nota
             if (isset($data['nota'])) {
-                $this->guardarNotaActividad($id, $data['nota']);
+                $this->guardarNotaActividad($id, $data['idusuario'], $data['nota']);
             }
 
             return true;
@@ -166,7 +213,7 @@ class ActividadModel
         }
     }
 
-    public function guardarNotaActividad($idactividad, $contenido)
+    public function guardarNotaActividad($idactividad, $idusuario, $contenido)
     {
         try {
             // Si está vacía, eliminar nota
@@ -177,19 +224,19 @@ class ActividadModel
             }
 
             // Si ya existe, actualizar
-            $sqlCheck = "SELECT idnota FROM notas WHERE idreferencia = ? AND tipo = 'actividad'";
+            $sqlCheck = "SELECT idnota FROM notas WHERE idreferencia = ? AND idusuario = ? AND tipo = 'actividad'";
             $stmtCheck = $this->pdo->prepare($sqlCheck);
-            $stmtCheck->execute([$idactividad]);
+            $stmtCheck->execute([$idactividad, $idusuario]);
             $idnota = $stmtCheck->fetchColumn();
 
             if ($idnota) {
-                $sql = "actualizar notas SET contenido=? WHERE idnota=?";
+                $sql = "UPDATE notas SET contenido=? WHERE idnota=?";
                 $stmt = $this->pdo->prepare($sql);
                 return $stmt->execute([$contenido, $idnota]);
             } else {
-                $sql = "INSERT INTO notas (idreferencia, tipo, contenido) VALUES (?, 'actividad', ?)";
+                $sql = "INSERT INTO notas (idusuario, idreferencia, tipo, contenido) VALUES (?, ?, 'actividad', ?)";
                 $stmt = $this->pdo->prepare($sql);
-                return $stmt->execute([$idactividad, $contenido]);
+                return $stmt->execute([$idusuario, $idactividad, $contenido]);
             }
         } catch (Exception $e) {
             throw new Exception("Error al guardar nota de actividad: " . $e->getMessage());

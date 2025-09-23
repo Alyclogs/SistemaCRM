@@ -162,6 +162,16 @@ svg path {
   background-color: var(--danger-bg-color-hover) !important;
 }
 
+.bg-text-danger {
+  background-color: var(--danger-text-color) !important;
+  color: #fff;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.bg-text-danger:not(.disable-hover):hover {
+  background-color: #cc2e3b !important;
+}
+
 .border-danger {
   border-color: var(--danger-text-color) !important;
 }

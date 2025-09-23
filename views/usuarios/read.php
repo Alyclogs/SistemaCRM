@@ -10,6 +10,9 @@ require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
             <span>Nuevo registro</span>
         </button>
     </div>
+    <div class="d-flex align-items-center gap-3">
+        <button class="btn-symmetrical btn-secondary" id="btnRefresh"><?php include('./assets/svg/refresh-arrow-01.svg') ?></button>
+    </div>
 </div>
 
 <div class="page-content">
