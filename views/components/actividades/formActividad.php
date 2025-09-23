@@ -18,7 +18,7 @@ if ($idactividad) {
 }
 ?>
 
-<div class="d-flex gap-4" style="height: 590px;">
+<div class="d-flex gap-4 h-100">
     <div class="flex-grow-1">
         <form id="formActividad" method="POST">
             <input type="hidden" name="idactividad" id="idactividad" value="<?= $actividad['idactividad'] ?? '' ?>">
@@ -29,14 +29,14 @@ if ($idactividad) {
                     <button type="button" class="btn-outline btn-actividad" data-type="reunion"><?php include('../../../assets/svg/profile-2user.svg') ?></button>
                 </div>
                 <div class="mb-4">
-                    <div class="titulo-actividad">
-                        <div class="d-flex gap-4 align-items-center">
+                    <div class="titulo-actividad" style="min-width: 220px; max-width: 360px;">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
                             <h5 class="text-large" id="tituloActividadLabel"><?= $actividad['nombre'] ?? "Nueva actividad" ?></h5>
                             <div class="svg-editar" style="display: none;">
                                 <?php include('../../../assets/svg/edit.svg') ?>
                             </div>
                         </div>
-                        <input type="text" class="form-control titulo-actividad-editando" id="titleInput" name="nombre" style="display: none;" value="<?= $actividad['nombre'] ?? "Nueva actividad" ?>">
+                        <input type="text" class="form-control titulo-actividad-editando" id="titleInput" style="display: none;" name="nombre" value="<?= $actividad['nombre'] ?? "Nueva actividad" ?>">
                     </div>
                 </div>
                 <div class="horas-container d-flex gap-2 mb-3">
@@ -45,9 +45,24 @@ if ($idactividad) {
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <input type="date" class="form-control w-auto" name="fecha" id="fechaInput" value="<?= $actividad['fecha'] ?? '' ?>">
-                        <input type="time" class="form-control w-auto" name="hora_inicio" id="horaInicioInput" value="<?= $actividad['hora_inicio'] ?? '' ?>" required>
-                        <span class="px-3">a</span>
-                        <input type="time" class="form-control w-auto" name="hora_fin" id="horaFinInput" value="<?= $actividad['hora_fin'] ?? '' ?>" required>
+                        <div class="busqueda-grupo" style="width: 120px;">
+                            <input type="text" class="form-control" name="hora_inicio" id="horaInicioInput" value="<?= $actividad['hora_inicio'] ?? '' ?>" pattern="\d{2}:\d{2}" required>
+                            <div class="resultados-busqueda" data-parent="horaInicioInput" style="top: 2.5rem;"></div>
+                        </div>
+                        <span class="px-2">a</span>
+                        <div class="busqueda-grupo" style="width: 120px;">
+                            <input type="text" class="form-control" name="hora_fin" id="horaFinInput" value="<?= $actividad['hora_fin'] ?? '' ?>" pattern="\d{2}:\d{2}" required>
+                            <div class="resultados-busqueda" data-parent="horaFinInput" style="top: 2.5rem;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="extra-container w-100 d-flex gap-2 mb-3">
+                    <div data-bs-toggle="tooltip" data-bs-placement="top" title="Detalles de la actividad">
+                        <?php include('../../../assets/svg/message-add-1.svg') ?>
+                    </div>
+                    <div class="w-100 d-flex flex-column gap-2">
+                        <div id="detailOptions">Agregar una <a class="text-primary clickable" id="agregarDescripcion">descripción</a>, <a class="text-primary clickable" id="agregarDireccion">dirección</a> o un <a class="text-primary clickable" id="agregarEnlace">enlace</a></div>
+                        <div id="extraContent" class="d-flex flex-column gap-2"></div>
                     </div>
                 </div>
                 <div class="notas-container w-100 d-flex gap-2 mb-3" style="height: 180px;">
@@ -61,18 +76,18 @@ if ($idactividad) {
                         <?php include('../../../assets/svg/profile.svg') ?>
                     </div>
                     <div class="busqueda-grupo w-100">
-                        <input type="text" class="form-control w-100" id="clienteInput" value="<?= $actividad['cliente'] ?? '' ?>" placeholder="Buscar cliente" required>
+                        <input type="text" class="form-control w-100" id="clienteInput" value="<?= $actividad['cliente'] ?? '' ?>" placeholder="Buscar cliente">
                         <input type="hidden" name="idcliente" value="<?= $actividad['idcliente'] ?? '' ?>">
                         <div class="resultados-busqueda disable-auto" data-parent="clienteInput" style="top: 2.5rem; min-width: 300px;"></div>
                     </div>
                 </div>
-                <div class="usuario-container d-flex gap-2 w-100">
+                <div class="usuario-container d-flex gap-2 w-100 mb-3">
                     <div data-bs-toggle="tooltip" data-bs-placement="top" title="Asignada al usuario">
                         <?php include('../../../assets/svg/user.svg') ?>
                     </div>
                     <div class="busqueda-grupo w-100">
                         <input type="text" class="form-control w-100" id="usuarioInput" value="<?= $actividad['usuario'] ?? $_SESSION['nombre'] ?>" placeholder="Buscar usuario" required>
-                        <input type="hidden" name="idusuario" value="<?= $actividad['idusuario'] ?? $_SESSION['idusuario'] ?>">
+                        <input type="hidden" name="idusuario" id="idUsuarioInput" value="<?= $actividad['idusuario'] ?? $_SESSION['idusuario'] ?>">
                         <div class="resultados-busqueda disable-auto" data-parent="usuarioInput" style="top: 2.5rem; min-width: 300px;"></div>
                     </div>
                 </div>
@@ -98,7 +113,9 @@ if ($idactividad) {
         });
 
         tituloActividad.addEventListener('mouseout', function() {
-            svgEditar.style.display = 'none';
+            if (titleInput.style.display === 'none') {
+                svgEditar.style.display = 'none';
+            }
         });
 
         tituloActividad.addEventListener('click', function() {
@@ -106,12 +123,18 @@ if ($idactividad) {
             tituloActividadLabel.style.display = 'none';
             svgEditar.style.display = 'none';
             titleInput.style.display = 'block';
+            titleInput.focus();
         });
 
         tituloActividad.addEventListener('change', function() {
             tituloActividadLabel.innerText = titleInput.value;
+        });
+
+        titleInput.addEventListener('mouseout', function() {
+            tituloActividadLabel.innerText = titleInput.value;
             titleInput.style.display = 'none';
             tituloActividadLabel.style.display = 'block';
+            svgEditar.style.display = 'none';
         });
 
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))

@@ -165,8 +165,8 @@ try {
                 break;
 
             case 'eliminar':
-                if (!isset($_POST['idcliente'])) throw new Exception("ID requerido");
-                $clienteModel->eliminarCliente($_POST['idcliente']);
+                if (!isset($_POST['idexistente'])) throw new Exception("ID requerido");
+                $clienteModel->eliminarCliente($_POST['idexistente']);
                 $response = ["success" => true, "message" => "Cliente eliminado"];
                 break;
 
@@ -268,6 +268,12 @@ try {
 
                 $clienteModel->actualizarEmpresa($_POST['idexistente'], $_POST);
                 $response = ["success" => true, "message" => "Organización actualizada"];
+                break;
+
+            case 'eliminarOrganizacion':
+                if (!isset($_POST['idexistente'])) throw new Exception("ID requerido");
+                $clienteModel->eliminarEmpresa($_POST['idexistente']);
+                $response = ["success" => true, "message" => "Organización eliminada"];
                 break;
         }
     }

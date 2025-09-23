@@ -19,7 +19,12 @@ class ClienteModel
         try {
             $sql = '';
 
-            $sql = "SELECT c.*, ec.estado, e.idempresa, e.razon_social AS empresa
+            $sql = "SELECT c.*,
+                    ec.estado,
+                    e.idempresa,
+                    e.razon_social AS empresa_nombre,
+                    e.ruc AS empresa_ruc,
+                    e.foto AS empresa_foto
                 FROM clientes c
                 INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
                 LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
@@ -49,7 +54,12 @@ class ClienteModel
     public function buscarClientes($filtro, $idestado = null)
     {
         try {
-            $sql = "SELECT c.*, ec.estado, e.idempresa, e.razon_social AS empresa
+            $sql = "SELECT c.*,
+                    ec.estado,
+                    e.idempresa,
+                    e.razon_social AS empresa_nombre,
+                    e.ruc AS empresa_ruc,
+                    e.foto AS empresa_foto
                 FROM clientes c
                 INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
                 LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
@@ -91,7 +101,13 @@ class ClienteModel
     public function obtenerClientesPorEstado($idestado)
     {
         try {
-            $sql = "SELECT c.*, ec.estado, e.idempresa, e.razon_social AS empresa FROM clientes c WHERE c.idestado = ?
+            $sql = "SELECT c.*,
+                    ec.estado,
+                    e.idempresa,
+                    e.razon_social AS empresa_nombre,
+                    e.ruc AS empresa_ruc,
+                    e.foto AS empresa_foto
+            FROM clientes c WHERE c.idestado = ?
             INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
             LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
             LEFT JOIN empresas e ON e.idempresa = emc.idempresa";
@@ -112,7 +128,13 @@ class ClienteModel
     public function obtenerCliente($id)
     {
         try {
-            $sql = "SELECT c.*, ec.estado, e.idempresa, e.razon_social AS empresa FROM clientes c
+            $sql = "SELECT c.*,
+                    ec.estado,
+                    e.idempresa,
+                    e.razon_social AS empresa_nombre,
+                    e.ruc AS empresa_ruc,
+                    e.foto AS empresa_foto
+            FROM clientes c
             INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
             LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
             LEFT JOIN empresas e ON e.idempresa = emc.idempresa
@@ -349,6 +371,17 @@ class ClienteModel
             return true;
         } catch (Exception $e) {
             throw new Exception("Error al actualizar empresa: " . $e->getMessage());
+        }
+    }
+
+    public function eliminarEmpresa($id)
+    {
+        try {
+            $sql = "DELETE FROM empresas WHERE idempresa = ?";
+            $stmt = $this->pdo->prepare($sql);
+            return $stmt->execute([$id]);
+        } catch (Exception $e) {
+            throw new Exception("Error al eliminar empresa: " . $e->getMessage());
         }
     }
 }

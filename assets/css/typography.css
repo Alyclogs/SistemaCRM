@@ -16,6 +16,12 @@
 
 a {
   text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+a:disabled {
+  cursor: not-allowed;
+  color: var(--small-text-color);
 }
 
 p,
@@ -29,7 +35,7 @@ h6 {
 }
 
 span.clickable:hover,
-a:hover,
+a.clickable:hover,
 p.clickable:hover,
 h1.clickable:hover,
 h2.clickable:hover,
@@ -37,5 +43,5 @@ h3.clickable:hover,
 h4.clickable:hover,
 h5.clickable:hover,
 h6.clickable:hover {
-  text-decoration: underline;
+  text-decoration: underline !important;
 }

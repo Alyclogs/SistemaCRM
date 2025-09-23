@@ -54,7 +54,7 @@ $usuarios = $usuarioModel->obtenerUsuarios();
             <div class="modal-header">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="actividadModalBody"></div>
+            <div class="modal-body" id="actividadModalBody" style="height: 590px; overflow-y: auto;"></div>
             <div class="modal-footer">
                 <button type="button" class="btn-cancelar" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn-default" id="btnGuardarActividad">Guardar cambios</button>

@@ -78,4 +78,4 @@ $estados = $clienteModel->obtenerEstadosClientes();
     </div>
 </div>
 
-<script type="module" src="./assets/js/clientes.js"></script>
+<script type="module" src="./assets/js/clientes/read.js"></script>

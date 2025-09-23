@@ -267,3 +267,39 @@ export function formatearRangoFecha(fecha, horaInicio, horaFin, locale = "es-ES"
 
     return texto;
 }
+
+export function generarIntervalosHoras(calendar, select) {
+    select.innerHTML = "";
+
+    const slotMin = calendar.getOption("slotMinTime") || "00:00:00";
+    const slotMax = calendar.getOption("slotMaxTime") || "24:00:00";
+
+    // Convertir a objetos Date solo con la hora
+    const baseDate = new Date(); // hoy
+    const start = new Date(baseDate.toDateString() + " " + slotMin);
+    const end = new Date(baseDate.toDateString() + " " + slotMax);
+
+    const intervalo = 30;
+
+    let current = new Date(start);
+    while (current <= end) {
+        const horas = String(current.getHours()).padStart(2, "0");
+        const minutos = String(current.getMinutes()).padStart(2, "0");
+        const valor = `${horas}:${minutos}:00`;
+
+        const option = document.createElement("div");
+        option.classList.add('resultado-item');
+        option.dataset.value = valor;
+        option.innerHTML = valor;
+
+        // formato amigable (ej: 10:15 a. m.)
+        option.textContent = current.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+        select.appendChild(option);
+
+        // avanzar 15 minutos
+        current.setMinutes(current.getMinutes() + intervalo);
+    }
+}

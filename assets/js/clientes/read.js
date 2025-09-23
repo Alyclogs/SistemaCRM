@@ -1,5 +1,5 @@
-import api from "./api.js";
-import { mostrarToast } from "./utils.js";
+import api from "../utils/api.js";
+import { mostrarToast } from "../utils/utils.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
 let filtroBuscado = '';
@@ -67,7 +67,7 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
                                     <span class="fw-bold user-link clickable" data-type="cliente" data-id="${cliente.idcliente}">${cliente.nombres} ${cliente.apellidos}</span>
                                 </div>
                             </td>
-                            <td>${cliente.empresa || ''}</td>
+                            <td>${cliente.empresa_nombre || ''}</td>
                             <td>${cliente.num_doc}</td>
                             <td>${cliente.telefono}</td>
                             <td>${cliente.correo}</td>
@@ -77,7 +77,7 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
                             <td>
                                 <div class="icons-row">
                                     <button class="btn-icon bg-light" id="btnEditCliente" data-id="${cliente.idcliente}">${window.icons.edit}</button>
-                                    <button class="btn-icon bg-light" id="btnDeleteCliente" data-id="${cliente.idcliente}">${window.icons.trash}</button>
+                                    <button class="btn-icon bg-light" id="btnDeleteRegistro" data-id="${cliente.idcliente}">${window.icons.trash}</button>
                                 </div>
                             </td>
                 </tr>`;
@@ -100,7 +100,7 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
                             <td>
                                 <div class="icons-row">
                                     <button class="btn-icon bg-light" id="btnEditOrganizacion" data-id="${org.idempresa}">${window.icons.edit}</button>
-                                    <button class="btn-icon bg-light" id="btnDeleteOrganizacion" data-id="${org.idempresa}">${window.icons.trash}</button>
+                                    <button class="btn-icon bg-light" id="btnDeleteRegistro" data-id="${org.idempresa}">${window.icons.trash}</button>
                                 </div>
                             </td>
                 </tr>`;
@@ -165,7 +165,7 @@ function eliminarRegistro(tipo, id) {
         source: "clientes",
         action: acciones[tipo].action,
         data: formData,
-        onSuccess: () => fetchClientes()
+        onSuccess: () => fetchClientes(tipo)
     });
 }
 
@@ -235,6 +235,12 @@ document.addEventListener('click', function (e) {
                 el.classList.remove('selected');
             }
         });
+        document.querySelectorAll('.filtro-item').forEach(el => el.classList.remove('selected'));
+        document.querySelectorAll('.busqueda-grupo').forEach(el => el.style.display = '');
+        const newSelectedTipo = document.querySelector(`.filtro-item[data-id="${selectedTipo}"]`);
+        newSelectedTipo.classList.add('selected');
+        document.querySelector('#tipoCliente').textContent = "Clientes";
+        document.getElementById('tiposClientes').classList.add('selected');
     }
 
     if (e.target.closest('.filtro-item')) {

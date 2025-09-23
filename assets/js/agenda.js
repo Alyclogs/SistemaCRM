@@ -1,7 +1,7 @@
-import CalendarUI from "./calendar.js";
-import { formatearFecha, formatearHora, formatearRangoFecha, formatEventDate, sumarMinutos } from "./date.js";
-import { mostrarToast } from "./utils.js";
-import api from "./api.js";
+import CalendarUI from "./utils/calendar.js";
+import { formatearFecha, formatearHora, formatearRangoFecha, formatEventDate, generarIntervalosHoras, sumarMinutos } from "./utils/date.js";
+import { mostrarToast } from "./utils/utils.js";
+import api from "./utils/api.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
 const calendarUI = new CalendarUI();
@@ -16,6 +16,9 @@ const labels = {
     reunion: "Reunión"
 };
 const usuarioActual = document.getElementById('idUsuario').value;
+const nombreUsuarioActual = document.getElementById('nombreUsuario').value;
+var selectedUsuario = usuarioActual;
+var selectedNombreUsuario = nombreUsuarioActual;
 
 function fetchActividades(idusuario = usuarioActual) {
     api.get({
@@ -41,7 +44,8 @@ function fetchActividades(idusuario = usuarioActual) {
                     id: act.idactividad,
                     title: act.nombre,
                     start: start,
-                    end: end
+                    end: end,
+                    classNames: ["evento-existente"]
                 });
             });
         }
@@ -64,9 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let end = new Date(start.getTime() + 30 * 60 * 1000);
 
-        calendar.getEvents().forEach(ev => {
-            if (ev.extendedProps.preview) ev.remove();
-        });
+        if (activeEvent) activeEvent.remove();
         calendar.addEvent({
             title: "Llamada",
             start,
@@ -82,15 +84,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const infoDate = popup.querySelector('#infoDate');
             const titleInput = popup.querySelector('#titleInput');
 
-            // Posicionar popup al costado del evento
-            var rect = info.el.getBoundingClientRect();
-            popup.style.top = (rect.top + window.scrollY) + "px";
-            popup.style.left = (rect.right + window.scrollX + 10) + "px";
-            popup.style.display = "block";
+            mostrarPopup(info.el, popup);
 
             infoDate.textContent = formatEventDate(activeEvent.start, activeEvent.end);
 
-            // Si el input ya tiene valor, usarlo como título del evento
             if (titleInput.value.trim() !== "") {
                 activeEvent.setProp("title", titleInput.value.trim());
             } else {
@@ -174,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
             <div class="mb-3">
                 <div class="info-row">
-                ${window.icons.user} <span>${actividad.cliente}</span>
+                    ${actividad.cliente ? `${window.icons.user} <span>${actividad.cliente}</span>` : ''}
                 </div>
                 <div class="info-row">
                     ${actividad.notas?.length > 0 ? `${window.icons.document} <span>${actividad.notas[0].contenido}</span>` : ''}
@@ -182,16 +179,12 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
             <div class="d-flex gap-2 align-items-center justify-content-end">
                 <button class="btn-outline" id="btnDetallesActividad" data-id="${actividad.idactividad}">Editar</button>
-                <button class="btn-default bg-text-danger" id="btnEliminarActividad">Eliminar</button>
+                <button class="btn-default bg-text-danger" id="btnEliminarActividad" data-id="${actividad.idactividad}">Eliminar</button>
             </div>
         `;
 
             popup.innerHTML = html;
-
-            const rect = info.el.getBoundingClientRect();
-            popup.style.top = (rect.top + window.scrollY) + "px";
-            popup.style.left = (rect.right + window.scrollX + 10) + "px";
-            popup.style.display = 'block';
+            mostrarPopup(info.el, popup);
 
             let hideTimeout;
 
@@ -214,6 +207,30 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+function mostrarPopup(el, popup) {
+    const rect = el.getBoundingClientRect();
+    const popupRect = popup.getBoundingClientRect();
+    const margin = 10;
+
+    let top = rect.top + window.scrollY;
+    let left = rect.right + window.scrollX + margin;
+
+    if (left + popupRect.width > window.innerWidth) {
+        left = rect.left + window.scrollX - popupRect.width - margin;
+    }
+    if (top + popupRect.height > window.innerHeight + window.scrollY) {
+        top = rect.bottom + window.scrollY - popupRect.height;
+        if (top < 0) top = margin;
+    }
+    if (top < window.scrollY) {
+        top = rect.bottom + window.scrollY + margin;
+    }
+
+    popup.style.top = top + "px";
+    popup.style.left = left + "px";
+    popup.style.display = "block";
+}
+
 function abrirFormActividad(actividad = {}) {
     let url = baseurl + "views/components/actividades/formActividad.php";
     if (actividad.idactividad) {
@@ -226,8 +243,11 @@ function abrirFormActividad(actividad = {}) {
             $("#actividadModalBody").html(html);
             $("#actividadModal").modal('show');
 
-            // combinar actividad con defaults
             actividadActual = {
+                idactividad: actividadActual?.idactividad ?? null,
+                idusuario: actividadActual?.idusuario ?? selectedUsuario,
+                usuario: actividadActual?.usuario ?? selectedNombreUsuario,
+                idcliente: actividadActual?.idcliente ?? null,
                 nombre: actividadActual?.nombre ?? "Llamada",
                 tipo: actividadActual?.tipo ?? "llamada",
                 fecha: actividadActual?.fecha ?? formatearFecha(new Date()),
@@ -237,13 +257,15 @@ function abrirFormActividad(actividad = {}) {
 
             $("#tituloActividadLabel").text(actividadActual.nombre);
 
-            //const quill = new Quill("#notaEditor", { theme: "snow" });
-
             const modal = document.getElementById("actividadModal");
             const fechaInput = modal.querySelector("#fechaInput");
             const horaInicioInput = modal.querySelector("#horaInicioInput");
             const horaFinInput = modal.querySelector("#horaFinInput");
             const titleInput = modal.querySelector("#titleInput");
+            const usuarioInput = modal.querySelector("#usuarioInput");
+            const idUsuarioInput = modal.querySelector("#idUsuarioInput");
+            const selectorHoraInicio = modal.querySelector(`.resultados-busqueda[data-parent="${horaInicioInput.id}"]`);
+            const selectorHoraFin = modal.querySelector(`.resultados-busqueda[data-parent="${horaFinInput.id}"]`);
 
             setTimeout(() => {
                 miniCalendar = calendarUI.buildCalendarCustom(
@@ -272,11 +294,23 @@ function abrirFormActividad(actividad = {}) {
                 miniCalendar.render();
 
                 activeEvent = miniCalendar.addEvent({
+                    id: actividadActual.idactividad,
                     title: actividadActual.nombre,
                     start: actividadActual.fecha + "T" + actividadActual.hora_inicio,
                     end: actividadActual.fecha + "T" + actividadActual.hora_fin,
-                    extendedProps: { preview: true }
+                    extendedProps: { preview: true, mini: true }
                 });
+
+                calendar.getEvents().forEach((event) => {
+                    if (event.id !== activeEvent.id
+                        && (!actividadActual.idactividad
+                            || actividadesCache.get(activeEvent.id)?.idusuario === actividadActual?.idusuario)) {
+                        miniCalendar.addEvent(event);
+                    }
+                });
+                generarIntervalosHoras(calendar, selectorHoraInicio);
+                generarIntervalosHoras(calendar, selectorHoraFin);
+
             }, 500);
 
             // seleccionar tipo
@@ -290,6 +324,8 @@ function abrirFormActividad(actividad = {}) {
             fechaInput.value = actividadActual.fecha;
             horaInicioInput.value = actividadActual.hora_inicio.slice(0, 5);
             horaFinInput.value = actividadActual.hora_fin.slice(0, 5);
+            idUsuarioInput.value = actividadActual.idusuario;
+            usuarioInput.value = actividadActual.usuario;
 
             // eventos
             titleInput.addEventListener("input", function () {
@@ -311,16 +347,36 @@ function abrirFormActividad(actividad = {}) {
                 activeEvent.setEnd(endDate);
             });
 
-            horaInicioInput.addEventListener("change", function () {
-                const startDate = new Date(actividadActual.fecha + "T" + horaInicioInput.value);
-                actividadActual.hora_inicio = horaInicioInput.value;
-                activeEvent.setStart(startDate);
+            horaInicioInput.addEventListener("click", function () {
+                selectorHoraInicio.style.display = 'flex';
+
+                selectorHoraInicio.querySelectorAll('.resultado-item').forEach(item => {
+                    item.addEventListener('click', function () {
+                        horaInicioInput.value = this.dataset.value.slice(0, 5);
+
+                        const startDate = new Date(actividadActual.fecha + "T" + horaInicioInput.value);
+                        actividadActual.hora_inicio = horaInicioInput.value;
+                        activeEvent.setStart(startDate);
+
+                        selectorHoraInicio.style.display = 'none';
+                    });
+                });
             });
 
-            horaFinInput.addEventListener("change", function () {
-                const endDate = new Date(actividadActual.fecha + "T" + horaFinInput.value);
-                actividadActual.hora_fin = horaFinInput.value;
-                activeEvent.setEnd(endDate);
+            horaFinInput.addEventListener("click", function () {
+                selectorHoraFin.style.display = 'flex';
+
+                selectorHoraFin.querySelectorAll('.resultado-item').forEach(item => {
+                    item.addEventListener('click', function () {
+                        horaFinInput.value = this.dataset.value.slice(0, 5);
+
+                        const endDate = new Date(actividadActual.fecha + "T" + horaFinInput.value);
+                        actividadActual.hora_fin = horaFinInput.value;
+                        activeEvent.setEnd(endDate);
+
+                        selectorHoraFin.style.display = 'none';
+                    });
+                });
             });
         })
         .catch(e => {
@@ -336,28 +392,29 @@ function guardarActividad() {
     const formActividad = document.getElementById("formActividad");
     const modal = $("#actividadModal");
 
-    if (formActividad.checkValidity()) {
-        const formData = new FormData(formActividad);
-        const action = formData.get("idactividad") ? "actualizar" : "crear";
-
-        formData.append('idusuario', usuarioActual);
-        formData.append('tipo', actividadActual.tipo || modal.find('.btn-actividad.selected').data('type'));
-        formData.append('fecha', actividadActual.fecha);
-
-        api.post({
-            source: "actividades",
-            action,
-            data: formData,
-            onSuccess: function () {
-                activeEvent = null;
-                actividadActual = {};
-                modal.modal('hide');
-                fetchActividades();
-            }
-        });
-    } else {
+    if (formActividad && !formActividad.checkValidity()) {
         formActividad.reportValidity();
+        return;
     }
+    const datos = { ...actividadActual };
+
+    if (formActividad) {
+        const formDataObj = Object.fromEntries(new FormData(formActividad).entries());
+        Object.assign(datos, formDataObj);
+    }
+    const formData = new FormData();
+    Object.entries(datos).forEach(([key, value]) => formData.append(key, value));
+    const action = formData.get("idactividad") ? "actualizar" : "crear";
+
+    api.post({
+        source: "actividades",
+        action,
+        data: formData,
+        onSuccess: function () {
+            if (modal.length) modal.modal("hide");
+            fetchActividades(selectedUsuario);
+        }
+    });
 }
 
 function actualizarActividad(idactividad, fecha, horaInicio, horaFin) {
@@ -382,7 +439,21 @@ function actualizarActividad(idactividad, fecha, horaInicio, horaFin) {
         source: "actividades",
         action: "actualizar",
         data: formData,
-        onSuccess: fetchActividades
+        onSuccess: () => fetchActividades(selectedUsuario)
+    });
+}
+
+function eliminarActividad(idactividad) {
+    if (!actividadesCache.get(idactividad)) return;
+
+    const formData = new FormData();
+    formData.append('idactividad', idactividad);
+
+    api.post({
+        source: "actividades",
+        action: "eliminar",
+        data: formData,
+        onSuccess: () => fetchActividades(selectedUsuario)
     });
 }
 
@@ -390,6 +461,8 @@ document.addEventListener('click', function (e) {
     if (e.target.closest("#btnRefresh")) {
         actividadActual = {};
         activeEvent = null;
+        selectedUsuario = usuarioActual;
+        selectedNombreUsuario = nombreUsuarioActual;
         const usuarioActualEl = document.querySelector(`.filtro-item[data-id="${usuarioActual}"]`);
         document.querySelectorAll('.filtro-item').forEach(el => el.classList.remove('selected'));
         document.querySelector('.selected-filtro').textContent = usuarioActualEl.dataset.value;
@@ -401,16 +474,17 @@ document.addEventListener('click', function (e) {
 
     if (e.target.closest('.filtro-item')) {
         const target = e.target.closest('.filtro-item');
-        const idusuario = target.dataset.id;
         const nombreUsuario = target.dataset.value;
         const grupo = target.closest('.busqueda-grupo');
         const selected = grupo.querySelector('.selected-filtro');
         const resultados = grupo.querySelector('.resultados-busqueda');
+        selectedUsuario = target.dataset.id;
+        selectedNombreUsuario = nombreUsuario;
         grupo.querySelectorAll('.filtro-item').forEach(el => el.classList.remove('selected'));
         target.classList.add('selected');
         selected.textContent = nombreUsuario;
         resultados.style.display = 'none';
-        fetchActividades(idusuario);
+        fetchActividades(selectedUsuario);
     }
 
     if (e.target.closest('.btn-actividad')) {
@@ -433,6 +507,7 @@ document.addEventListener('click', function (e) {
                 source.querySelector('#tituloActividadLabel').textContent = labels[actividad];
             }
             if (defaultActividades.includes(activeEvent.title)) {
+                actividadActual.nombre = labels[actividad];
                 activeEvent.setProp("title", labels[actividad]);
             }
         }
@@ -447,7 +522,13 @@ document.addEventListener('click', function (e) {
 
     if (e.target.closest('#btnDetallesActividad')) {
         const idactividad = e.target.closest('#btnDetallesActividad').dataset.id;
-        actividadActual = actividadesCache.get(idactividad);
+        if (idactividad) {
+            actividadActual = actividadesCache.get(idactividad);
+        }
+        if (activeEvent) {
+            activeEvent.remove();
+            activeEvent = null;
+        }
         e.target.closest('.popup').style.display = 'none';
         abrirFormActividad(actividadActual);
     }
@@ -481,7 +562,59 @@ document.addEventListener('click', function (e) {
     }
 
     if (e.target.closest('#btnGuardarActividad')) {
+        document.querySelectorAll('.popup').forEach(el => el.style.display = 'none');
+        if (activeEvent) {
+            activeEvent.remove();
+            activeEvent = null;
+        }
         guardarActividad();
+    }
+
+    if (e.target.closest('#btnEliminarActividad')) {
+        document.querySelectorAll('.popup').forEach(el => el.style.display = 'none');
+        const idactividad = e.target.closest('#btnEliminarActividad').dataset.id;
+        if (confirm("¿Seguro que desea eliminar la actividad?")) {
+            eliminarActividad(idactividad);
+        }
+    }
+
+    if (e.target.closest('#detailOptions')) {
+        const link = e.target.closest('a');
+        if (!link) return;
+        e.preventDefault();
+
+        const container = e.target.closest(".extra-container").querySelector("#extraContent");
+        e.target.querySelectorAll("a").forEach(a => {
+            a.classList.add("clickable");
+            a.classList.remove("disable-click");
+        });
+        link.classList.remove("clickable");
+        link.classList.add("disable-click");
+
+        let html = "";
+        if (link.id === "agregarDescripcion") {
+            html = `<textarea class="extra-content form-control w-100" id="descripcionInput" rows="3" placeholder="Ingrese una descripción"></textarea>`;
+        } else if (link.id === "agregarDireccion") {
+            html = `<input type="text" class="extra-content form-control w-100" id="direccionInput" placeholder="Ingrese un dirección">
+                    <input type="text" class="extra-content form-control w-100" id="direccionReferenciaInput" placeholder="Ingrese una dirección de referencia">`;
+        } else if (link.id === "agregarEnlace") {
+            html = `<input type="url" class="extra-content form-control w-100" id="enlaceInput" placeholder="Ingrese un enlace">
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn-outline w-100" id="generarEnlaceZoom">${window.icons.video}<span>Generar reunión con Zoom</span></button>
+                        <button class="btn-outline w-100" id="generarEnlaceMeet">${window.icons.video}<span>Generar reunión con Meet</span></button>
+                    </div>`;
+        }
+        container.innerHTML = html;
+        container.style.display = "";
+    }
+
+    if (!e.target.closest('.fc-view')
+        && !e.target.closest('.popup')) {
+        if (activeEvent && !activeEvent.extendedProps.mini) {
+            activeEvent.remove();
+            activeEvent = null;
+        }
+        document.querySelectorAll('.popup').forEach(el => el.style.display = 'none');
     }
 });
 
@@ -542,7 +675,6 @@ document.addEventListener('input', function (e) {
                             html += buttonNewCliente;
                         }
                     } else {
-                        // si no hay clientes → solo botón
                         html = buttonNewCliente;
                     }
 

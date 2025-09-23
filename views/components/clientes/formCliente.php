@@ -72,7 +72,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
                 <div class="col-6 mb-3">
                     <label for="organizacionInput" class="form-label">Organización <span class="text-danger">*</span></label>
                     <div class="busqueda-grupo disable-auto">
-                        <input type="text" class="form-control" id="organizacionInput" name="empresa" value="<?= $cliente['empresa'] ?? '' ?>" required>
+                        <input type="text" class="form-control" id="organizacionInput" name="empresa" value="<?= $cliente['empresa_nombre'] ?? '' ?>" required>
                         <input type="hidden" name="idempresa" id="idOrganizacionInput" value="">
                         <div class="resultados-busqueda" data-parent="organizacionInput" style="top: 2.5rem;"></div>
                     </div>

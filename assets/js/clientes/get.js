@@ -1,0 +1,6 @@
+
+const clienteActual =
+
+    function fetchActividades() {
+
+    }

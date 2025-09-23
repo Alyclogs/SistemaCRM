@@ -22,7 +22,7 @@ class ActividadModel
                 CONCAT(c.nombres, ' ', c.apellidos) AS cliente
             FROM actividades a
             INNER JOIN usuarios u ON u.idusuario = a.idusuario
-            INNER JOIN clientes c ON c.idcliente = a.idcliente
+            LEFT JOIN clientes c ON c.idcliente = a.idcliente
             ORDER BY fecha DESC, hora_inicio ASC";
             $stmt = $this->pdo->query($sql);
             $actividades = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -49,7 +49,7 @@ class ActividadModel
                 CONCAT(c.nombres, ' ', c.apellidos) AS cliente
             FROM actividades a
             INNER JOIN usuarios u ON u.idusuario = a.idusuario
-            INNER JOIN clientes c ON c.idcliente = a.idcliente
+            LEFT JOIN clientes c ON c.idcliente = a.idcliente
             WHERE a.idactividad = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id]);
@@ -104,7 +104,7 @@ class ActividadModel
                 CONCAT(c.nombres, ' ', c.apellidos) AS cliente
             FROM actividades a
             INNER JOIN usuarios u ON u.idusuario = a.idusuario
-            INNER JOIN clientes c ON c.idcliente = a.idcliente
+            LEFT JOIN clientes c ON c.idcliente = a.idcliente
             WHERE a.idusuario = ?
             ORDER BY fecha DESC, hora_inicio ASC";
             $stmt = $this->pdo->prepare($sql);

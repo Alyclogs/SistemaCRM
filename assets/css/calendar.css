@@ -1,5 +1,3 @@
-@import url("./variables.css");
-
 .fc .fc-scrollgrid-liquid {
   border-radius: 1rem;
   border: 1px solid var(--default-border-color);
@@ -79,6 +77,11 @@
   background-color: transparent !important;
 }
 
+.fc-event.evento-existente:not(.fc-list-event) {
+  background-color: #05c452;
+  border: 1px solid #05c452;
+}
+
 #calendar {
   max-height: 100% !important;
   height: 100% !important;
@@ -93,4 +96,25 @@
 #miniCalendar {
   min-height: 100% !important;
   height: 100% !important;
+}
+
+.titulo-actividad {
+  display: flex;
+  flex-direction: column;
+}
+
+#tituloActividadLabel {
+  flex: 1;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+#titleInput {
+  display: none;
+  width: 100%;
+  min-width: 50px;
+  flex: 1;
+  box-sizing: border-box;
 }

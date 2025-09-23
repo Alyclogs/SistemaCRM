@@ -4,6 +4,7 @@ export default class CalendarUI {
     buildCalendar(calendarEl) {
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: "timeGridWeek",
+            allDaySlot: false,
 
             slotDuration: "00:30:00",
             slotLabelInterval: "00:60:00",

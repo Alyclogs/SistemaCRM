@@ -56,6 +56,7 @@ if (!file_exists($ruta)) {
 
 <body>
     <input type="hidden" id="idUsuario" value="<?= $_SESSION['idusuario'] ?? '' ?>">
+    <input type="hidden" id="nombreUsuario" value="<?= $_SESSION['nombre'] ?? '' ?>">
     <?php if ($pagina !== "login"): ?>
         <div class="main-container">
             <?php include("views/components/sidebar.php"); ?>

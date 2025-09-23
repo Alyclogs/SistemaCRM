@@ -1,5 +1,5 @@
-import api from "./api.js";
-import { mostrarToast } from "./utils.js";
+import api from "./utils/api.js";
+import { mostrarToast } from "./utils/utils.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
 let filtroBuscado = '';
@@ -91,7 +91,8 @@ function eliminarUsuario(idusuario) {
     api.post({
         source: "usuarios",
         action: "eliminar",
-        data: formData
+        data: formData,
+        onSuccess: () => fetchUsuarios()
     });
 }
 
