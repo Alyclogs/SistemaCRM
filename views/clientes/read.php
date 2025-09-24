@@ -5,25 +5,25 @@ $clienteModel = new ClienteModel();
 $estados = $clienteModel->obtenerEstadosClientes();
 ?>
 
-<div class="animate__animated animate__fadeInUp page-header bg-secondary text-white disable-hover">
+<div class="animate__animated animate__fadeInUp page-header">
     <div class="d-flex gap-3 align-items-center">
         <h5 class="page-title">Clientes</h5>
-        <button class="btn-default bg-accent" id="btnNuevoRegistro" data-bs-toggle="modal" data-bs-target="#clienteModal">
+        <button class="btn btn-default bg-accent" id="btnNuevoRegistro" data-bs-toggle="modal" data-bs-target="#clienteModal">
             <?php include('assets/svg/add.svg') ?>
             <span>Nuevo registro</span>
         </button>
     </div>
     <div class="d-flex gap-3 align-items-center">
-        <button class="btn-symmetrical btn-secondary" id="btnRefresh"><?php include('./assets/svg/refresh-arrow-01.svg') ?></button>
+        <button class="btn btn-icon border" id="btnRefresh"><?php include('./assets/svg/refresh-arrow-01.svg') ?></button>
         <div class="busqueda-grupo" data-type="Tipo">
-            <button class="btn-secondary border boton-filtro selected" id="tiposClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="tiposClientes" id="tipoCliente">Clientes</span></button>
+            <button class="btn btn-outline boton-filtro selected" id="tiposClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="tiposClientes" id="tipoCliente">Clientes</span></button>
             <div class="resultados-busqueda" data-parent="tiposClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
                 <div class="resultado-item filtro-item selected" data-id="1" data-value="Personas"><?php include('./assets/svg/profile.svg') ?><span>Personas</span></div>
                 <div class="resultado-item filtro-item" data-id="2" data-value="Organizaciones"><?php include('./assets/svg/building.svg') ?><span>Organizaciones</span></div>
             </div>
         </div>
         <div class="busqueda-grupo" data-type="Estado">
-            <button class="btn-secondary border boton-filtro" id="estadosClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="estadosClientes" id="estadoCliente">Estado</span></button>
+            <button class="btn btn-outline boton-filtro" id="estadosClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="estadosClientes" id="estadoCliente">Estado</span></button>
             <div class="resultados-busqueda" data-parent="estadosClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
                 <?php if (!empty($estados)): ?>
                     <?php foreach ($estados as $estado): ?>
@@ -71,8 +71,8 @@ $estados = $clienteModel->obtenerEstadosClientes();
             </div>
             <div class="modal-body" id="clienteModalBody"></div>
             <div class="modal-footer">
-                <button type="button" class="btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn-default" id="btnGuardarCliente">Guardar cambios</button>
+                <button type="button" class="btn btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-default" id="btnGuardarCliente">Guardar cambios</button>
             </div>
         </div>
     </div>

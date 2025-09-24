@@ -1,4 +1,9 @@
 .buscador-global {
-    border-radius: 2.5rem !important;
-    width: 380px !important;
+  border-radius: 2.5rem !important;
+  width: 380px !important;
+}
+
+.buscador-global input {
+  border-top-right-radius: 2.5rem;
+  border-bottom-right-radius: 2.5rem;
 }

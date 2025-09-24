@@ -24,9 +24,9 @@ if ($idactividad) {
             <input type="hidden" name="idactividad" id="idactividad" value="<?= $actividad['idactividad'] ?? '' ?>">
             <div class="d-flex flex-column w-100">
                 <div class="buttons-row buttons-actividad mb-3">
-                    <button type="button" class="btn-outline btn-actividad" data-type="llamada"><?php include('../../../assets/svg/call.svg') ?></button>
-                    <button type="button" class="btn-outline btn-actividad" data-type="videollamada"><?php include('../../../assets/svg/video.svg') ?></button>
-                    <button type="button" class="btn-outline btn-actividad" data-type="reunion"><?php include('../../../assets/svg/profile-2user.svg') ?></button>
+                    <button type="button" class="btn btn-outline btn-actividad" data-type="llamada"><?php include('../../../assets/svg/call.svg') ?></button>
+                    <button type="button" class="btn btn-outline btn-actividad" data-type="videollamada"><?php include('../../../assets/svg/video.svg') ?></button>
+                    <button type="button" class="btn btn-outline btn-actividad" data-type="reunion"><?php include('../../../assets/svg/profile-2user.svg') ?></button>
                 </div>
                 <div class="mb-4">
                     <div class="titulo-actividad" style="min-width: 220px; max-width: 360px;">

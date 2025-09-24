@@ -31,7 +31,7 @@ $estados = $usuarioModel->obtenerEstados();
                     style="max-width: 100%; <?php echo $usuario && !empty($usuario['foto']) ? '' : 'display:none;'; ?> border-radius: 10px;" />
             </div>
 
-            <button type="button" class="btn-outline" onclick="document.getElementById('fileInput').click();">
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('fileInput').click();">
                 <span>Adjuntar Foto</span>
             </button>
 

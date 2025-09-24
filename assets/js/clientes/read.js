@@ -64,7 +64,7 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
                             <td>
                                 <div class="info-row clickable">
                                     <img class="user-icon sm clickable" data-type="cliente" data-id="${cliente.idcliente}" src="${cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}"></img>
-                                    <span class="fw-bold user-link clickable" data-type="cliente" data-id="${cliente.idcliente}">${cliente.nombres} ${cliente.apellidos}</span>
+                                    <span class="user-link clickable" data-type="cliente" data-id="${cliente.idcliente}">${cliente.nombres} ${cliente.apellidos}</span>
                                 </div>
                             </td>
                             <td>${cliente.empresa_nombre || ''}</td>
@@ -76,8 +76,8 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
                             </td>
                             <td>
                                 <div class="icons-row">
-                                    <button class="btn-icon bg-light" id="btnEditCliente" data-id="${cliente.idcliente}">${window.icons.edit}</button>
-                                    <button class="btn-icon bg-light" id="btnDeleteRegistro" data-id="${cliente.idcliente}">${window.icons.trash}</button>
+                                    <button class="btn btn-icon bg-light" id="btnEditCliente" data-id="${cliente.idcliente}">${window.icons.edit}</button>
+                                    <button class="btn btn-icon bg-light" id="btnDeleteRegistro" data-id="${cliente.idcliente}">${window.icons.trash}</button>
                                 </div>
                             </td>
                 </tr>`;
@@ -92,15 +92,15 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
                             <td>
                                 <div class="info-row">
                                     <img class="user-icon sm clickable" data-type="empresa" data-id="${org.idempresa}" src="${org.foto}" alt="Foto de ${org.razon_social}"></img>
-                                    <span class="fw-bold user-link clickable" data-type="empresa" data-id="${org.idempresa}">${org.razon_social}</span>
+                                    <span class="user-link clickable" data-type="empresa" data-id="${org.idempresa}">${org.razon_social}</span>
                                 </div>
                             </td>
                             <td>${org.ruc || ''}</td>
                             <td>${org.direccion || ''}</td>
                             <td>
                                 <div class="icons-row">
-                                    <button class="btn-icon bg-light" id="btnEditOrganizacion" data-id="${org.idempresa}">${window.icons.edit}</button>
-                                    <button class="btn-icon bg-light" id="btnDeleteRegistro" data-id="${org.idempresa}">${window.icons.trash}</button>
+                                    <button class="btn btn-icon bg-light" id="btnEditOrganizacion" data-id="${org.idempresa}">${window.icons.edit}</button>
+                                    <button class="btn btn-icon bg-light" id="btnDeleteRegistro" data-id="${org.idempresa}">${window.icons.trash}</button>
                                 </div>
                             </td>
                 </tr>`;

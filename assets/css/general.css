@@ -226,7 +226,7 @@ svg path {
   justify-content: space-between;
   width: 100%;
   z-index: 1;
-  padding: 1rem;
+  padding: 1rem 2.5rem;
 }
 
 .page-header .page-title {

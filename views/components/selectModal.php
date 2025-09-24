@@ -114,8 +114,8 @@ if ($source) {
                 <?php endif; ?>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-cancelar" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn-default" id="btnSeleccionar">Seleccionar</button>
+                <button type="button" class="btn btn-cancelar" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-default" id="btnSeleccionar">Seleccionar</button>
             </div>
         </div>
     </div>

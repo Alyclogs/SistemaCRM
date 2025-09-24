@@ -27,7 +27,7 @@ if (!$usuario) {
                 <div class="d-flex justify-content-between">
                     <img class="user-icon" data-type="usuario" data-id="<?= $usuario['idusuario'] ?>" src="<?= $usuario['foto'] ?>" alt="Foto de <?= $usuario['nombres'] ?>">
                     <div class="icons-row">
-                        <button class="btn-icon bg-light" id="btnEditUsuario" data-id="<?= $usuario['idusuario'] ?>" title="Editar usuario"><?php include('./assets/svg/edit.svg') ?></button>
+                        <button class="btn btn-icon bg-light" id="btnEditUsuario" data-id="<?= $usuario['idusuario'] ?>" title="Editar usuario"><?php include('./assets/svg/edit.svg') ?></button>
                     </div>
                 </div>
             </div>

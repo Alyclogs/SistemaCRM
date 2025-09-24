@@ -1,7 +1,7 @@
-import CalendarUI from "./utils/calendar.js";
-import { formatearFecha, formatearHora, formatearRangoFecha, formatEventDate, generarIntervalosHoras, sumarMinutos } from "./utils/date.js";
-import { mostrarToast } from "./utils/utils.js";
-import api from "./utils/api.js";
+import CalendarUI from "../utils/calendar.js";
+import { formatearFecha, formatearHora, formatearRangoFecha, formatEventDate, generarIntervalosHoras, sumarMinutos } from "../utils/date.js";
+import { mostrarToast } from "../utils/utils.js";
+import api from "../utils/api.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
 const calendarUI = new CalendarUI();
@@ -19,8 +19,15 @@ const usuarioActual = document.getElementById('idUsuario').value;
 const nombreUsuarioActual = document.getElementById('nombreUsuario').value;
 var selectedUsuario = usuarioActual;
 var selectedNombreUsuario = nombreUsuarioActual;
+var editandoState = false;
 
 function fetchActividades(idusuario = usuarioActual) {
+    document.querySelectorAll('.popup').forEach(el => el.style.display = "none");
+    if (activeEvent) {
+        activeEvent.remove();
+        activeEvent = null;
+    }
+
     api.get({
         source: "actividades",
         action: "listar",
@@ -84,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const infoDate = popup.querySelector('#infoDate');
             const titleInput = popup.querySelector('#titleInput');
 
+            // Mostrar popup al crear un evento preview
             mostrarPopup(info.el, popup);
 
             infoDate.textContent = formatEventDate(activeEvent.start, activeEvent.end);
@@ -109,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 hora_inicio: formatearHora(activeEvent.start),
                 hora_fin: formatearHora(activeEvent.end),
                 tipo: "llamada"
-            }
+            };
         }
     });
 
@@ -126,7 +134,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 actividadActual.hora_fin = formatearHora(info.event.end);
             }
         } else {
-            actualizarActividad(info.event.id, formatearFecha(info.event.start), formatearHora(info.event.start), formatearHora(info.event.end));
+            actualizarActividad(
+                info.event.id,
+                formatearFecha(info.event.start),
+                formatearHora(info.event.start),
+                formatearHora(info.event.end)
+            );
         }
     });
 
@@ -144,7 +157,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 actividadActual.hora_fin = formatearHora(info.event.end);
             }
         } else {
-            actualizarActividad(info.event.id, formatearFecha(info.event.start), formatearHora(info.event.start), formatearHora(info.event.end));
+            const popup = document.getElementById('popupActualizar');
+            popup.innerHTML = `
+            <span class="mb-3">¿Actualizar actividad?</span>
+            <div class="d-flex align-items-center justify-content-end gap-2">
+                <button class="btn btn-outline" id="btnCancelarActividad">Cancelar</button>
+                <button class="btn btn-default" id="btnActualizarActividad">Actualizar</button>
+            </div>
+            `;
+
+            mostrarPopupMouse(info.jsEvent, popup);
+
+            popup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    popup.style.display = 'none';
+                    if (btn.id === 'btnCancelarActividad') {
+                        fetchActividades();
+                    }
+                    if (btn.id === 'btnActualizarActividad') {
+                        actualizarActividad(
+                            info.event.id,
+                            formatearFecha(info.event.start),
+                            formatearHora(info.event.start),
+                            formatearHora(info.event.end)
+                        );
+                    }
+                });
+            });
         }
     });
 
@@ -178,8 +217,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
             <div class="d-flex gap-2 align-items-center justify-content-end">
-                <button class="btn-outline" id="btnDetallesActividad" data-id="${actividad.idactividad}">Editar</button>
-                <button class="btn-default bg-text-danger" id="btnEliminarActividad" data-id="${actividad.idactividad}">Eliminar</button>
+                <button class="btn btn-outline" id="btnDetallesActividad" data-id="${actividad.idactividad}">Editar</button>
+                <button class="btn btn-default bg-text-danger" id="btnEliminarActividad" data-id="${actividad.idactividad}">Eliminar</button>
             </div>
         `;
 
@@ -208,27 +247,50 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function mostrarPopup(el, popup) {
+    const margin = 10;
+
     const rect = el.getBoundingClientRect();
     const popupRect = popup.getBoundingClientRect();
-    const margin = 10;
 
     let top = rect.top + window.scrollY;
     let left = rect.right + window.scrollX + margin;
 
-    if (left + popupRect.width > window.innerWidth) {
+    if (left + popupRect.width > window.innerWidth + window.scrollX) {
         left = rect.left + window.scrollX - popupRect.width - margin;
     }
     if (top + popupRect.height > window.innerHeight + window.scrollY) {
         top = rect.bottom + window.scrollY - popupRect.height;
-        if (top < 0) top = margin;
     }
     if (top < window.scrollY) {
-        top = rect.bottom + window.scrollY + margin;
+        top = rect.top + window.scrollY + margin;
     }
 
     popup.style.top = top + "px";
     popup.style.left = left + "px";
     popup.style.display = "block";
+}
+
+function mostrarPopupMouse(jsEvent, popup) {
+    const margin = 10;
+
+    popup.style.visibility = "hidden";
+    popup.style.display = "block";
+
+    const popupRect = popup.getBoundingClientRect();
+
+    let left = jsEvent.clientX + window.scrollX + margin;
+    let top = jsEvent.clientY + window.scrollY + margin;
+
+    if (left + popupRect.width > window.innerWidth + window.scrollX) {
+        left = jsEvent.clientX + window.scrollX - popupRect.width - margin;
+    }
+    if (top + popupRect.height > window.innerHeight + window.scrollY) {
+        top = jsEvent.clientY + window.scrollY - popupRect.height - margin;
+    }
+
+    popup.style.left = left + "px";
+    popup.style.top = top + "px";
+    popup.style.visibility = "visible";
 }
 
 function abrirFormActividad(actividad = {}) {
@@ -600,8 +662,8 @@ document.addEventListener('click', function (e) {
         } else if (link.id === "agregarEnlace") {
             html = `<input type="url" class="extra-content form-control w-100" id="enlaceInput" placeholder="Ingrese un enlace">
                     <div class="d-flex align-items-center gap-2">
-                        <button class="btn-outline w-100" id="generarEnlaceZoom">${window.icons.video}<span>Generar reunión con Zoom</span></button>
-                        <button class="btn-outline w-100" id="generarEnlaceMeet">${window.icons.video}<span>Generar reunión con Meet</span></button>
+                        <button class="btn btn-outline w-100" id="generarEnlaceZoom">${window.icons.video}<span>Generar reunión con Zoom</span></button>
+                        <button class="btn btn-outline w-100" id="generarEnlaceMeet">${window.icons.video}<span>Generar reunión con Meet</span></button>
                     </div>`;
         }
         container.innerHTML = html;

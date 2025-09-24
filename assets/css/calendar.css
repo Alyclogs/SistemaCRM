@@ -31,12 +31,12 @@
   background-color: var(--default-bg-color-light) !important;
 }
 
-.fc-direction-ltr .fc-button-group>.fc-button:not(:first-child) {
+.fc-direction-ltr .fc-button-group > .fc-button:not(:first-child) {
   border-bottom-left-radius: 0px !important;
   border-top-left-radius: 0px !important;
 }
 
-.fc-direction-ltr .fc-button-group>.fc-button:not(:last-child) {
+.fc-direction-ltr .fc-button-group > .fc-button:not(:last-child) {
   border-bottom-right-radius: 0px !important;
   border-top-right-radius: 0px !important;
 }
@@ -111,7 +111,7 @@
   max-width: 100%;
 }
 
-#titleInput {
+#actividadModal #titleInput {
   display: none;
   width: 100%;
   min-width: 50px;

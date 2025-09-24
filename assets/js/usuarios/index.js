@@ -1,5 +1,5 @@
-import api from "./utils/api.js";
-import { mostrarToast } from "./utils/utils.js";
+import api from "../utils/api.js";
+import { mostrarToast } from "../utils/utils.js";
 
 const baseurl = 'http://localhost/SistemaCRM/';
 let filtroBuscado = '';
@@ -39,7 +39,7 @@ function fetchUsuarios(filtro = "", idestado = "") {
                     <td>
                         <div class="info-row">
                             <img class="user-icon sm clickable" data-type="usuario" data-id="${usuario.idusuario}" src="${usuario.foto}" alt="Foto de ${usuario.nombres} ${usuario.apellidos}"></img>
-                            <span class="fw-bold user-link clickable" data-type="usuario" data-id="${usuario.idusuario}">${usuario.nombres} ${usuario.apellidos}</span>
+                            <span class="user-link clickable" data-type="usuario" data-id="${usuario.idusuario}">${usuario.nombres} ${usuario.apellidos}</span>
                             ${usuario.idusuario == document.getElementById('idUsuario').value ? ' <div class="chip chip-success">ACTUAL</div>' : ''}
                         </div>
                     </td>
@@ -54,8 +54,8 @@ function fetchUsuarios(filtro = "", idestado = "") {
                     </td>
                     <td>
                         <div class="icons-row">
-                            <button class="btn-icon bg-light" id="btnEditUsuario" data-id="${usuario.idusuario}">${window.icons.edit}</button>
-                            <button class="btn-icon bg-light" id="btnDeleteUsuario" data-id="${usuario.idusuario}">${window.icons.trash}</button>
+                            <button class="btn btn-icon bg-light" id="btnEditUsuario" data-id="${usuario.idusuario}">${window.icons.edit}</button>
+                            <button class="btn btn-icon bg-light" id="btnDeleteUsuario" data-id="${usuario.idusuario}">${window.icons.trash}</button>
                         </div>
                     </td>
                 </tr>`;

@@ -54,7 +54,7 @@ $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
                             <input type="password" class="form-control" name="password" placeholder="Contraseña" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn-default w-100">Ingresar</button>
+                    <button type="submit" class="btn btn-default w-100">Ingresar</button>
                 </form>
             </div>
         </div>

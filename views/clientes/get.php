@@ -49,7 +49,7 @@ if (!$cliente) {
                                 </div>
                             </div>
                             <div class="icons-row">
-                                <button class="btn-icon bg-light" id="btnEditCliente" data-id="<?= $cliente['idcliente'] ?>" title="Editar cliente"><?php include('./assets/svg/edit.svg') ?></button>
+                                <button class="btn btn-icon bg-light" id="btnEditCliente" data-id="<?= $cliente['idcliente'] ?>" title="Editar cliente"><?php include('./assets/svg/edit.svg') ?></button>
                             </div>
                         </div>
                         <div class="info-container">
@@ -90,7 +90,7 @@ if (!$cliente) {
                                             <span class="text-small">Propietario</span>
                                         </div>
                                     </div>
-                                    <button class="btn-icon sm">
+                                    <button class="btn btn-icon sm">
                                         <?php include('./assets/svg/arrow-down-02.svg') ?>
                                     </button>
                                 </div>
@@ -100,7 +100,7 @@ if (!$cliente) {
                     </div>
                     <?php if ($cliente['estado'] === 'PROSPECTO'): ?>
                         <div class="d-flex justify-content-end">
-                            <button class="btn-default bg-accent" id="btnConvertirCliente">Convertir a cliente</button>
+                            <button class="btn btn-default bg-accent" id="btnConvertirCliente">Convertir a cliente</button>
                         </div>
                     <?php endif; ?>
                 </div>

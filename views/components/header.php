@@ -10,9 +10,9 @@
     </div>
     <div class="col d-flex justify-content-end">
         <div class="d-flex gap-4 align-items-center">
-            <div class="menu-button">
+            <button class="btn btn-icon border">
                 <?php include('./assets/svg/notification-bing.svg') ?>
-            </div>
+            </button>
             <div class="menu-button">
                 <img src="<?= $_SESSION['foto'] ?>" alt="Foto de <?= $_SESSION['nombre'] ?>" class="user-icon sm">
                 <div class="menu-submenu" style="top: 3rem; right: 0px;">
