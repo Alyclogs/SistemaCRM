@@ -41,7 +41,7 @@ try {
                 }
                 break;
 
-            case 'get':
+            case 'ver':
                 if (!isset($_GET['id'])) throw new Exception("ID requerido");
                 $data = $clienteModel->obtenerCliente($_GET['id']);
                 $response = ["success" => true, "message" => "Cliente obtenido", "data" => $data];
@@ -54,7 +54,7 @@ try {
                 exit;
                 break;
 
-            case 'create':
+            case 'crear':
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                     $archivoFoto = $_FILES['foto'];
 
@@ -170,7 +170,7 @@ try {
                 $response = ["success" => true, "message" => "Cliente eliminado"];
                 break;
 
-            case 'createOrganizacion':
+            case 'crearOrganizacion':
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                     $archivoFoto = $_FILES['foto'];
 

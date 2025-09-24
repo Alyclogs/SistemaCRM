@@ -1,7 +1,5 @@
 import { mostrarToast } from "./utils.js";
 
-const baseurl = 'http://localhost/SistemaCRM/';
-
 function getController(source) {
     switch (source) {
         case "usuarios":
@@ -54,7 +52,7 @@ export default {
         onSuccess,
         onError
     } = {}) {
-        let url = baseurl + getController(source);
+        let url = window.baseurl + getController(source);
         const urlParams = new URLSearchParams({ action });
 
         params.forEach(param => {
@@ -77,7 +75,7 @@ export default {
         onSuccess,
         onError
     } = {}) {
-        let url = baseurl + source;
+        let url = window.baseurl + source;
         const urlParams = new URLSearchParams();
 
         params.forEach(param => {
@@ -100,7 +98,7 @@ export default {
         onSuccess,
         onError
     } = {}) {
-        let url = baseurl + getController(source);
+        let url = window.baseurl + getController(source);
         const urlParams = new URLSearchParams({ action });
         const isFormData = data instanceof FormData;
         url += urlParams.toString();

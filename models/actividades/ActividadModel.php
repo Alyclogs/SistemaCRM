@@ -19,8 +19,10 @@ class ActividadModel
         try {
             $sql = "SELECT a.*,
                 CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
-                CONCAT(c.nombres, ' ', c.apellidos) AS cliente
+                CONCAT(c.nombres, ' ', c.apellidos) AS cliente,
+                ea.estado
             FROM actividades a
+            INNER JOIN estados_actividades ea ON ea.idestado = a.idestado
             INNER JOIN usuarios u ON u.idusuario = a.idusuario
             LEFT JOIN clientes c ON c.idcliente = a.idcliente
             ORDER BY fecha DESC, hora_inicio ASC";
@@ -46,8 +48,10 @@ class ActividadModel
         try {
             $sql = "SELECT a.*,
                 CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
-                CONCAT(c.nombres, ' ', c.apellidos) AS cliente
+                CONCAT(c.nombres, ' ', c.apellidos) AS cliente,
+                ea.estado
             FROM actividades a
+            INNER JOIN estados_actividades ea ON ea.idestado = a.idestado
             INNER JOIN usuarios u ON u.idusuario = a.idusuario
             LEFT JOIN clientes c ON c.idcliente = a.idcliente
             WHERE a.idactividad = ?";
@@ -73,8 +77,10 @@ class ActividadModel
         try {
             $sql = "SELECT a.*,
                 CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
-                CONCAT(c.nombres, ' ', c.apellidos) AS cliente
+                CONCAT(c.nombres, ' ', c.apellidos) AS cliente,
+                ea.estado
             FROM actividades a
+            INNER JOIN estados_actividades ea ON ea.idestado = a.idestado
             INNER JOIN usuarios u ON u.idusuario = a.idusuario
             INNER JOIN clientes c ON c.idcliente = a.idcliente
             WHERE a.idcliente = ?
@@ -101,8 +107,10 @@ class ActividadModel
         try {
             $sql = "SELECT a.*,
                 CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
-                CONCAT(c.nombres, ' ', c.apellidos) AS cliente
+                CONCAT(c.nombres, ' ', c.apellidos) AS cliente,
+                ea.estado
             FROM actividades a
+            INNER JOIN estados_actividades ea ON ea.idestado = a.idestado
             INNER JOIN usuarios u ON u.idusuario = a.idusuario
             LEFT JOIN clientes c ON c.idcliente = a.idcliente
             WHERE a.idusuario = ?

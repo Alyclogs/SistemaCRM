@@ -1,7 +1,6 @@
 import api from "../utils/api.js";
 import { mostrarToast } from "../utils/utils.js";
 
-const baseurl = 'http://localhost/SistemaCRM/';
 let filtroBuscado = '';
 let selectedEstado = '';
 let usuariosCache = [];
@@ -111,7 +110,7 @@ document.addEventListener('click', function (e) {
     }
 
     if (e.target.closest('#btnNuevoUsuario')) {
-        fetch(baseurl + "views/components/usuarios/formUsuario.php")
+        fetch(window.baseurl + "views/components/usuarios/formUsuario.php")
             .then(res => res.text())
             .then(html => {
                 $("#usuarioModalLabel").text("Agregar nuevo usuario");
@@ -130,7 +129,7 @@ document.addEventListener('click', function (e) {
     if (e.target.closest('#btnEditUsuario')) {
         e.stopPropagation();
         const idusuario = e.target.closest('#btnEditUsuario').dataset.id;
-        fetch(baseurl + "views/components/usuarios/formUsuario.php?id=" + idusuario)
+        fetch(window.baseurl + "views/components/usuarios/formUsuario.php?id=" + idusuario)
             .then(res => res.text())
             .then(html => {
                 $("#usuarioModalLabel").text("Editar usuario");

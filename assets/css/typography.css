@@ -19,9 +19,9 @@ a {
   cursor: pointer !important;
 }
 
-a:disabled {
-  cursor: not-allowed;
-  color: var(--small-text-color);
+a.disable-click {
+  cursor: not-allowed !important;
+  color: var(--small-text-color) !important;
 }
 
 p,

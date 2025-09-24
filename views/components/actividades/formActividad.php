@@ -18,8 +18,8 @@ if ($idactividad) {
 }
 ?>
 
-<div class="d-flex gap-4 h-100">
-    <div class="flex-grow-1">
+<div class="d-flex gap-3 h-100">
+    <div class="flex-grow-1 h-100 pe-2" style="overflow: hidden auto;">
         <form id="formActividad" method="POST">
             <input type="hidden" name="idactividad" id="idactividad" value="<?= $actividad['idactividad'] ?? '' ?>">
             <div class="d-flex flex-column w-100">
@@ -31,7 +31,7 @@ if ($idactividad) {
                 <div class="mb-4">
                     <div class="titulo-actividad" style="min-width: 220px; max-width: 360px;">
                         <div class="d-flex align-items-center justify-content-between gap-2">
-                            <h5 class="text-large" id="tituloActividadLabel"><?= $actividad['nombre'] ?? "Nueva actividad" ?></h5>
+                            <h5 class="text-large text-break" id="tituloActividadLabel"><?= $actividad['nombre'] ?? "Nueva actividad" ?></h5>
                             <div class="svg-editar" style="display: none;">
                                 <?php include('../../../assets/svg/edit.svg') ?>
                             </div>
@@ -44,15 +44,15 @@ if ($idactividad) {
                         <?php include('../../../assets/svg/clock.svg') ?>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <input type="date" class="form-control w-auto" name="fecha" id="fechaInput" value="<?= $actividad['fecha'] ?? '' ?>">
-                        <div class="busqueda-grupo" style="width: 120px;">
+                        <input type="date" class="form-control" style="max-width: 144px;" name="fecha" id="fechaInput" value="<?= $actividad['fecha'] ?? '' ?>">
+                        <div class="busqueda-grupo" style="width: 116px;">
                             <input type="text" class="form-control" name="hora_inicio" id="horaInicioInput" value="<?= $actividad['hora_inicio'] ?? '' ?>" pattern="\d{2}:\d{2}" required>
-                            <div class="resultados-busqueda" data-parent="horaInicioInput" style="top: 2.5rem;"></div>
+                            <div class="resultados-busqueda" data-parent="horaInicioInput" style="top: 2.5rem; font-size: 13px;"></div>
                         </div>
                         <span class="px-2">a</span>
-                        <div class="busqueda-grupo" style="width: 120px;">
+                        <div class="busqueda-grupo" style="width: 116px;">
                             <input type="text" class="form-control" name="hora_fin" id="horaFinInput" value="<?= $actividad['hora_fin'] ?? '' ?>" pattern="\d{2}:\d{2}" required>
-                            <div class="resultados-busqueda" data-parent="horaFinInput" style="top: 2.5rem;"></div>
+                            <div class="resultados-busqueda" data-parent="horaFinInput" style="top: 2.5rem; font-size: 13px;"></div>
                         </div>
                     </div>
                 </div>
@@ -62,7 +62,22 @@ if ($idactividad) {
                     </div>
                     <div class="w-100 d-flex flex-column gap-2">
                         <div id="detailOptions">Agregar una <a class="text-primary clickable" id="agregarDescripcion">descripción</a>, <a class="text-primary clickable" id="agregarDireccion">dirección</a> o un <a class="text-primary clickable" id="agregarEnlace">enlace</a></div>
-                        <div id="extraContent" class="d-flex flex-column gap-2"></div>
+                        <div id="extraContent">
+                            <div class="descripcion-container flex-column gap-2" style="display: none;">
+                                <textarea class="extra-content form-control w-100" id="descripcionInput" name="descripcion" rows="3" placeholder="Ingrese una descripción"></textarea>
+                            </div>
+                            <div class="direccion-container flex-column gap-2" style="display: none;">
+                                <input type="text" class="extra-content form-control w-100" id="direccionInput" name="direccion" placeholder="Ingrese un dirección">
+                                <input type="text" class="extra-content form-control w-100" id="direccionReferenciaInput" name="direccion_referencia" placeholder="Ingrese una dirección de referencia">
+                            </div>
+                            <div class="enlace-container flex-column gap-2" style="display: none;">
+                                <input type="url" class="extra-content form-control w-100" id="enlaceInput" name="enlace" placeholder="Ingrese un enlace">
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-outline w-100" id="generarEnlaceZoom"><?php include('../../../assets/svg/video.svg') ?><span>Generar reunión con Zoom</span></button>
+                                    <button class="btn btn-outline w-100" id="generarEnlaceMeet"><?php include('../../../assets/svg/video.svg') ?><span>Generar reunión con Meet</span></button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="notas-container w-100 d-flex gap-2 mb-3" style="height: 180px;">
@@ -77,7 +92,7 @@ if ($idactividad) {
                     </div>
                     <div class="busqueda-grupo w-100">
                         <input type="text" class="form-control w-100" id="clienteInput" value="<?= $actividad['cliente'] ?? '' ?>" placeholder="Buscar cliente">
-                        <input type="hidden" name="idcliente" value="<?= $actividad['idcliente'] ?? '' ?>">
+                        <input type="hidden" name="idcliente" id="clienteIdInput" value="<?= $actividad['idcliente'] ?? '' ?>">
                         <div class="resultados-busqueda disable-auto" data-parent="clienteInput" style="top: 2.5rem; min-width: 300px;"></div>
                     </div>
                 </div>

@@ -1,7 +1,6 @@
 import api from "../utils/api.js";
 import { mostrarToast } from "../utils/utils.js";
 
-const baseurl = 'http://localhost/SistemaCRM/';
 let filtroBuscado = '';
 let selectedEstado = '';
 let selectedTipo = '1';
@@ -67,12 +66,12 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
                                     <span class="user-link clickable" data-type="cliente" data-id="${cliente.idcliente}">${cliente.nombres} ${cliente.apellidos}</span>
                                 </div>
                             </td>
-                            <td>${cliente.empresa_nombre || ''}</td>
-                            <td>${cliente.num_doc}</td>
-                            <td>${cliente.telefono}</td>
-                            <td>${cliente.correo}</td>
+                            <td>${cliente.empresa_nombre || '-'}</td>
+                            <td>${cliente.num_doc || '-'}</td>
+                            <td>${cliente.telefono || '-'}</td>
+                            <td>${cliente.correo || '-'}</td>
                             <td>
-                                <div class="chip chip-${clienteEstado(cliente.estado)}">${cliente.estado}</div>
+                                ${cliente.estado ? `<div class="chip chip-${clienteEstado(cliente.estado)}">${cliente.estado}</div>` : '-'}
                             </td>
                             <td>
                                 <div class="icons-row">
@@ -95,8 +94,8 @@ function fetchClientes(filtro = "", idestado = "", tipo = "1") {
                                     <span class="user-link clickable" data-type="empresa" data-id="${org.idempresa}">${org.razon_social}</span>
                                 </div>
                             </td>
-                            <td>${org.ruc || ''}</td>
-                            <td>${org.direccion || ''}</td>
+                            <td>${org.ruc || '-'}</td>
+                            <td>${org.direccion || '-'}</td>
                             <td>
                                 <div class="icons-row">
                                     <button class="btn btn-icon bg-light" id="btnEditOrganizacion" data-id="${org.idempresa}">${window.icons.edit}</button>
@@ -122,15 +121,15 @@ function updateSelectedTipo(tipo) {
     }
 }
 
-function guardarRegistro(tipo) {
+export function guardarRegistro(tipo) {
     const forms = {
         1: "formCliente",
         2: "formOrganizacion"
     };
 
     const acciones = {
-        1: { create: "create", update: "actualizar" },
-        2: { create: "createOrganizacion", update: "actualizarOrganizacion" }
+        1: { create: "crear", update: "actualizar" },
+        2: { create: "crearOrganizacion", update: "actualizarOrganizacion" }
     };
 
     const form = document.getElementById(forms[tipo]);
@@ -150,7 +149,7 @@ function guardarRegistro(tipo) {
     });
 }
 
-function eliminarRegistro(tipo, id) {
+export function eliminarRegistro(tipo, id) {
     const acciones = {
         1: { action: "eliminar", mensaje: "¿Seguro que desea eliminar al cliente del sistema?" },
         2: { action: "eliminarOrganizacion", mensaje: "¿Seguro que desea eliminar a la organización del sistema?" }
@@ -188,7 +187,7 @@ function asignarProyectos() {
     });
 }
 
-function abrirModal({ tipo, id = null, esNuevo = false }) {
+export function abrirModal({ tipo, id = null, esNuevo = false, focus = null }) {
     const urls = {
         1: "views/components/clientes/formCliente.php",
         2: "views/components/clientes/formOrganizacion.php"
@@ -199,7 +198,7 @@ function abrirModal({ tipo, id = null, esNuevo = false }) {
         2: esNuevo ? "Agregar nueva organización" : "Editar organización"
     };
 
-    let url = baseurl + urls[tipo];
+    let url = window.baseurl + urls[tipo];
     if (id) url += "?id=" + id;
 
     fetch(url)
@@ -208,6 +207,8 @@ function abrirModal({ tipo, id = null, esNuevo = false }) {
             $("#clienteModalLabel").text(titulos[tipo]);
             $("#clienteModalBody").html(html);
             $("#clienteModal").modal("show");
+
+            if (focus) $("#clienteModal").find(focus).focus();
         })
         .catch(e => {
             mostrarToast({
@@ -293,7 +294,7 @@ document.addEventListener('click', function (e) {
     if (e.target.closest('#btnProyectosCliente')) {
         e.stopPropagation();
         const idcliente = e.target.closest('#btnProyectosCliente').dataset.id;
-        fetch(baseurl + "views/components/selectModal.php?source=proyectos&type=multiple&id=" + idcliente)
+        fetch(window.baseurl + "views/components/selectModal.php?source=proyectos&type=multiple&id=" + idcliente)
             .then(res => res.text())
             .then(html => {
                 $("#selectorModal").remove();

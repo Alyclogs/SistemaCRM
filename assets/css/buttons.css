@@ -1,5 +1,9 @@
 @import url("../css/variables.css");
 
+button {
+  transition: all 0.2s ease-in-out;
+}
+
 button:focus {
   box-shadow: none !important;
 }
@@ -49,7 +53,6 @@ button.btn-symmetrical-sm {
   padding: 0.5rem 0.75rem;
   border: none;
   outline: none;
-  transition: all 0.2s ease-in-out;
   background-color: var(--default-bg-color);
   font-size: 14px;
   color: var(--default-text-color);
@@ -58,12 +61,14 @@ button.btn-symmetrical-sm {
 .btn:hover,
 .btn.selected {
   background-color: var(--default-bg-color-light);
+  color: var(--default-text-color);
 }
 
 .btn.border,
 .btn.border:hover,
 .btn.border.selected {
   border-color: var(--default-border-color) !important;
+  color: var(--default-text-color);
 }
 
 .btn-default {
@@ -75,6 +80,7 @@ button.btn-symmetrical-sm {
 .btn-default:active,
 .btn-default.selected {
   background-color: var(--default-theme-color-dark) !important;
+  color: #fff !important;
 }
 
 .btn-default svg,
@@ -94,6 +100,7 @@ button.btn-symmetrical-sm {
 .btn-secondary:active,
 .btn-secondary.selected {
   background-color: var(--secondary-theme-color-dark) !important;
+  color: #fff !important;
 }
 
 .btn-secondary svg,
@@ -117,6 +124,7 @@ button.btn-symmetrical-sm {
 .btn-cancelar:active,
 .btn-cancelar.selected {
   background-color: var(--secondary-theme-color-dark) !important;
+  color: #fff !important;
 }
 
 .btn-cancelar svg,
@@ -138,6 +146,7 @@ button.btn-symmetrical-sm {
 .btn-outline.selected {
   background-color: var(--default-bg-color-light) !important;
   border-color: var(--default-border-color) !important;
+  color: var(--default-text-color) !important;
 }
 
 .btn-outline svg,

@@ -3,7 +3,6 @@ import { formatearFecha, formatearHora, formatearRangoFecha, formatEventDate, ge
 import { mostrarToast } from "../utils/utils.js";
 import api from "../utils/api.js";
 
-const baseurl = 'http://localhost/SistemaCRM/';
 const calendarUI = new CalendarUI();
 var calendar = null;
 var miniCalendar = null;
@@ -19,7 +18,6 @@ const usuarioActual = document.getElementById('idUsuario').value;
 const nombreUsuarioActual = document.getElementById('nombreUsuario').value;
 var selectedUsuario = usuarioActual;
 var selectedNombreUsuario = nombreUsuarioActual;
-var editandoState = false;
 
 function fetchActividades(idusuario = usuarioActual) {
     document.querySelectorAll('.popup').forEach(el => el.style.display = "none");
@@ -69,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function () {
     calendar.setOption("dateClick", function (info) {
         let start = new Date(info.date);
 
-        // Redondear minutos a múltiplos de 30
         let minutes = start.getMinutes();
         start.setMinutes(minutes < 30 ? 0 : 30, 0, 0);
 
@@ -91,9 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const infoDate = popup.querySelector('#infoDate');
             const titleInput = popup.querySelector('#titleInput');
 
-            // Mostrar popup al crear un evento preview
             mostrarPopup(info.el, popup);
-
             infoDate.textContent = formatEventDate(activeEvent.start, activeEvent.end);
 
             if (titleInput.value.trim() !== "") {
@@ -102,7 +97,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 titleInput.placeholder = "Llamada";
             }
 
-            // Mantener sincronía en tiempo real
             titleInput.oninput = function () {
                 actividadActual.nombre = titleInput.value;
                 activeEvent.setProp("title", titleInput.value);
@@ -294,7 +288,7 @@ function mostrarPopupMouse(jsEvent, popup) {
 }
 
 function abrirFormActividad(actividad = {}) {
-    let url = baseurl + "views/components/actividades/formActividad.php";
+    let url = window.baseurl + "views/components/actividades/formActividad.php";
     if (actividad.idactividad) {
         url += "?id=" + actividad.idactividad;
     }
@@ -458,22 +452,38 @@ function guardarActividad() {
         formActividad.reportValidity();
         return;
     }
-    const datos = { ...actividadActual };
 
+    const datos = { ...actividadActual };
     if (formActividad) {
-        const formDataObj = Object.fromEntries(new FormData(formActividad).entries());
-        Object.assign(datos, formDataObj);
+        Object.assign(datos, Object.fromEntries(new FormData(formActividad).entries()));
+    }
+    const extra = {};
+    if (formActividad) {
+        formActividad.querySelectorAll(".extra-content").forEach(field => {
+            if (field.value?.trim() !== "") {
+                extra[field.name] = field.value.trim();
+            }
+        });
     }
     const formData = new FormData();
     Object.entries(datos).forEach(([key, value]) => formData.append(key, value));
-    const action = formData.get("idactividad") ? "actualizar" : "crear";
+    if (Object.keys(extra).length > 0) {
+        formData.append("extra", JSON.stringify(extra));
+    }
 
+    if (formData.get("hora_inicio") >= formData.get("hora_fin")) {
+        return mostrarToast({
+            title: "Ingrese horas válidas",
+            type: "danger"
+        });
+    }
+    const action = formData.get("idactividad") ? "actualizar" : "crear";
     api.post({
         source: "actividades",
         action,
         data: formData,
-        onSuccess: function () {
-            if (modal.length) modal.modal("hide");
+        onSuccess: () => {
+            modal?.modal("hide");
             fetchActividades(selectedUsuario);
         }
     });
@@ -583,6 +593,7 @@ document.addEventListener('click', function (e) {
     }
 
     if (e.target.closest('#btnDetallesActividad')) {
+        document.querySelector('#popupPreview').style.display = 'none';
         const idactividad = e.target.closest('#btnDetallesActividad').dataset.id;
         if (idactividad) {
             actividadActual = actividadesCache.get(idactividad);
@@ -591,8 +602,35 @@ document.addEventListener('click', function (e) {
             activeEvent.remove();
             activeEvent = null;
         }
-        e.target.closest('.popup').style.display = 'none';
         abrirFormActividad(actividadActual);
+    }
+
+    if (e.target.closest('#btnNuevoCliente')) {
+        const target = e.target.closest('#btnNuevoCliente');
+        const modal = document.getElementById('actividadModal');
+        const value = target?.dataset?.value;
+        const nombreArr = value?.split(' ');
+        const nombres = nombreArr?.[0] ?? null;
+        const apellidos = nombreArr?.[1] ?? null;
+        if (!value || !nombres);
+
+        const formData = new FormData();
+        formData.append("nombres", nombres);
+        if (apellidos) formData.append("apellidos", apellidos);
+
+        api.post({
+            source: "clientes",
+            action: "crear",
+            data: formData,
+            onSuccess: function (response) {
+                const clienteInput = modal.querySelector('#clienteInput');
+                const clienteIdInput = modal.querySelector('#clienteIdInput');
+                const resultados = target.closest('.busqueda-grupo').querySelector('.resultados-busqueda');
+                clienteInput.value = value;
+                clienteIdInput.value = response.id;
+                resultados.style.display = "none";
+            }
+        });
     }
 
     if (e.target.closest('.cliente-item')) {
@@ -645,29 +683,25 @@ document.addEventListener('click', function (e) {
         if (!link) return;
         e.preventDefault();
 
-        const container = e.target.closest(".extra-container").querySelector("#extraContent");
-        e.target.querySelectorAll("a").forEach(a => {
+        const container = e.target.closest(".extra-container");
+        const detailOptions = container.querySelector("#detailOptions");
+
+        detailOptions.querySelectorAll("a").forEach(a => {
             a.classList.add("clickable");
             a.classList.remove("disable-click");
         });
+
         link.classList.remove("clickable");
         link.classList.add("disable-click");
 
-        let html = "";
-        if (link.id === "agregarDescripcion") {
-            html = `<textarea class="extra-content form-control w-100" id="descripcionInput" rows="3" placeholder="Ingrese una descripción"></textarea>`;
-        } else if (link.id === "agregarDireccion") {
-            html = `<input type="text" class="extra-content form-control w-100" id="direccionInput" placeholder="Ingrese un dirección">
-                    <input type="text" class="extra-content form-control w-100" id="direccionReferenciaInput" placeholder="Ingrese una dirección de referencia">`;
-        } else if (link.id === "agregarEnlace") {
-            html = `<input type="url" class="extra-content form-control w-100" id="enlaceInput" placeholder="Ingrese un enlace">
-                    <div class="d-flex align-items-center gap-2">
-                        <button class="btn btn-outline w-100" id="generarEnlaceZoom">${window.icons.video}<span>Generar reunión con Zoom</span></button>
-                        <button class="btn btn-outline w-100" id="generarEnlaceMeet">${window.icons.video}<span>Generar reunión con Meet</span></button>
-                    </div>`;
-        }
-        container.innerHTML = html;
-        container.style.display = "";
+        container.querySelector(".descripcion-container").style.display =
+            link.id === "agregarDescripcion" ? "flex" : "none";
+
+        container.querySelector(".direccion-container").style.display =
+            link.id === "agregarDireccion" ? "flex" : "none";
+
+        container.querySelector(".enlace-container").style.display =
+            link.id === "agregarEnlace" ? "flex" : "none";
     }
 
     if (!e.target.closest('.fc-view')
@@ -710,18 +744,16 @@ document.addEventListener('input', function (e) {
                                 data-value="${cliente.nombres} ${cliente.apellidos}">
                                 <div class="d-flex flex-column gap-2 w-100">
                                     <div class="d-flex align-items-center gap-2">
-                                        <img class="user-icon sm" src="${baseurl + cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}">
-                                        <span>${cliente.nombres} ${cliente.apellidos}</span>
-                                    </div>
-                                    <div class="row w-100" style="font-size: 12px">
-                                        <div class="col-6">
-                                            <div class="d-flex align-items-center gap-1">
-                                                ${window.icons.telefono} <span>${cliente.telefono}</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="d-flex align-items-center gap-1">
-                                                ${window.icons.building} <span>${cliente.empresa}</span>
+                                        <img class="user-icon sm" src="${window.baseurl + cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}">
+                                        <div class="d-flex flex-column" style="font-size: 13px">
+                                            <span>${cliente.nombres} ${cliente.apellidos}</span>
+                                            <div class="info-row gap-4">
+                                                <div class="info-row">
+                                                    ${window.icons.telefono} <span>${cliente.telefono}</span>
+                                                </div>
+                                                <div class="info-row">
+                                                    ${window.icons.building} <span>${cliente.empresa_nombre}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -777,7 +809,7 @@ document.addEventListener('input', function (e) {
                             <div class="resultado-item usuario-item" 
                                 data-id="${cliente.idcliente}" 
                                 data-value="${cliente.nombres} ${cliente.apellidos}">
-                                <img class="user-icon sm" src="${baseurl + cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}">
+                                <img class="user-icon sm" src="${window.baseurl + cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}">
                                 <span>${cliente.nombres} ${cliente.apellidos}</span>
                             </div>`;
                     });

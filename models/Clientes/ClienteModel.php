@@ -26,7 +26,7 @@ class ClienteModel
                     e.ruc AS empresa_ruc,
                     e.foto AS empresa_foto
                 FROM clientes c
-                INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
+                LEFT JOIN estados_clientes ec ON c.idestado = ec.idestado
                 LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
                 LEFT JOIN empresas e ON e.idempresa = emc.idempresa";
 
@@ -61,7 +61,7 @@ class ClienteModel
                     e.ruc AS empresa_ruc,
                     e.foto AS empresa_foto
                 FROM clientes c
-                INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
+                LEFT JOIN estados_clientes ec ON c.idestado = ec.idestado
                 LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
                 LEFT JOIN empresas e ON e.idempresa = emc.idempresa
                 WHERE (c.nombres LIKE ? OR c.apellidos LIKE ? OR c.num_doc LIKE ?)";
@@ -108,7 +108,7 @@ class ClienteModel
                     e.ruc AS empresa_ruc,
                     e.foto AS empresa_foto
             FROM clientes c WHERE c.idestado = ?
-            INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
+            LEFT JOIN estados_clientes ec ON c.idestado = ec.idestado
             LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
             LEFT JOIN empresas e ON e.idempresa = emc.idempresa";
             $stmt = $this->pdo->prepare($sql);
@@ -135,7 +135,7 @@ class ClienteModel
                     e.ruc AS empresa_ruc,
                     e.foto AS empresa_foto
             FROM clientes c
-            INNER JOIN estados_clientes ec ON c.idestado = ec.idestado
+            LEFT JOIN estados_clientes ec ON c.idestado = ec.idestado
             LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
             LEFT JOIN empresas e ON e.idempresa = emc.idempresa
             WHERE c.idcliente = ?";

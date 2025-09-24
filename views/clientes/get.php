@@ -20,8 +20,8 @@ if (!$cliente) {
         <div class="alert alert-danger"><?= $mensaje ?></div>
     </div>
 <?php else: ?>
-    <div class="page-content">
-        <input type="hidden" name="">
+    <div class="page-content p-4">
+        <input type="hidden" id="clienteActual" value="<?= $cliente['idcliente'] ?? '' ?>">
         <div class="row h-100">
             <div class="col-3">
                 <div class="container-shadow d-flex flex-column justify-content-between gap-3 h-100">
@@ -41,43 +41,56 @@ if (!$cliente) {
                                             $claseChip = 'success';
                                             break;
                                         default:
-                                            $claseChip = 'info';
+                                            $claseChip = 'danger';
                                             break;
                                     }
                                     ?>
-                                    <div class="chip chip-<?= $claseChip ?>"><?= $cliente['estado'] ?></div>
+                                    <div class="chip chip-<?= $claseChip ?>"><?= $cliente['estado'] ?? 'SIN ESTADO' ?></div>
                                 </div>
                             </div>
                             <div class="icons-row">
-                                <button class="btn btn-icon bg-light" id="btnEditCliente" data-id="<?= $cliente['idcliente'] ?>" title="Editar cliente"><?php include('./assets/svg/edit.svg') ?></button>
+                                <button class="btn btn-icon bg-light edit-cliente edit-details" id="btnEditCliente" data-id="<?= $cliente['idcliente'] ?>" title="Editar cliente"><?php include('./assets/svg/edit.svg') ?></button>
                             </div>
                         </div>
                         <div class="info-container">
                             <h6 class="fw-bold mb-2">Detalles:</h6>
                             <div class="d-flex flex-column gap-1">
-                                <div class="info-row">
-                                    <?php include('./assets/svg/document-text-2.svg') ?>
-                                    <span>DNI: <?= $cliente['num_doc'] ?></span>
-                                </div>
-                                <div class="info-row">
-                                    <?php include('./assets/svg/call.svg') ?>
-                                    <span><?= $cliente['telefono'] ?></span>
-                                </div>
-                                <div class="info-row">
-                                    <?php include('./assets/svg/sms.svg') ?>
-                                    <span><?= $cliente['correo'] ?></span>
-                                </div>
+                                <?php if (isset($cliente['num_doc'])): ?>
+                                    <div class="info-row">
+                                        <?php include('./assets/svg/document-text-2.svg') ?>
+                                        <span>DNI: <?= $cliente['num_doc'] ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (isset($cliente['telefono'])): ?>
+                                    <div class="info-row">
+                                        <?php include('./assets/svg/call.svg') ?>
+                                        <span><?= $cliente['telefono'] ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (isset($cliente['correo'])): ?>
+                                    <div class="info-row">
+                                        <?php include('./assets/svg/sms.svg') ?>
+                                        <span><?= $cliente['correo'] ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!isset($cliente['correo']) && !isset($cliente['telefono']) && !isset($cliente['telefono'])): ?>
+                                    <span class="text-primary clickable edit-cliente" data-id="<?= $cliente['idcliente'] ?>">Agregar detalles</span>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <div class="info-container">
                             <h6 class="fw-bold mb-2">Organización:</h6>
-                            <div class="info-row">
-                                <img class="user-icon sm clickable" data-type="empresa" data-id="<?= $cliente['idempresa'] ?>" src="<?= $cliente['empresa_foto'] ?>" alt="Foto de <?= $cliente['empresa_nombre'] ?>">
-                                <div class="d-flex flex-column">
-                                    <span class="user-link clickable" data-type="empresa" data-id="<?= $cliente['idempresa'] ?>"><?= $cliente['empresa_nombre'] ?></span>
-                                    <span class="text-small">RUC: <?= $cliente['empresa_ruc'] ?></span>
+                            <?php if (isset($cliente['correo'])): ?>
+                                <div class="info-row">
+                                    <img class="user-icon sm clickable" data-type="empresa" data-id="<?= $cliente['idempresa'] ?>" src="<?= $cliente['empresa_foto'] ?>" alt="Foto de <?= $cliente['empresa_nombre'] ?>">
+                                    <div class="d-flex flex-column">
+                                        <span class="user-link clickable" data-type="empresa" data-id="<?= $cliente['idempresa'] ?>"><?= $cliente['empresa_nombre'] ?></span>
+                                        <span class="text-small">RUC: <?= $cliente['empresa_ruc'] ?></span>
+                                    </div>
                                 </div>
-                            </div>
+                            <?php else: ?>
+                                <span class="text-primary clickable edit-cliente edit-organizacion" data-id="<?= $cliente['idcliente'] ?>">Agregar organización</span>
+                            <?php endif; ?>
                         </div>
                         <div class="info-container">
                             <h6 class="fw-bold mb-2">Propietario:</h6>
@@ -135,11 +148,19 @@ if (!$cliente) {
                         </div>
                     </div>
                     <div class="mb-3">
-                        <h6 class="fw-bold">Historial de actividades</h6>
-                        <div id="historialContainer" class="p-3" style="height: 320px; overflow-y: auto;"></div>
+                        <div class="d-flex align-items-center justify-content-between gap-3">
+                            <h6 class="fw-bold">Historial de actividades</h6>
+                            <button class="btn bg-default">
+                                <?php include('./assets/svg/add.svg') ?>
+                                <span>Nueva actividad</span>
+                            </button>
+                        </div>
+                        <div id="historialContainer" class="py-2" style="height: 320px; overflow-y: auto;"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script type="module" src="./assets/js/clientes/get.js"></script>
 <?php endif; ?>

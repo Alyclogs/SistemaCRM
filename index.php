@@ -38,21 +38,6 @@ if (!file_exists($ruta)) {
     <script type="module" src="./assets/js/app.min.js"></script>
     <title>Sistema CRM</title>
 </head>
-<style>
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    textarea:-webkit-autofill,
-    textarea:-webkit-autofill:hover,
-    textarea:-webkit-autofill:focus,
-    select:-webkit-autofill,
-    select:-webkit-autofill:hover,
-    select:-webkit-autofill:focus {
-        background-color: transparent !important;
-        color: var(--default-text-color) !important;
-        font-family: 'Poppins', sans-serif !important;
-    }
-</style>
 
 <body>
     <input type="hidden" id="idUsuario" value="<?= $_SESSION['idusuario'] ?? '' ?>">
@@ -62,12 +47,15 @@ if (!file_exists($ruta)) {
             <?php include("views/components/sidebar.php"); ?>
             <div class="main-content">
                 <?php include("views/components/header.php"); ?>
-                <main class="page-container">
-                    <?php include($ruta); ?>
+                <main class="main-body">
+                    <div class="page-container">
+                        <?php include($ruta); ?>
+                    </div>
                 </main>
                 <?php include("views/components/footer.php"); ?>
             </div>
         </div>
+        <?php include("views/components/modals.php"); ?>
     <?php else: ?>
         <?php include($ruta); ?>
     <?php endif; ?>
