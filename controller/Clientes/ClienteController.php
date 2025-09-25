@@ -25,17 +25,30 @@ try {
                 }
                 break;
 
-            case 'buscar':
+            case 'obtenerHistorial':
+                if (!isset($_GET['id']) || empty($_GET['id'])) throw new Exception("ID requerido");
                 if (!isset($_GET['tipo']) || empty($_GET['tipo'])) throw new Exception("Tipo requerido");
+                $data = $clienteModel->obtenerHistorial($_GET['id'], $_GET['tipo']);
+                echo json_encode($data);
+                exit;
+                break;
+
+            case 'buscar':
                 if (!isset($_GET['filtro']) || empty($_GET['filtro'])) throw new Exception("Filtro requerido");
 
-                if ($_GET['tipo'] == '1') {
-                    $data = $clienteModel->buscarClientes($_GET['filtro'], !empty($_GET['idestado']) ? $_GET['idestado'] : '');
-                    echo json_encode($data);
-                    exit;
-                }
-                if ($_GET['tipo'] == '2') {
-                    $data = $clienteModel->buscarOrganizaciones($_GET['filtro']);
+                if (isset($_GET['tipo'])) {
+                    if ($_GET['tipo'] == '1') {
+                        $data = $clienteModel->buscarClientes($_GET['filtro'], !empty($_GET['idestado']) ? $_GET['idestado'] : '');
+                        echo json_encode($data);
+                        exit;
+                    }
+                    if ($_GET['tipo'] == '2') {
+                        $data = $clienteModel->buscarOrganizaciones($_GET['filtro']);
+                        echo json_encode($data);
+                        exit;
+                    }
+                } else {
+                    $data = $clienteModel->buscarClientesYOrganizaciones($_GET['filtro'], !empty($_GET['idestado']) ? $_GET['idestado'] : '');
                     echo json_encode($data);
                     exit;
                 }

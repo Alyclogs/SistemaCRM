@@ -228,6 +228,28 @@ export function obtenerDiaSemana(fecha) {
     return nombreDia;
 }
 
+export function formatearDateTime(datetime) {
+    // Crear objeto Date a partir del string MySQL
+    const date = new Date(datetime.replace(" ", "T"));
+
+    // Obtener nombre del día en español
+    const diaSemana = new Intl.DateTimeFormat("es-ES", { weekday: "long" })
+        .format(date)
+        .replace(/^\w/, c => c.toUpperCase()); // Capitalizar primera letra
+
+    // Día del mes
+    const diaMes = date.getDate();
+
+    // Formato de hora con minutos y AM/PM
+    const hora = new Intl.DateTimeFormat("es-ES", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+    }).format(date);
+
+    return `${diaSemana} ${diaMes}, ${hora}`;
+}
+
 export function formatEventDate(start, end) {
     const timeFormatter = new Intl.DateTimeFormat('es-ES', {
         hour: 'numeric',

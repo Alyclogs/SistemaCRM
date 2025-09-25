@@ -7,9 +7,13 @@ if (session_status() === PHP_SESSION_NONE) {
 $idactividad = $_GET['id'] ?? null;
 $agendaModel = new ActividadModel();
 $actividad = null;
+$actividadCliente = null;
+$actividadEmpresa = null;
 
 if ($idactividad) {
     $actividad = $agendaModel->obtenerActividad($idactividad);
+    $actividadCliente = $actividad['clientes'][0] ?? null;
+    $actividadEmpresa = $actividad['empresas'][0] ?? null;
 
     if (!$actividad) {
         echo '<div class="alert alert-danger">No se encontró la actividad</div>';
@@ -91,9 +95,19 @@ if ($idactividad) {
                         <?php include('../../../assets/svg/profile.svg') ?>
                     </div>
                     <div class="busqueda-grupo w-100">
-                        <input type="text" class="form-control w-100" id="clienteInput" value="<?= $actividad['cliente'] ?? '' ?>" placeholder="Buscar cliente">
-                        <input type="hidden" name="idcliente" id="clienteIdInput" value="<?= $actividad['idcliente'] ?? '' ?>">
+                        <input type="text" class="form-control w-100" id="clienteInput" value="<?= $actividadCliente['nombre'] ?? '' ?>" placeholder="Buscar cliente">
+                        <input type="hidden" name="idcliente" id="clienteIdInput" value="<?= $actividadCliente['idreferencia'] ?? '' ?>">
                         <div class="resultados-busqueda disable-auto" data-parent="clienteInput" style="top: 2.5rem; min-width: 300px;"></div>
+                    </div>
+                </div>
+                <div class="organizacion-container d-flex gap-2 w-100 mb-3">
+                    <div data-bs-toggle="tooltip" data-bs-placement="top" title="Asignada a la organización">
+                        <?php include('../../../assets/svg/building.svg') ?>
+                    </div>
+                    <div class="busqueda-grupo w-100">
+                        <input type="text" class="form-control w-100" id="organizacionInput" value="<?= $actividadEmpresa['nombre'] ?? '' ?>" placeholder="Buscar organización">
+                        <input type="hidden" name="idempresa" id="idOrganizacionInput" value="<?= $actividadEmpresa['idreferencia'] ?? '' ?>">
+                        <div class="resultados-busqueda disable-auto" data-parent="organizacionInput" style="top: 2.5rem; min-width: 300px;"></div>
                     </div>
                 </div>
                 <div class="usuario-container d-flex gap-2 w-100 mb-3">

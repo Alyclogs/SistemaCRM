@@ -110,7 +110,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 fecha: formatearFecha(activeEvent.start),
                 hora_inicio: formatearHora(activeEvent.start),
                 hora_fin: formatearHora(activeEvent.end),
-                tipo: "llamada"
+                tipo: "llamada",
+                idestado: 1,
+                clientes: []
             };
         }
     });
@@ -308,7 +310,8 @@ function abrirFormActividad(actividad = {}) {
                 tipo: actividadActual?.tipo ?? "llamada",
                 fecha: actividadActual?.fecha ?? formatearFecha(new Date()),
                 hora_inicio: actividadActual?.hora_inicio ?? formatearHora(new Date()),
-                hora_fin: actividadActual?.hora_fin ?? sumarMinutos(formatearHora(new Date()), 30)
+                hora_fin: actividadActual?.hora_fin ?? sumarMinutos(formatearHora(new Date()), 30),
+                clientes: actividadActual?.clientes ?? []
             };
 
             $("#tituloActividadLabel").text(actividadActual.nombre);
@@ -457,6 +460,7 @@ function guardarActividad() {
     if (formActividad) {
         Object.assign(datos, Object.fromEntries(new FormData(formActividad).entries()));
     }
+
     const extra = {};
     if (formActividad) {
         formActividad.querySelectorAll(".extra-content").forEach(field => {
@@ -465,8 +469,17 @@ function guardarActividad() {
             }
         });
     }
+
     const formData = new FormData();
-    Object.entries(datos).forEach(([key, value]) => formData.append(key, value));
+
+    if (datos.clientes) {
+        formData.append("clientes", JSON.stringify(datos.clientes));
+    }
+    Object.entries(datos).forEach(([key, value]) => {
+        if (key !== "clientes") {
+            formData.append(key, value);
+        }
+    });
     if (Object.keys(extra).length > 0) {
         formData.append("extra", JSON.stringify(extra));
     }
@@ -477,7 +490,9 @@ function guardarActividad() {
             type: "danger"
         });
     }
+
     const action = formData.get("idactividad") ? "actualizar" : "crear";
+
     api.post({
         source: "actividades",
         action,
@@ -500,7 +515,8 @@ function actualizarActividad(idactividad, fecha, horaInicio, horaFin) {
         hora_inicio: horaInicio,
         hora_fin: horaFin,
         idusuario: actividad.idusuario,
-        idcliente: actividad.idcliente,
+        clientes: actividad.clientes,
+        idestado: actividad.idestado,
         tipo: actividad.tipo
     };
 
@@ -628,6 +644,10 @@ document.addEventListener('click', function (e) {
                 const resultados = target.closest('.busqueda-grupo').querySelector('.resultados-busqueda');
                 clienteInput.value = value;
                 clienteIdInput.value = response.id;
+                if (!actividadActual.clientes.some(c => c.idreferencia === response.id && c.tipo_cliente === "cliente")) {
+                    actividadActual.clientes.push({ idreferencia: id, tipo_cliente: "cliente" });
+                }
+
                 resultados.style.display = "none";
             }
         });
@@ -643,8 +663,53 @@ document.addEventListener('click', function (e) {
         const hidden = grupo.querySelector(`input[name="idcliente"]`);
         input.value = value;
         hidden.value = id;
+        if (!actividadActual.clientes.some(c => c.idreferencia === id && c.tipo_cliente === "cliente")) {
+            actividadActual.clientes.push({ idreferencia: id, tipo_cliente: "cliente" });
+        }
+
         resultados.innerHTML = '';
         resultados.style.display = 'none';
+    }
+
+    if (e.target.closest("#btnNuevaOrganizacion")) {
+        e.stopPropagation();
+        const value = e.target.closest("#btnNuevaOrganizacion").dataset.value;
+        const formData = new FormData();
+        formData.append("razon_social", value);
+        let idOrganizacion = null;
+
+        api.post({
+            source: "clientes",
+            action: "createOrganizacion",
+            data: formData,
+            onSuccess: (response) => {
+                idOrganizacion = response.id;
+                const hiddenId = document.getElementById("idOrganizacionInput");
+                hiddenId.value = idOrganizacion;
+                if (!actividadActual.clientes.some(c => c.idreferencia === id && c.tipo_cliente === "empresa")) {
+                    actividadActual.clientes.push({ idreferencia: idOrganizacion, tipo_cliente: "empresa" });
+                }
+            }
+        });
+        const resultados = document.querySelector(`[data-parent="organizacionInput"]`);
+        resultados.innerHTML = "";
+        resultados.style.display = "none";
+    }
+
+    if (e.target.closest(".org-item")) {
+        const target = e.target.closest(".org-item");
+
+        const input = document.getElementById("organizacionInput");
+        const hiddenId = document.getElementById("idOrganizacionInput");
+        input.value = target.dataset.value;
+        hiddenId.value = target.dataset.id;
+        if (!actividadActual.clientes.some(c => c.idreferencia === target.dataset.id && c.tipo_cliente === "empresa")) {
+            actividadActual.clientes.push({ idreferencia: target.dataset.id, tipo_cliente: "empresa" });
+        }
+
+        const resultados = document.querySelector(`[data-parent="organizacionInput"]`);
+        resultados.innerHTML = "";
+        resultados.style.display = "none";
     }
 
     if (e.target.closest('.usuario-item')) {
@@ -657,6 +722,7 @@ document.addEventListener('click', function (e) {
         const hidden = grupo.querySelector(`input[name="idusuario"]`);
         input.value = value;
         hidden.value = id;
+
         resultados.innerHTML = '';
         resultados.style.display = 'none';
     }
@@ -829,6 +895,56 @@ document.addEventListener('input', function (e) {
         } else {
             resultados.innerHTML = '';
             resultados.style.display = 'none';
+        }
+    }
+
+    if (e.target.id === 'organizacionInput') {
+        const target = e.target;
+        const value = target.value;
+        const resultados = document.querySelector(`[data-parent="${target.id}"]`);
+        let html = '';
+
+        const buttonNewOrganizacion = `
+            <div class="resultado-item bg-secondary text-white" id="btnNuevaOrganizacion" data-value="${value}">
+                ${window.getIcon("add", "white")}<span>Agregar ${value} como nueva organización</span>
+            </div>
+            `;
+
+        if (value.length > 2) {
+            api.get({
+                source: "clientes",
+                action: "buscarOrganizaciones",
+                params: [
+                    { name: "filtro", value }
+                ],
+                onSuccess: (organizaciones) => {
+                    if (organizaciones.length === 0) {
+                        html = buttonNewOrganizacion;
+                        resultados.innerHTML = html;
+                        resultados.style.display = "flex";
+                        return;
+                    }
+
+                    organizaciones.forEach(org => {
+                        html += `<div class="resultado-item org-item" data-value="${org.razon_social}" data-id="${org.idempresa}">
+                                ${window.icons.building}${org.razon_social}
+                            </div>`;
+                    });
+
+                    if (!organizaciones.some(org =>
+                        org.razon_social.toLowerCase().trim() === value.toLowerCase().trim()
+                        || org.ruc.toLowerCase().trim() === value.toLowerCase().trim()
+                    )) {
+                        html += buttonNewOrganizacion;
+                    }
+
+                    resultados.innerHTML = html;
+                    resultados.style.display = "flex";
+                }
+            });
+        } else {
+            resultados.innerHTML = '';
+            resultados.style.display = "none";
         }
     }
 });

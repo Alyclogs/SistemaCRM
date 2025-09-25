@@ -1,6 +1,6 @@
 export const icons = async () => {
     const [add, edit, trash, menu, user, telefono, correo, document, error,
-        success, warning, info, building, video, reunion, clock] = await Promise.all([
+        success, warning, info, building, video, reunion, clock, paperclip] = await Promise.all([
             fetch(window.baseurl + "assets/svg/add.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/edit.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/trash.svg").then(res => res.text()),
@@ -16,7 +16,8 @@ export const icons = async () => {
             fetch(window.baseurl + "assets/svg/building.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/video.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/profile-2user.svg").then(res => res.text()),
-            fetch(window.baseurl + "assets/svg/clock.svg").then(res => res.text())
+            fetch(window.baseurl + "assets/svg/clock.svg").then(res => res.text()),
+            fetch(window.baseurl + "assets/svg/paperclip.svg").then(res => res.text())
         ]);
 
     return {

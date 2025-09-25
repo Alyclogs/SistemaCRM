@@ -28,6 +28,7 @@ $estadosActividad = $actividadModel->obtenerEstados();
 <?php else: ?>
     <div class="page-content px-4 pt-1 pb-4">
         <input type="hidden" id="clienteActual" value="<?= $cliente['idcliente'] ?? '' ?>">
+        <input type="hidden" id="tipoCliente" value="<?= 'cliente' ?>">
         <div class="row h-100">
             <div class="col-3">
                 <div class="container-shadow d-flex flex-column justify-content-between gap-3 h-100">
@@ -137,7 +138,7 @@ $estadosActividad = $actividadModel->obtenerEstados();
                         </div>
                         <div class="tab-item" data-value="whatsapp">
                             <?php include('./assets/svg/message-text.svg') ?>
-                            <span>Whatsapp</span>
+                            <span>WhatsApp</span>
                         </div>
                         <div class="tab-item" data-value="correo">
                             <?php include('./assets/svg/sms.svg') ?>
@@ -167,10 +168,13 @@ $estadosActividad = $actividadModel->obtenerEstados();
                                 </button>
                             </div>
                             <div class="w-100 info-row gap-4 mb-3 filtro-historial">
-                                <div class="filtro-historial-item category-badge clickable selected">TODAS</div>
-                                <?php foreach ($estadosActividad as $estado): ?>
-                                    <div class="filtro-historial-item category-badge clickable" data-id="<?= $estado['idestado'] ?>" data-value="<?= $estado['estado'] ?>"><?= $estado['estado'] ?></div>
-                                <?php endforeach; ?>
+                                <div class="filtro-historial-item category-badge clickable selected" data-id="0" data-value="todas">Todas</div>
+                                <div class="filtro-historial-item category-badge clickable" data-id="1" data-value="actividad">Actividades</div>
+                                <div class="filtro-historial-item category-badge clickable" data-id="2" data-value="nota">Notas</div>
+                                <div class="filtro-historial-item category-badge clickable" data-id="3" data-value="whatsapp">WhatsApp</div>
+                                <div class="filtro-historial-item category-badge clickable" data-id="4" data-value="correo">Correos</div>
+                                <div class="filtro-historial-item category-badge clickable" data-id="5" data-value="archivo">Archivos</div>
+                                <div class="filtro-historial-item category-badge clickable" data-id="6" data-value="cambios">Registro de Cambios</div>
                             </div>
                             <div id="historialContainer" style="height: 310px; overflow-y: auto;"></div>
                         </div>

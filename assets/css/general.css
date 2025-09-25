@@ -657,7 +657,7 @@ svg path {
   display: flex;
   align-items: flex-start;
   padding-left: 50px;
-  margin-bottom: 30px;
+  margin-bottom: 12px;
 }
 
 .timeline-item::before {
@@ -671,7 +671,7 @@ svg path {
 }
 
 .timeline-item:not(:only-child):not(:last-child)::before {
-  height: 120px;
+  height: 110px;
 }
 
 .timeline-item:only-child::before {

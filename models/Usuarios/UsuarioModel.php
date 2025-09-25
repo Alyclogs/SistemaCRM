@@ -1,16 +1,32 @@
 <?php
 // Importa la clase PDO
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../cambios/RegistroCambio.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 class UsuarioModel
 {
+
+    private $pdo;
+    private $registroCambioModel;
+
+    public function __construct()
+    {
+        try {
+            $this->pdo = connectDatabase();
+            $this->registroCambioModel = new RegistroCambioModel();
+        } catch (PDOException $e) {
+            die("Error al conectar en UsuarioModel: " . $e->getMessage());
+        }
+    }
+
     public function verificarUsuario($usuario, $password)
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             $stmt = $pdo->prepare("
             SELECT u.*, r.rol AS nombre_rol 
@@ -39,7 +55,7 @@ class UsuarioModel
     public function existeUsuario($nombreusuario)
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM usuarios WHERE usuario = :usuario");
             $stmt->execute(['usuario' => $nombreusuario]);
@@ -55,7 +71,7 @@ class UsuarioModel
     public function obtenerUsuarioPorId($id)
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             $stmt = $pdo->prepare("
             SELECT 
@@ -82,7 +98,7 @@ class UsuarioModel
     public function obtenerUsuarios()
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             $stmt = $pdo->prepare("
             SELECT 
@@ -113,7 +129,7 @@ class UsuarioModel
     public function buscarUsuarios($filtro = '')
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             $sql = "
             SELECT 
@@ -160,7 +176,7 @@ class UsuarioModel
     public function obtenerEstados()
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             $stmt = $pdo->prepare("SELECT * FROM estados_usuarios;
 ");
@@ -186,7 +202,7 @@ class UsuarioModel
         $passwordHash,
         $foto
     ) {
-        $pdo = connectDatabase();
+        $pdo = $this->pdo;
 
         try {
             // Iniciar transacción
@@ -218,6 +234,18 @@ class UsuarioModel
 
             $idUsuarioInsertado = $pdo->lastInsertId();
 
+            $this->registroCambioModel->registrarCambio(
+                $_SESSION['idusuario'],
+                $idUsuarioInsertado,
+                'usuario',
+                'creacion',
+                null,
+                null,
+                null,
+                null,
+                "Usuario creado: {$nombres} {$apellidos}"
+            );
+
             // Si todo salió bien, confirmar
             $pdo->commit();
 
@@ -246,7 +274,7 @@ class UsuarioModel
         $password = null,
         $foto = null
     ) {
-        $pdo = connectDatabase();
+        $pdo = $this->pdo;
 
         try {
             // Iniciamos transacción
@@ -293,6 +321,16 @@ class UsuarioModel
 
             $stmt->execute($params);
 
+            // Registrar cambios automáticos
+            $this->registroCambioModel->registrarCambiosAutomaticos(
+                $_SESSION['idusuario'],
+                $id,
+                'usuario',
+                'actualizacion',
+                $this->obtenerUsuarioPorId($id),
+                $params
+            );
+
             // Confirmamos cambios
             $pdo->commit();
 
@@ -310,10 +348,26 @@ class UsuarioModel
     public function eliminarUsuario($id)
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             $stmt = $pdo->prepare("DELETE FROM usuarios WHERE idusuario = :id");
+            $usuario = $this->obtenerUsuarioPorId($id);
             $stmt->execute(['id' => $id]);
+
+            if ($usuario) {
+                $this->registroCambioModel->registrarCambio(
+                    $_SESSION['idusuario'],
+                    $id,
+                    'usuario',
+                    'eliminacion',
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Usuario eliminado: {$usuario['nombres']} {$usuario['apellidos']}"
+                );
+            }
+
             closeDatabase($pdo);
 
             return true;
@@ -325,7 +379,7 @@ class UsuarioModel
     function obtenerRoles()
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             // Traemos roles con permisos en una sola consulta JOIN
             $sql = "SELECT r.idrol, r.rol, p.idpermiso, p.permiso, p.descripcion
@@ -368,7 +422,7 @@ class UsuarioModel
     function buscarRoles(string $filtro)
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             // Traemos roles con permisos en una sola consulta JOIN
             $sql = "SELECT r.idrol, r.rol, p.idpermiso, p.permiso, p.descripcion
@@ -419,7 +473,7 @@ class UsuarioModel
     function agregarRol($idrol = null, $rol, $permisos = [])
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
             $pdo->beginTransaction();
 
             if ($idrol) {
@@ -463,7 +517,7 @@ class UsuarioModel
     function eliminarRol($idrol)
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
             $pdo->beginTransaction();
 
             // Eliminar relaciones primero
@@ -488,7 +542,7 @@ class UsuarioModel
     function obtenerPermisos()
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
             $sql = "SELECT * FROM permisos ORDER BY categoria ASC";
             $stmt = $pdo->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -501,7 +555,7 @@ class UsuarioModel
     function obtenerPermisosPorRol($idrol)
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
             $sql = "SELECT p.*
                 FROM permisos p
                 INNER JOIN permisos_roles pr ON p.idpermiso = pr.idpermiso
@@ -521,7 +575,7 @@ class UsuarioModel
     function obtenerPermisosUsuario(int $idusuario): array
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             $sql = "SELECT p.codigo
                 FROM usuarios u
@@ -546,7 +600,7 @@ class UsuarioModel
     function usuarioTienePermiso(int $idusuario, string $codigoPermiso): bool
     {
         try {
-            $pdo = connectDatabase();
+            $pdo = $this->pdo;
 
             $sql = "SELECT COUNT(*) as total
                 FROM usuarios u
