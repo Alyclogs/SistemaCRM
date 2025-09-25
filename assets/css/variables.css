@@ -11,6 +11,10 @@
   --default-border-color: #dddee4;
   --default-shadow-color: #d5d8df;
   --default-text-color: #494949;
+  --primary-theme-color: #3f95e6;
+  --primary-theme-color-light: #c1daff;
+  --primary-theme-color-accent: #0a7ae2;
+  --primary-theme-color-dark: #073985;
   --secondary-theme-color: #0e2b6d;
   --secondary-theme-color-light: #504897;
   --secondary-theme-color-accent: #18105f;

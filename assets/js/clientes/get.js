@@ -26,9 +26,9 @@ function fetchHistorial() {
                 cancelado: { color: "#d63a47", svg: "error" }
             }
             const actividadTipos = {
-                llamada: { svg: "call", bg: "#A6D6D6", text: "#82c5c5ff" },
-                videollamada: { svg: "video", bg: "#F7CFD8", text: "#e4a0aeff" },
-                reunion: { svg: "profile-2user", bg: "#F4F8D3", text: "#dce2a5ff" }
+                llamada: { svg: "telefono", bg: "#A6D6D6", text: "#65acacff" },
+                videollamada: { svg: "video", bg: "#F7CFD8", text: "#c78491ff" },
+                reunion: { svg: "reunion", bg: "#F4F8D3", text: "#c0c77fff" }
             }
             actividades.forEach((actividad, i) => {
                 html += `
@@ -56,7 +56,6 @@ function fetchHistorial() {
                     </div>
                 `;
             });
-
             container.innerHTML = html;
         }
     });

@@ -1,8 +1,12 @@
 <?php
 require_once __DIR__ . '/../../models/clientes/ClienteModel.php';
+require_once __DIR__ . '/../../models/actividades/ActividadModel.php';
+require_once __DIR__ . '/../../models/Usuarios/UsuarioModel.php';
 
 $id = $_GET['id'] ?? null;
 $model = new ClienteModel();
+$actividadModel = new ActividadModel();
+$usuarioModel = new UsuarioModel();
 $cliente = null;
 $mensaje = '';
 
@@ -13,6 +17,8 @@ if ($id) {
 if (!$cliente) {
     $mensaje = 'No se ha encontrado al cliente';
 }
+$usuarios = $usuarioModel->obtenerUsuarios();
+$estadosActividad = $actividadModel->obtenerEstados();
 ?>
 
 <?php if (!empty($mensaje)): ?>
@@ -20,7 +26,7 @@ if (!$cliente) {
         <div class="alert alert-danger"><?= $mensaje ?></div>
     </div>
 <?php else: ?>
-    <div class="page-content p-4">
+    <div class="page-content px-4 pt-1 pb-4">
         <input type="hidden" id="clienteActual" value="<?= $cliente['idcliente'] ?? '' ?>">
         <div class="row h-100">
             <div class="col-3">
@@ -93,21 +99,25 @@ if (!$cliente) {
                             <?php endif; ?>
                         </div>
                         <div class="info-container">
-                            <h6 class="fw-bold mb-2">Propietario:</h6>
+                            <h6 class="fw-bold mb-2">Asesor:</h6>
                             <div class="busqueda-grupo">
                                 <div class="info-row gap-3 py-1 px-2" id="usuarioActual">
                                     <div class="info-row">
                                         <img id="usuarioActualFoto" class="user-icon sm" src="<?= $_SESSION['foto'] ?>" alt="Foto de <?= $_SESSION['nombre'] ?>">
                                         <div class="d-flex flex-column">
                                             <span id="usuarioActualNombre"><?= $_SESSION['nombre'] ?></span>
-                                            <span class="text-small">Propietario</span>
+                                            <span class="text-small">Asesor</span>
                                         </div>
                                     </div>
                                     <button class="btn btn-icon sm">
                                         <?php include('./assets/svg/arrow-down-02.svg') ?>
                                     </button>
                                 </div>
-                                <div class="resultados-busqueda" data-parent="usuarioActual" style="top: 2.5px;"></div>
+                                <div class="resultados-busqueda" data-parent="usuarioActual" style="top: 3rem;">
+                                    <?php foreach ($usuarios as $usuario): ?>
+                                        <div class="resultado-item filtro-item <?= $usuario['idusuario'] === $_SESSION['idusuario'] ? 'selected' : '' ?>" data-id="<?= $usuario['idusuario'] ?>" data-value="<?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?>"><?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?></div>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -118,44 +128,52 @@ if (!$cliente) {
                     <?php endif; ?>
                 </div>
             </div>
-            <div class="col-9 container-shadow">
-                <div class="tabs-container">
-                    <div class="tab-item selected" data-value="notas">
-                        <?php include('./assets/svg/document-text-2.svg') ?>
-                        <span>Notas</span>
-                    </div>
-                    <div class="tab-item" data-value="whatsapp">
-                        <?php include('./assets/svg/message-text.svg') ?>
-                        <span>Whatsapp</span>
-                    </div>
-                    <div class="tab-item" data-value="correo">
-                        <?php include('./assets/svg/sms.svg') ?>
-                        <span>Correo</span>
-                    </div>
-                    <div class="tab-item" data-value="archivos">
-                        <?php include('./assets/svg/paperclip.svg') ?>
-                        <span>Archivos</span>
-                    </div>
-                    <div class="tab-item w-100 h-100 disable-hover"></div>
-                </div>
-                <div class="p-2" style="max-height: 100%; overflow-y: auto;">
-                    <div class="mb-3">
-                        <div id="tabContainer" class="p-3" style="height: 320px; overflow-y: auto;">
-                            <div id="notasContainer"></div>
-                            <div id="whatsappContainer"></div>
-                            <div id="correoContainer"></div>
-                            <div id="archivosContainer"></div>
+            <div class="col-9">
+                <div class="container-shadow h-100">
+                    <div class="tabs-container">
+                        <div class="tab-item selected" data-value="notas">
+                            <?php include('./assets/svg/document-text-2.svg') ?>
+                            <span>Notas</span>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex align-items-center justify-content-between gap-3">
-                            <h6 class="fw-bold">Historial de actividades</h6>
-                            <button class="btn bg-default">
-                                <?php include('./assets/svg/add.svg') ?>
-                                <span>Nueva actividad</span>
-                            </button>
+                        <div class="tab-item" data-value="whatsapp">
+                            <?php include('./assets/svg/message-text.svg') ?>
+                            <span>Whatsapp</span>
                         </div>
-                        <div id="historialContainer" class="py-2" style="height: 320px; overflow-y: auto;"></div>
+                        <div class="tab-item" data-value="correo">
+                            <?php include('./assets/svg/sms.svg') ?>
+                            <span>Correo</span>
+                        </div>
+                        <div class="tab-item" data-value="archivos">
+                            <?php include('./assets/svg/paperclip.svg') ?>
+                            <span>Archivos</span>
+                        </div>
+                        <div class="tab-item w-100 h-100 disable-hover"></div>
+                    </div>
+                    <div class="p-2" style="max-height: 100%; overflow-y: auto;">
+                        <div class="mb-3">
+                            <div id="tabContainer" class="py-3" style="height: 310px; overflow-y: auto;">
+                                <div id="notasContainer"></div>
+                                <div id="whatsappContainer"></div>
+                                <div id="correoContainer"></div>
+                                <div id="archivosContainer"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+                                <h6 class="fw-bold">Historial de actividades</h6>
+                                <button class="btn bg-default">
+                                    <?php include('./assets/svg/add.svg') ?>
+                                    <span>Nueva actividad</span>
+                                </button>
+                            </div>
+                            <div class="w-100 info-row gap-4 mb-3 filtro-historial">
+                                <div class="filtro-historial-item category-badge clickable selected">TODAS</div>
+                                <?php foreach ($estadosActividad as $estado): ?>
+                                    <div class="filtro-historial-item category-badge clickable" data-id="<?= $estado['idestado'] ?>" data-value="<?= $estado['estado'] ?>"><?= $estado['estado'] ?></div>
+                                <?php endforeach; ?>
+                            </div>
+                            <div id="historialContainer" style="height: 310px; overflow-y: auto;"></div>
+                        </div>
                     </div>
                 </div>
             </div>

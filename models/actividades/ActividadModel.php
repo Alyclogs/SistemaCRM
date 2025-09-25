@@ -132,6 +132,17 @@ class ActividadModel
         }
     }
 
+    public function obtenerEstados()
+    {
+        try {
+            $sql = "SELECT * FROM estados_actividades";
+            $stmt = $this->pdo->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener estados de actividades: " . $e->getMessage());
+        }
+    }
+
     public function crearActividad($data)
     {
         try {
