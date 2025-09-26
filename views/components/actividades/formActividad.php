@@ -76,9 +76,11 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
                         </div>
                         <div id="extraContent">
                             <div class="descripcion-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['descripcion']) ? 'flex' : 'none' ?>">
+                                <label for="descripcionInput">Descripción:</label>
                                 <textarea class="extra-content form-control w-100" id="descripcionInput" name="descripcion" rows="3" placeholder="Ingrese una descripción"><?= isset($actividad['extra']) ? $actividad['extra']['descripcion'] ?? '' : '' ?></textarea>
                             </div>
                             <div class="direccion-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['direccion']) ? 'flex' : 'none' ?>">
+                                <label for="direccionInput">Dirección:</label>
                                 <input type="text" class="extra-content form-control w-100" id="direccionInput" name="direccion" placeholder="Ingrese un dirección">
                                 <input type="text" class="extra-content form-control w-100" id="direccionReferenciaInput" name="direccion_referencia" placeholder="Ingrese una dirección de referencia">
                             </div>

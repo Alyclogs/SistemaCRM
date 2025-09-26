@@ -755,22 +755,19 @@ document.addEventListener('click', function (e) {
         const container = e.target.closest(".extra-container");
         const detailOptions = container.querySelector("#detailOptions");
 
+        /*
         detailOptions.querySelectorAll("a").forEach(a => {
             a.classList.add("clickable");
             a.classList.remove("disable-click");
         });
+        */
 
         link.classList.remove("clickable");
         link.classList.add("disable-click");
 
-        container.querySelector(".descripcion-container").style.display =
-            link.id === "agregarDescripcion" ? "flex" : "none";
-
-        container.querySelector(".direccion-container").style.display =
-            link.id === "agregarDireccion" ? "flex" : "none";
-
-        container.querySelector(".enlace-container").style.display =
-            link.id === "agregarEnlace" ? "flex" : "none";
+        if (link.id === "agregarDescripcion") container.querySelector(".descripcion-container").style.display = "flex";
+        if (link.id === "agregarDireccion") container.querySelector(".direccion-container").style.display = "flex";
+        if (link.id === "agregarEnlace") container.querySelector(".enlace-container").style.display = "flex";
     }
 
     if (!e.target.closest('.fc-view')
