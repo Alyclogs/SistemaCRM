@@ -18,7 +18,7 @@ $menuItems = [
 ];
 
 $footerItems = [
-    ["label" => "Ajustes", "categoria" => "tareas", "url" => "index.php?p=ajustes/index", "icon" => "assets/svg/setting-2.svg"]
+    ["label" => "Ajustes", "categoria" => "ajustes", "url" => "index.php?p=ajustes/index", "icon" => "assets/svg/setting-2.svg"]
 ];
 ?>
 

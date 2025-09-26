@@ -135,6 +135,16 @@ export function guardarRegistro(tipo) {
     const form = document.getElementById(forms[tipo]);
     const formData = new FormData(form);
 
+    const extra = {};
+    form.querySelectorAll("[name^=extra_]").forEach(field => {
+        if (field.value?.trim() !== "") {
+            extra[field.name.replace("extra_", "")] = field.value.trim();
+        }
+    });
+    if (Object.keys(extra).length > 0) {
+        formData.append("extra", JSON.stringify(extra));
+    }
+
     const id = formData.get("idexistente");
     const action = id ? acciones[tipo].update : acciones[tipo].create;
 

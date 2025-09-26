@@ -192,6 +192,24 @@ function renderCambio(cambio) {
 }
 
 document.addEventListener('click', function (e) {
+    if (e.target.closest(".usuario-item")) {
+        const target = e.target.closest(".usuario-item");
+        const idusuario = target.dataset.id;
+        const formData = new FormData();
+        formData.append("tipo", tipoCliente === "cliente" ? 1 : 2);
+        formData.append("idusuario", idusuario);
+        formData.append("idcliente", clienteActual);
+
+        api.post({
+            source: "clientes",
+            action: "asignarUsuario",
+            data: formData,
+            onSuccess: () => {
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        });
+    }
+
     if (e.target.closest('.filtro-historial-item')) {
         document.querySelectorAll('.filtro-historial-item').forEach(item => item.classList.remove('selected'));
         const item = e.target.closest('.filtro-historial-item');
@@ -199,6 +217,52 @@ document.addEventListener('click', function (e) {
         selectedFiltro = item.dataset.value;
         fetchHistorial();
     }
+});
+
+document.querySelectorAll('.btn-edit').forEach(btn => {
+    btn.addEventListener("click", async function () {
+        const { target, type, id } = btn.dataset;
+
+        if (target === "modalForm") {
+            try {
+                const urls = {
+                    cliente: "views/components/clientes/formCliente.php",
+                    empresa: "views/components/clientes/formOrganizacion.php"
+                }
+
+                const titulos = {
+                    cliente: "Editar cliente",
+                    empresa: "Editar organización"
+                };
+
+                const res = await fetch(window.baseurl + urls[type] + "?id=" + id);
+                const html = await res.text();
+
+                $("#clienteModalLabel").text(titulos[type] || "Editar");
+                $("#clienteModalBody").html(html);
+                $("#clienteModal").modal("show");
+
+                if (focus) $("#clienteModal").find(focus).focus();
+            } catch (e) {
+                mostrarToast({
+                    message: "Ocurrió un error al mostrar el formulario",
+                    type: "danger"
+                });
+                console.error(e);
+            }
+        }
+
+        if (target === "inlineForm") {
+            switch (type) {
+                case "cliente":
+                    // Accion para editar cliente inline
+                    break;
+                case "empresa":
+                    // Accion para editar empresa inline
+                    break;
+            }
+        }
+    });
 });
 
 document.addEventListener('DOMContentLoaded', function () {

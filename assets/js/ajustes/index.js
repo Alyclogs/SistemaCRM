@@ -3,7 +3,7 @@ import api from "../utils/api.js";
 function fetchRoles() {
     api.get({
         source: "usuarios",
-        action: "listarRoles",
+        action: "obtenerRoles",
         onSuccess: (roles) => {
             const rolesContainer = document.getElementById("rolesList");
             rolesContainer.innerHTML = "";
@@ -17,21 +17,22 @@ function fetchRoles() {
 
             roles.forEach(role => {
                 html += `
-                    <div class="role-card p-3 mb-3 border rounded">
-                        <h5>${role.nombre}</h5>
-                        <p class="text-muted">${role.descripcion || 'Sin descripción'}</p>
+                    <div class="role-card p-3 border rounded d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6>${role.rol}</h6>
+                            <p class="text-muted">${role.descripcion || 'Sin descripción'}</p>
+                        </div>
                         <div class="info-row">
                             <button class="btn btn-icon bg-light" data-id="${role.idrol}" id="btnEditarRol">
-                                ${window.icons.edit}<span>Editar</span>
+                                ${window.icons.edit}
                             </button>
                             <button class="btn btn-icon bg-light" data-id="${role.idrol}" id="btnEliminarRol">
-                                ${window.icons.trash}<span>Eliminar</span>
+                                ${window.icons.trash}
                             </button>
                         </div>
                     </div>
                 `;
             });
-
             rolesContainer.innerHTML = html;
         }
     });
@@ -51,20 +52,24 @@ function fetchCamposExtra() {
             let html = "";
             campos.forEach(campo => {
                 html += `
-                    <div class="campo-card p-3 mb-3 border rounded d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>${campo.nombre} <span class="badge bg-secondary">${campo.tipo_dato}</span></h5>
-                        <p class="text-muted">Referencia: ${campo.tipo_referencia} (ID: ${campo.idreferencia})</p>
-                        </div>
-                        <div class="info-row">
-                            <button class="btn btn-icon bg-light" data-id="${campo.idcampo}" id="btnEditarCampo">
-                                ${window.icons.edit}<span>Editar</span>
-                            </button>
-                            <button class="btn btn-icon bg-light" data-id="${campo.idcampo}" id="btnEliminarCampo">
-                                ${window.icons.trash}<span>Eliminar</span>
-                            </button>
-                        </div>
-                    </div>
+                    <tr>
+                        <td>${campo.nombre}</td>
+                        <td>${campo.tipo_dato}</td>
+                        <td>${campo.longitud || 'N/A'}</td>
+                        <td>${campo.requerido ? 'Sí' : 'No'}</td>
+                        <td>${campo.tipo_referencia}</td>
+                        <td>${campo.valor_inicial ? (Array.isArray(campo.valor_inicial) ? campo.valor_inicial.join(", ") : campo.valor_inicial) : 'N/A'}</td>
+                        <td>
+                            <div class="info-row">
+                                <button class="btn btn-icon bg-light" data-id="${campo.idcampo}" id="btnEditarCampo">
+                                    ${window.icons.edit}
+                                </button>
+                                <button class="btn btn-icon bg-light" data-id="${campo.idcampo}" id="btnEliminarCampo">
+                                    ${window.icons.trash}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
                 `;
             });
             camposContainer.innerHTML = html;
@@ -74,7 +79,7 @@ function fetchCamposExtra() {
 
 document.addEventListener("click", function (e) {
     if (e.target.closest("#btnNuevoRol")) {
-        fetch(baseurl + "views/components/ajustes/formRol.php?id=" + (e.target.dataset.id || ""))
+        fetch(baseurl + "views/components/ajustes/formRol.php")
             .then(response => response.text())
             .then(html => {
                 $("#ajustesModalLabel").text("Nuevo rol");
@@ -82,16 +87,249 @@ document.addEventListener("click", function (e) {
                 $("#ajustesModal").modal("show");
             });
     }
-    else if (e.target.closest("#btnNuevoCampo")) {
-        fetch(baseurl + "views/components/ajustes/formCampos.php?id=" + (e.target.dataset.id || ""))
+
+    if (e.target.closest("#btnNuevoCampo")) {
+        fetch(baseurl + "views/components/ajustes/formCampos.php")
             .then(response => response.text())
             .then(html => {
                 $("#ajustesModalLabel").text("Nuevo campo personalizado");
                 $("#ajustesModalBody").html(html);
                 $("#ajustesModal").modal("show");
+                $("#btnGuardarAjustes").attr("data-type", "campo");
             });
     }
+
+    if (e.target.closest("#btnEditarRol")) {
+        fetch(baseurl + "views/components/ajustes/formRol.php?id=" + e.target.closest("button").dataset.id)
+            .then(response => response.text())
+            .then(html => {
+                $("#ajustesModalLabel").text("Editar rol");
+                $("#ajustesModalBody").html(html);
+                $("#ajustesModal").modal("show");
+            });
+    }
+
+    if (e.target.closest("#btnEditarCampo")) {
+        fetch(baseurl + "views/components/ajustes/formCampos.php?id=" + e.target.closest("button").dataset.id)
+            .then(response => response.text())
+            .then(html => {
+                $("#ajustesModalLabel").text("Editar campo personalizado");
+                $("#ajustesModalBody").html(html);
+                $("#ajustesModal").modal("show");
+                $("#btnGuardarAjustes").attr("data-type", "campo");
+            });
+    }
+
+    if (e.target.closest("#btnEliminarRol")) {
+        const id = e.target.closest("button").dataset.id;
+        if (confirm("¿Está seguro de que desea eliminar este rol? Esta acción no se puede deshacer.")) {
+            const formData = new FormData();
+            formData.append("idrol", id);
+
+            api.post({
+                source: "usuarios",
+                action: "eliminarRol",
+                data: formData,
+                onSuccess: () => {
+                    fetchRoles();
+                }
+            });
+        }
+    }
+
+    if (e.target.closest("#btnEliminarCampo")) {
+        const id = e.target.closest("button").dataset.id;
+
+        if (confirm("¿Está seguro de que desea eliminar este campo personalizado? Esta acción no se puede deshacer.")) {
+            const formData = new FormData();
+            formData.append("idcampo", id);
+
+            api.post({
+                source: "ajustes",
+                action: "eliminar_campo",
+                data: formData,
+                onSuccess: () => {
+                    fetchCamposExtra();
+                }
+            });
+        }
+    }
+
+    if (e.target.closest("#btnGuardarRol")) {
+        const form = document.getElementById("formRol");
+        const formData = new FormData(form);
+        api.post({
+            source: "usuarios",
+            action: "guardarRol",
+            data: formData,
+            onSuccess: () => {
+                $("#rolModal").modal("hide");
+                fetchRoles();
+            }
+        });
+    }
+
+    if (e.target.closest("#btnGuardarAjustes")) {
+        const type = e.target.closest("#btnGuardarAjustes").dataset.type;
+
+        if (type === "campo") {
+            const form = document.getElementById("formCampo");
+            const formData = new FormData(form);
+
+            const action = formData.get("idcampo") ? "actualizar_campo" : "crear_campo";
+            api.post({
+                source: "ajustes",
+                action: action,
+                data: formData,
+                onSuccess: () => {
+                    $("#ajustesModal").modal("hide");
+                    fetchCamposExtra();
+                }
+            });
+        }
+    }
+
+    if (e.target.closest('.cliente-item')) {
+        const target = e.target.closest('.cliente-item');
+        const value = target.dataset.value;
+        const id = target.dataset.id;
+        if (!value || !id) return;
+
+        const grupo = target.closest('.busqueda-grupo');
+        const resultados = grupo.querySelector('.resultados-busqueda');
+        const input = grupo.querySelector(`input[id="${resultados.dataset.parent}"]`);
+        const hidden = grupo.querySelector(`input[name="idreferencia"]`);
+        input.value = value;
+        hidden.value = id;
+
+        resultados.innerHTML = '';
+        resultados.style.display = 'none';
+    }
+
+    if (e.target.closest(".org-item")) {
+        const target = e.target.closest(".org-item");
+
+        const input = document.getElementById("referenciaInput");
+        const hiddenId = document.getElementById("idReferenciaInput");
+        input.value = target.dataset.value;
+        hiddenId.value = target.dataset.id;
+
+        const resultados = document.querySelector(`[data-parent="${input.id}"]`);
+        resultados.innerHTML = "";
+        resultados.style.display = "none";
+    }
 });
+
+document.addEventListener('input', function (e) {
+    if (e.target.id === 'referenciaInput') {
+        const input = e.target;
+        const value = input.value.trim();
+        const type = input.dataset.type || 'cliente';
+        const resultados = input.closest('.busqueda-grupo').querySelector('.resultados-busqueda');
+
+        if (value.length > 2) {
+            if (type === "cliente") {
+                buscarClientes(value, resultados);
+            }
+            if (type === "empresa") {
+                buscarEmpresas(value, resultados);
+            }
+            if (type === "actividad") {
+            }
+        } else {
+            resultados.innerHTML = '';
+            resultados.style.display = 'none';
+        }
+    }
+});
+
+document.addEventListener("change", function (e) {
+    if (e.target.id === 'tipoReferenciaInput') {
+        const value = e.target.value;
+        const inputReferencia = document.getElementById('referenciaInput');
+
+        if (value === "cliente") {
+            inputReferencia.dataset.type = "cliente";
+        }
+        if (value === "empresa") {
+            inputReferencia.dataset.type = "empresa";
+        }
+        if (value === "actividad") {
+            inputReferencia.dataset.type = "actividad";
+        }
+    }
+})
+
+function buscarClientes(filtro, resultados) {
+    api.get({
+        source: "clientes",
+        action: "buscar",
+        params: [
+            { name: "filtro", value: filtro },
+            { name: "tipo", value: 1 }
+        ],
+        onSuccess: function (clientes) {
+            let html = '';
+
+            if (clientes.length > 0) {
+                clientes.forEach(cliente => {
+                    html += `
+                            <div class="resultado-item cliente-item" 
+                                data-id="${cliente.idcliente}" 
+                                data-value="${cliente.nombres} ${cliente.apellidos}">
+                                <div class="d-flex flex-column gap-2 w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img class="user-icon sm" src="${window.baseurl + cliente.foto}" alt="Foto de ${cliente.nombres} ${cliente.apellidos}">
+                                        <div class="d-flex flex-column" style="font-size: 13px">
+                                            <span>${cliente.nombres} ${cliente.apellidos}</span>
+                                            <div class="info-row gap-4">
+                                                <div class="info-row">
+                                                    ${window.icons.telefono} <span>${cliente.telefono}</span>
+                                                </div>
+                                                <div class="info-row">
+                                                    ${window.icons.building} <span>${cliente.empresa_nombre}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                });
+            } else {
+                html = '<div class="resultado-item cliente-item">No se encontraron resultados</div>';
+            }
+
+            resultados.innerHTML = html;
+            resultados.style.display = 'flex';
+        }
+    });
+}
+
+function buscarEmpresas(filtro, resultados) {
+    api.get({
+        source: "clientes",
+        action: "buscarOrganizaciones",
+        params: [
+            { name: "filtro", value: filtro }
+        ],
+        onSuccess: (organizaciones) => {
+            let html = '';
+
+            if (organizaciones.length > 0) {
+                organizaciones.forEach(org => {
+                    html += `<div class="resultado-item org-item" data-value="${org.razon_social}" data-id="${org.idempresa}">
+                                    ${window.icons.building}${org.razon_social}
+                                </div>`;
+                });
+            } else {
+                html = '<div class="resultado-item cliente-item">No se encontraron resultados</div>';
+            }
+
+            resultados.innerHTML = html;
+            resultados.style.display = "flex";
+        }
+    });
+}
 
 document.addEventListener("DOMContentLoaded", function () {
     const rolesSection = document.getElementById("rolesSection");
@@ -99,6 +337,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll(".info-container.clickable").forEach(container => {
         container.addEventListener("click", () => {
+            document.querySelectorAll(".info-container.clickable").forEach(c =>
+                c.classList.remove("selected")
+            );
+            container.classList.add("selected");
+
             const target = container.getAttribute("data-target");
             if (target === "roles") {
                 rolesSection.style.display = "block";
@@ -112,6 +355,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
-    camposSection.style.display = "";
+
+    // Estado inicial
+    fetchCamposExtra();
+    camposSection.style.display = "block";
     rolesSection.style.display = "none";
 });

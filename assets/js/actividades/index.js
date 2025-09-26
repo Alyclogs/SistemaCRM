@@ -184,29 +184,33 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     calendar.setOption("eventClick", function (info) {
-        if (!info.event.extendedProps.preview) {
-            const actividad = actividadesCache.get(info.event.id);
-            if (!actividad) return;
+        if (info.event.extendedProps.preview) return;
 
-            const popup = document.getElementById('popupActividad');
+        const actividad = actividadesCache.get(info.event.id);
+        if (!actividad) return;
 
-            const icons = {
-                "llamada": window.icons.telefono,
-                "videollamada": window.icons.video,
-                "reunion": window.icons.video,
-            }
+        const popup = document.getElementById('popupActividad');
 
-            let html = `
+        const icons = {
+            "llamada": "telefono",
+            "videollamada": "video",
+            "reunion": "profile-2user",
+        }
+
+        let html = `
             <div class="info-row">
-                ${icons[actividad.tipo]}
-                <h5>${actividad.usuario} / ${actividad.nombre}</h5>
+                ${window.getIcon(icons[actividad.tipo], null, 26)}
+                <h6>${actividad.usuario} / ${actividad.nombre}</h6>
             </div>
             <div class="mb-2">
-                <span class="text-small">${formatearRangoFecha(actividad.fecha, actividad.hora_inicio, actividad.hora_fin)}</span>
+                <span class="text-small text-muted">${formatearRangoFecha(actividad.fecha, actividad.hora_inicio, actividad.hora_fin)}</span>
             </div>
             <div class="mb-3">
                 <div class="info-row">
                     ${actividad.cliente ? `${window.icons.user} <span>${actividad.cliente}</span>` : ''}
+                </div>
+                <div class="info-row">
+                    ${actividad.extra.descripcion ? `${window.icons.info} <span>${actividad.extra.descripcion}</span>` : ''}
                 </div>
                 <div class="info-row">
                     ${actividad.notas?.length > 0 ? `${window.icons.document} <span>${actividad.notas[0].contenido}</span>` : ''}
@@ -218,27 +222,26 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
 
-            popup.innerHTML = html;
-            mostrarPopup(info.el, popup);
+        popup.innerHTML = html;
+        mostrarPopup(info.el, popup);
 
-            let hideTimeout;
+        let hideTimeout;
 
-            function scheduleHide() {
-                hideTimeout = setTimeout(() => {
-                    popup.style.display = "none";
-                }, 300);
-            }
-
-            function cancelHide() {
-                clearTimeout(hideTimeout);
-            }
-
-            info.el.addEventListener("mouseleave", scheduleHide);
-            info.el.addEventListener("mouseenter", cancelHide);
-
-            popup.addEventListener("mouseleave", scheduleHide);
-            popup.addEventListener("mouseenter", cancelHide);
+        function scheduleHide() {
+            hideTimeout = setTimeout(() => {
+                popup.style.display = "none";
+            }, 300);
         }
+
+        function cancelHide() {
+            clearTimeout(hideTimeout);
+        }
+
+        info.el.addEventListener("mouseleave", scheduleHide);
+        info.el.addEventListener("mouseenter", cancelHide);
+
+        popup.addEventListener("mouseleave", scheduleHide);
+        popup.addEventListener("mouseenter", cancelHide);
     });
 });
 

@@ -37,7 +37,7 @@ async function apiFetch(url, options = {}, responseType = "json") {
 
         return data;
     } catch (err) {
-        console.error("Error en fetch:", err.message);
+        console.error("Error en fetch:", err.message, options?.body);
         mostrarToast({
             message: "Ocurrió un error en la solicitud. Inténtalo de nuevo",
             type: "danger"
@@ -106,6 +106,12 @@ export default {
         url += urlParams.toString();
 
         try {
+            if (isFormData && !data.has("idusuario") && window.idusuario) {
+                data.append("idusuario", window.idusuario);
+            } else if (!isFormData && !data.idusuario && window.idusuario) {
+                data.idusuario = window.idusuario;
+            }
+
             const result = await apiFetch(url, {
                 method: "POST",
                 headers: isFormData ? {} : { "Content-Type": "application/json" },

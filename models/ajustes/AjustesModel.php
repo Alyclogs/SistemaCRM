@@ -140,7 +140,24 @@ class AjustesModel
         try {
             $sql = "SELECT * FROM campos_extra";
             $stmt = $this->pdo->query($sql);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $campos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($campos as &$campo) {
+                if ($campo['tipo_dato'] === 'booleano') {
+                    $campo['valor_inicial'] = $campo['valor_inicial'] === '1' ? 'Sí' : 'No';
+                }
+                if ($campo['tipo_dato'] === 'fecha' && $campo['valor_inicial']) {
+                    $campo['valor_inicial'] = date('Y-m-d', strtotime($campo['valor_inicial']));
+                }
+                if ($campo['tipo_dato'] === 'numero' && $campo['valor_inicial']) {
+                    $campo['valor_inicial'] = (float)$campo['valor_inicial'];
+                }
+                if ($campo['tipo_dato'] === 'opciones' && $campo['valor_inicial']) {
+                    $campo['valor_inicial'] = json_decode($campo['valor_inicial'], true);
+                }
+            }
+
+            return $campos;
         } catch (Exception $e) {
             throw new Exception("Error al obtener campos extra: " . $e->getMessage());
         }
@@ -149,10 +166,27 @@ class AjustesModel
     public function obtenerCamposPorTipo($idreferencia, $tipo_referencia)
     {
         try {
-            $sql = "SELECT * FROM campos_extra WHERE idreferencia = ? AND tipo_referencia = ?";
+            $sql = "SELECT * FROM campos_extra WHERE idreferencia = ? OR tipo_referencia = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$idreferencia, $tipo_referencia]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $campos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($campos as &$campo) {
+                if ($campo['tipo_dato'] === 'booleano') {
+                    $campo['valor_inicial'] = $campo['valor_inicial'] === '1' ? 'Sí' : 'No';
+                }
+                if ($campo['tipo_dato'] === 'fecha' && $campo['valor_inicial']) {
+                    $campo['valor_inicial'] = date('Y-m-d', strtotime($campo['valor_inicial']));
+                }
+                if ($campo['tipo_dato'] === 'numero' && $campo['valor_inicial']) {
+                    $campo['valor_inicial'] = (float)$campo['valor_inicial'];
+                }
+                if ($campo['tipo_dato'] === 'opciones' && $campo['valor_inicial']) {
+                    $campo['valor_inicial'] = json_decode($campo['valor_inicial'], true);
+                }
+            }
+
+            return $campos;
         } catch (Exception $e) {
             throw new Exception("Error al obtener campos extra: " . $e->getMessage());
         }
@@ -164,7 +198,9 @@ class AjustesModel
             $sql = "SELECT * FROM campos_extra WHERE idcampo = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$idcampo]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            $campo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return $campo;
         } catch (Exception $e) {
             throw new Exception("Error al obtener campo extra: " . $e->getMessage());
         }
@@ -173,15 +209,16 @@ class AjustesModel
     public function crearCampo($data, $idusuario)
     {
         try {
-            $sql = "INSERT INTO campos_extra (idreferencia, tipo_referencia, nombre, valor_inicial, tipo_dato) 
-                    VALUES (?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO campos_extra (idreferencia, tipo_referencia, nombre, valor_inicial, tipo_dato, longitud) 
+                    VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
-                $data['idreferencia'],
+                !empty($data['idreferencia']) ? $data['idreferencia'] : null,
                 $data['tipo_referencia'],
                 $data['nombre'],
                 $data['valor_inicial'] ?? null,
-                $data['tipo_dato'] ?? 'texto'
+                $data['tipo_dato'] ?? 'texto',
+                $data['longitud'] ?? null
             ]);
 
             $idcampo = $this->pdo->lastInsertId();
@@ -208,15 +245,16 @@ class AjustesModel
     {
         try {
             $sql = "UPDATE campos_extra 
-                    SET idreferencia=?, tipo_referencia=?, nombre=?, valor_inicial=?, tipo_dato=? 
+                    SET idreferencia=?, tipo_referencia=?, nombre=?, valor_inicial=?, tipo_dato=?, longitud=? 
                     WHERE idcampo=?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
-                $data['idreferencia'],
+                !empty($data['idreferencia']) ? $data['idreferencia'] : null,
                 $data['tipo_referencia'],
                 $data['nombre'],
                 $data['valor_inicial'] ?? null,
                 $data['tipo_dato'] ?? 'texto',
+                $data['longitud'] ?? null,
                 $id
             ]);
 
@@ -241,10 +279,58 @@ class AjustesModel
     public function eliminarCampo($id, $idusuario)
     {
         try {
+            // 1. Obtener info del campo
+            $sqlCampo = "SELECT * FROM campos_extra WHERE idcampo = ?";
+            $stmtCampo = $this->pdo->prepare($sqlCampo);
+            $stmtCampo->execute([$id]);
+            $campo = $stmtCampo->fetch(PDO::FETCH_ASSOC);
+
+            if (!$campo) {
+                throw new Exception("El campo no existe");
+            }
+
+            $nombreCampo = $campo['nombre'];
+            $tipoRef = $campo['tipo_referencia'];
+
+            // 2. Definir tablas que tienen columna `extra`
+            $tablas = [
+                'cliente'   => 'clientes',
+                'empresa'   => 'empresas',
+                'actividad' => 'actividades',
+                'proyecto'  => 'proyectos',
+                'tarea'     => 'tareas'
+            ];
+
+            if (isset($tablas[$tipoRef])) {
+                $tabla = $tablas[$tipoRef];
+
+                // 3. Buscar registros con extra
+                $sqlSel = "SELECT id{$tipoRef} as id, extra FROM {$tabla} WHERE extra IS NOT NULL AND extra != ''";
+                $stmtSel = $this->pdo->prepare($sqlSel);
+                $stmtSel->execute();
+                $registros = $stmtSel->fetchAll(PDO::FETCH_ASSOC);
+
+                foreach ($registros as $reg) {
+                    $extra = json_decode($reg['extra'], true);
+
+                    if (is_array($extra) && array_key_exists($nombreCampo, $extra)) {
+                        unset($extra[$nombreCampo]); // eliminar campo del json
+
+                        $nuevoExtra = !empty($extra) ? json_encode($extra) : null;
+
+                        $sqlUpd = "UPDATE {$tabla} SET extra = ? WHERE id{$tipoRef} = ?";
+                        $stmtUpd = $this->pdo->prepare($sqlUpd);
+                        $stmtUpd->execute([$nuevoExtra, $reg['id']]);
+                    }
+                }
+            }
+
+            // 4. Eliminar el campo de campos_extra
             $sql = "DELETE FROM campos_extra WHERE idcampo = ?";
             $stmt = $this->pdo->prepare($sql);
             $resultado = $stmt->execute([$id]);
 
+            // 5. Registrar cambio
             $this->registroCambioModel->registrarCambio(
                 $idusuario,
                 $id,
@@ -254,7 +340,7 @@ class AjustesModel
                 null,
                 null,
                 null,
-                "Campo extra eliminado"
+                "Campo extra eliminado: {$nombreCampo} (referencia: {$tipoRef})"
             );
 
             return $resultado;

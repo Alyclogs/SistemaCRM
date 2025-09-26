@@ -59,7 +59,7 @@ $estadosActividad = $actividadModel->obtenerEstados();
                                     </div>
                                 </div>
                                 <div class="icons-row">
-                                    <button class="btn btn-icon bg-light edit-cliente edit-details" id="btnEditCliente" data-id="<?= $cliente['idcliente'] ?>" title="Editar cliente"><?php include('./assets/svg/edit.svg') ?></button>
+                                    <button class="btn btn-icon bg-light btn-edit" id="btnEditCliente" data-target="modalForm" data-id="<?= $cliente['idcliente'] ?>" data-type="cliente" title="Editar cliente"><?php include('./assets/svg/edit.svg') ?></button>
                                 </div>
                             </div>
                         </div>
@@ -85,7 +85,7 @@ $estadosActividad = $actividadModel->obtenerEstados();
                                     </div>
                                 <?php endif; ?>
                                 <?php if (!isset($cliente['correo']) && !isset($cliente['telefono']) && !isset($cliente['telefono'])): ?>
-                                    <span class="text-primary clickable edit-cliente" data-id="<?= $cliente['idcliente'] ?>">Agregar detalles</span>
+                                    <span class="text-primary clickable btn-edit" data-id="<?= $cliente['idcliente'] ?>" data-type="cliente" data-target="inlineForm">Agregar detalles</span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -100,7 +100,7 @@ $estadosActividad = $actividadModel->obtenerEstados();
                                     </div>
                                 </div>
                             <?php else: ?>
-                                <span class="text-primary clickable edit-cliente edit-organizacion" data-id="<?= $cliente['idcliente'] ?>">Agregar organización</span>
+                                <span class="text-primary clickable btn-edit" data-id="<?= $cliente['idcliente'] ?>" data-type="empresa" data-target="inlineForm">Agregar organización</span>
                             <?php endif; ?>
                         </div>
                         <div class="info-container">
@@ -108,9 +108,9 @@ $estadosActividad = $actividadModel->obtenerEstados();
                             <div class="busqueda-grupo">
                                 <div class="info-row gap-3 py-1 px-2" id="usuarioActual">
                                     <div class="info-row">
-                                        <img id="usuarioActualFoto" class="user-icon sm" src="<?= $_SESSION['foto'] ?>" alt="Foto de <?= $_SESSION['nombre'] ?>">
+                                        <img id="usuarioActualFoto" class="user-icon sm" src="<?= $cliente['usuario_foto'] ?>" alt="Foto de <?= $cliente['usuario'] ?>">
                                         <div class="d-flex flex-column">
-                                            <span id="usuarioActualNombre"><?= $_SESSION['nombre'] ?></span>
+                                            <span id="usuarioActualNombre"><?= $cliente['usuario'] ?></span>
                                             <span class="text-small">Asesor</span>
                                         </div>
                                     </div>
@@ -120,7 +120,7 @@ $estadosActividad = $actividadModel->obtenerEstados();
                                 </div>
                                 <div class="resultados-busqueda" data-parent="usuarioActual" style="top: 3rem;">
                                     <?php foreach ($usuarios as $usuario): ?>
-                                        <div class="resultado-item filtro-item <?= $usuario['idusuario'] === $_SESSION['idusuario'] ? 'selected' : '' ?>" data-id="<?= $usuario['idusuario'] ?>" data-value="<?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?>"><?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?></div>
+                                        <div class="resultado-item usuario-item <?= $cliente['idusuario'] === $usuario['idusuario'] ? 'selected' : '' ?>" data-id="<?= $usuario['idusuario'] ?>" data-value="<?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?>"><?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?></div>
                                     <?php endforeach; ?>
                                 </div>
                             </div>

@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../../config/database.php";
 require_once __DIR__ . "/../cambios/RegistroCambio.php";
 require_once __DIR__ . "/../actividades/ActividadModel.php";
+require_once __DIR__ . '/../ajustes/AjustesModel.php';
 
 class ClienteModel
 {
@@ -28,8 +29,11 @@ class ClienteModel
                     e.idempresa,
                     e.razon_social AS empresa_nombre,
                     e.ruc AS empresa_ruc,
-                    e.foto AS empresa_foto
+                    e.foto AS empresa_foto,
+                    CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                    u.foto AS usuario_foto
                 FROM clientes c
+                INNER JOIN usuarios u ON c.idusuario = u.idusuario
                 LEFT JOIN estados_clientes ec ON c.idestado = ec.idestado
                 LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
                 LEFT JOIN empresas e ON e.idempresa = emc.idempresa";
@@ -47,6 +51,9 @@ class ClienteModel
 
             foreach ($clientes as &$cliente) {
                 $cliente['proyectos'] = $this->obtenerProyectosPorCliente($cliente['idcliente'], "cliente");
+                if (!empty($cliente['extra'])) {
+                    $cliente['extra'] = json_decode($cliente['extra'], true);
+                }
             }
 
             return $clientes;
@@ -63,8 +70,11 @@ class ClienteModel
                     e.idempresa,
                     e.razon_social AS empresa_nombre,
                     e.ruc AS empresa_ruc,
-                    e.foto AS empresa_foto
+                    e.foto AS empresa_foto,
+                    CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                    u.foto AS usuario_foto
                 FROM clientes c
+                INNER JOIN usuarios u ON c.idusuario = u.idusuario
                 LEFT JOIN estados_clientes ec ON c.idestado = ec.idestado
                 LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
                 LEFT JOIN empresas e ON e.idempresa = emc.idempresa
@@ -83,6 +93,9 @@ class ClienteModel
 
             foreach ($clientes as &$cliente) {
                 $cliente['proyectos'] = $this->obtenerProyectosPorCliente($cliente['idcliente'], "cliente");
+                if (!empty($cliente['extra'])) {
+                    $cliente['extra'] = json_decode($cliente['extra'], true);
+                }
             }
 
             return $clientes;
@@ -110,17 +123,24 @@ class ClienteModel
                     e.idempresa,
                     e.razon_social AS empresa_nombre,
                     e.ruc AS empresa_ruc,
-                    e.foto AS empresa_foto
-            FROM clientes c WHERE c.idestado = ?
+                    e.foto AS empresa_foto,
+                    CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                    u.foto AS usuario_foto
+            FROM clientes c
+            INNER JOIN usuarios u ON c.idusuario = u.idusuario
             LEFT JOIN estados_clientes ec ON c.idestado = ec.idestado
             LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
-            LEFT JOIN empresas e ON e.idempresa = emc.idempresa";
+            LEFT JOIN empresas e ON e.idempresa = emc.idempresa
+            WHERE c.idestado = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$idestado]);
             $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($clientes as &$cliente) {
                 $cliente['proyectos'] = $this->obtenerProyectosPorCliente($cliente['idcliente'], "cliente");
+                if (!empty($cliente['extra'])) {
+                    $cliente['extra'] = json_decode($cliente['extra'], true);
+                }
             }
 
             return $clientes;
@@ -137,8 +157,11 @@ class ClienteModel
                     e.idempresa,
                     e.razon_social AS empresa_nombre,
                     e.ruc AS empresa_ruc,
-                    e.foto AS empresa_foto
+                    e.foto AS empresa_foto,
+                    CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                    u.foto AS usuario_foto
             FROM clientes c
+            INNER JOIN usuarios u ON c.idusuario = u.idusuario
             LEFT JOIN estados_clientes ec ON c.idestado = ec.idestado
             LEFT JOIN empresas_clientes emc ON c.idcliente = emc.idcliente
             LEFT JOIN empresas e ON e.idempresa = emc.idempresa
@@ -147,11 +170,8 @@ class ClienteModel
             $stmt->execute([$id]);
             $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
             $cliente['proyectos'] = $this->obtenerProyectosPorCliente($cliente['idcliente'], "cliente");
-
-            if ($cliente) {
-                require_once __DIR__ . '/../ajustes/AjustesModel.php';
-                $ajustesModel = new AjustesModel();
-                $cliente['campos_extra'] = $ajustesModel->obtenerCampos($idcliente, 'cliente');
+            if (!empty($cliente['extra'])) {
+                $cliente['extra'] = json_decode($cliente['extra'], true);
             }
 
             return $cliente;
@@ -163,40 +183,51 @@ class ClienteModel
     public function obtenerOrganizaciones()
     {
         try {
-            $sql = "SELECT * FROM empresas";
+            $sql = "SELECT e.*,
+            CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+            u.foto AS usuario_foto
+            FROM empresas INNER JOIN usuarios u ON e.idusuario = u.idusuario";
 
             $stmt = $this->pdo->query($sql);
-            $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $organizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            return $clientes;
+            return $organizaciones;
         } catch (Exception $e) {
-            throw new Exception("Error al buscar clientes: " . $e->getMessage());
+            throw new Exception("Error al buscar organizaciones: " . $e->getMessage());
         }
     }
 
     public function buscarOrganizaciones($filtro)
     {
         try {
-            $sql = "SELECT * FROM empresas
-                WHERE (razon_social LIKE ? OR ruc LIKE ?)";
+            $sql = "SELECT e.*,
+                        CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                        u.foto AS usuario_foto
+                        FROM empresas
+                    INNER JOIN usuarios u ON e.idusuario = u.idusuario
+                    WHERE (razon_social LIKE ? OR ruc LIKE ?)";
 
             $params = ["%$filtro%", "%$filtro%"];
 
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
-            $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $organizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            return $clientes;
+            return $organizaciones;
         } catch (Exception $e) {
-            throw new Exception("Error al buscar clientes: " . $e->getMessage());
+            throw new Exception("Error al buscar organizaciones: " . $e->getMessage());
         }
     }
 
     public function obtenerOrganizacion($id)
     {
         try {
-            $sql = "SELECT * FROM empresas
-            WHERE idempresa = ?";
+            $sql = "SELECT e.*,
+                        CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                        u.foto AS usuario_foto
+                    FROM empresas
+                    INNER JOIN usuarios u ON c.idusuario = u.idusuario
+                    WHERE e.idempresa = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id]);
             $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -287,8 +318,8 @@ class ClienteModel
                    END AS cliente
             FROM notas n
             INNER JOIN usuarios u ON u.idusuario = n.idusuario
-            LEFT JOIN clientes c ON n.idreferencia = c.idcliente AND n.tipo_cliente = 'cliente'
-            LEFT JOIN empresas e ON n.idreferencia = e.idempresa AND n.tipo_cliente = 'empresa'
+            LEFT JOIN clientes c ON n.idreferencia = c.idcliente AND n.tipo = 'cliente'
+            LEFT JOIN empresas e ON n.idreferencia = e.idempresa AND n.tipo = 'empresa'
             WHERE 1=1";
         $params = [];
         if ($idreferencia !== null) {
@@ -296,7 +327,7 @@ class ClienteModel
             $params[] = $idreferencia;
         }
         if ($tipoCliente !== null) {
-            $sql .= " AND n.tipo_cliente = ?";
+            $sql .= " AND n.tipo = ?";
             $params[] = $tipoCliente;
         }
         $sql .= " ORDER BY n.fecha_creacion DESC";
@@ -425,8 +456,8 @@ class ClienteModel
     public function crearCliente($data)
     {
         try {
-            $sql = "INSERT INTO clientes (nombres, apellidos, num_doc, telefono, correo, idestado, foto) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO clientes (nombres, apellidos, num_doc, telefono, correo, idestado, foto, extra) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 $data['nombres'],
@@ -435,7 +466,8 @@ class ClienteModel
                 $data['telefono'] ?? null,
                 $data['correo'] ?? null,
                 $data['idestado'] ?? null,
-                $data['foto'] ?? 'assets/img/usuariodefault.png'
+                $data['foto'] ?? 'assets/img/usuariodefault.png',
+                $data['extra'] ?? null
             ]);
 
             $idcliente = $this->pdo->lastInsertId();
@@ -481,9 +513,28 @@ class ClienteModel
         }
     }
 
-    /**
-     * Asignar un proyecto a un cliente
-     */
+    public function asignarUsuarioACliente($idcliente, $idusuario)
+    {
+        try {
+            $sql = "UPDATE clientes SET idusuario = ? WHERE idcliente = ?";
+            $stmt = $this->pdo->prepare($sql);
+            return $stmt->execute([$idusuario, $idcliente]);
+        } catch (Exception $e) {
+            throw new Exception("Error al asignar usuario al cliente: " . $e->getMessage());
+        }
+    }
+
+    public function asignarUsuarioAEmpresa($idcliente, $idusuario)
+    {
+        try {
+            $sql = "UPDATE empresas SET idusuario = ? WHERE idcliente = ?";
+            $stmt = $this->pdo->prepare($sql);
+            return $stmt->execute([$idusuario, $idcliente]);
+        } catch (Exception $e) {
+            throw new Exception("Error al asignar usuario al cliente: " . $e->getMessage());
+        }
+    }
+
     public function asignarProyectoACliente($idcliente, $idproyecto)
     {
         try {
@@ -525,9 +576,11 @@ class ClienteModel
             $stmtFoto->execute(['id' => $id]);
             $fotoActual = $stmtFoto->fetchColumn();
 
+            $clienteAntes = $this->obtenerCliente($id);
+
             // --- 2) Actualizar datos del cliente
             $sql = "UPDATE clientes 
-                SET nombres=?, apellidos=?, num_doc=?, telefono=?, correo=?, idestado=?, foto=? 
+                SET nombres=?, apellidos=?, num_doc=?, telefono=?, correo=?, idestado=?, foto=?, extra=?
                 WHERE idcliente=?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
@@ -538,6 +591,7 @@ class ClienteModel
                 $data['correo'] ?? null,
                 $data['idestado'] ?? null,
                 $data['foto'] ?? $fotoActual ?? "assets/img/usuariodefault.png",
+                $data['extra'] ?? null,
                 $id
             ]);
 
@@ -552,7 +606,7 @@ class ClienteModel
                 $id,
                 'cliente',
                 'actualizacion',
-                $this->obtenerCliente($id),
+                $clienteAntes,
                 $data
             );
 

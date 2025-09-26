@@ -1,11 +1,13 @@
 <?php
 require_once __DIR__ . '/../../../models/actividades/ActividadModel.php';
+require_once __DIR__ . '/../../../models/ajustes/AjustesModel.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 $idactividad = $_GET['id'] ?? null;
 $agendaModel = new ActividadModel();
+$ajustesModel = new AjustesModel();
 $actividad = null;
 $actividadCliente = null;
 $actividadEmpresa = null;
@@ -20,10 +22,11 @@ if ($idactividad) {
         exit;
     }
 }
+$camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad');
 ?>
 
 <div class="d-flex gap-3 h-100">
-    <div class="flex-grow-1 h-100 pe-2" style="overflow: hidden auto;">
+    <div class="flex-grow-1 h-100 pe-3" style="overflow: hidden auto;">
         <form id="formActividad" method="POST">
             <input type="hidden" name="idactividad" id="idactividad" value="<?= $actividad['idactividad'] ?? '' ?>">
             <div class="d-flex flex-column w-100">
@@ -65,16 +68,21 @@ if ($idactividad) {
                         <?php include('../../../assets/svg/message-add-1.svg') ?>
                     </div>
                     <div class="w-100 d-flex flex-column gap-2">
-                        <div id="detailOptions">Agregar una <a class="text-primary clickable" id="agregarDescripcion">descripción</a>, <a class="text-primary clickable" id="agregarDireccion">dirección</a> o un <a class="text-primary clickable" id="agregarEnlace">enlace</a></div>
+                        <div id="detailOptions">
+                            Agregar una
+                            <a class="text-primary <?= isset($actividad['extra']) && isset($actividad['extra']['descripcion']) ? 'disable-click' : 'clickable' ?>" id="agregarDescripcion">descripción</a>,
+                            <a class="text-primary <?= isset($actividad['extra']) && isset($actividad['extra']['direccion']) ? 'disable-click' : 'clickable' ?>" id="agregarDireccion">dirección</a> o un
+                            <a class="text-primary <?= isset($actividad['extra']) && isset($actividad['extra']['enlace']) ? 'disable-click' : 'clickable' ?>" id="agregarEnlace">enlace</a>
+                        </div>
                         <div id="extraContent">
-                            <div class="descripcion-container flex-column gap-2" style="display: none;">
-                                <textarea class="extra-content form-control w-100" id="descripcionInput" name="descripcion" rows="3" placeholder="Ingrese una descripción"></textarea>
+                            <div class="descripcion-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['descripcion']) ? 'flex' : 'none' ?>">
+                                <textarea class="extra-content form-control w-100" id="descripcionInput" name="descripcion" rows="3" placeholder="Ingrese una descripción"><?= isset($actividad['extra']) ? $actividad['extra']['descripcion'] ?? '' : '' ?></textarea>
                             </div>
-                            <div class="direccion-container flex-column gap-2" style="display: none;">
+                            <div class="direccion-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['direccion']) ? 'flex' : 'none' ?>">
                                 <input type="text" class="extra-content form-control w-100" id="direccionInput" name="direccion" placeholder="Ingrese un dirección">
                                 <input type="text" class="extra-content form-control w-100" id="direccionReferenciaInput" name="direccion_referencia" placeholder="Ingrese una dirección de referencia">
                             </div>
-                            <div class="enlace-container flex-column gap-2" style="display: none;">
+                            <div class="enlace-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['enlace']) ? 'flex' : 'none' ?>">
                                 <input type="url" class="extra-content form-control w-100" id="enlaceInput" name="enlace" placeholder="Ingrese un enlace">
                                 <div class="d-flex align-items-center gap-2">
                                     <button class="btn btn-outline w-100" id="generarEnlaceZoom"><?php include('../../../assets/svg/video.svg') ?><span>Generar reunión con Zoom</span></button>
@@ -82,13 +90,71 @@ if ($idactividad) {
                                 </div>
                             </div>
                         </div>
+                        <?php if (!empty($camposExtra)): ?>
+                            <?php foreach ($camposExtra as $campo): ?>
+                                <?php if (isset($campo['idreferencia']) && $campo['idreferencia'] != $idactividad) return; ?>
+                                <div class="col-6">
+                                    <label for="campoExtra_<?= $campo['idcampo'] ?>" class="form-label">
+                                        <?= htmlspecialchars(ucfirst($campo['nombre'])) ?>
+                                    </label>
+
+                                    <?php if ($campo['tipo_dato'] === 'texto'): ?>
+                                        <input type="text"
+                                            class="form-control w-auto"
+                                            id="campoExtra_<?= $campo['idcampo'] ?>"
+                                            name="extra_<?= $campo['nombre'] ?>"
+                                            value="<?= trim($actividad['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                            <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
+                                            <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
+
+                                    <?php elseif ($campo['tipo_dato'] === 'numero'): ?>
+                                        <input type="number"
+                                            class="form-control w-auto"
+                                            id="campoExtra_<?= $campo['idcampo'] ?>"
+                                            name="extra_<?= $campo['nombre'] ?>"
+                                            value="<?= trim($actividad['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                            <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
+                                            <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
+
+                                    <?php elseif ($campo['tipo_dato'] === 'fecha'): ?>
+                                        <input type="date"
+                                            class="form-control w-auto"
+                                            id="campoExtra_<?= $campo['idcampo'] ?>"
+                                            name="extra_<?= $campo['nombre'] ?>"
+                                            value="<?= trim($actividad['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                            <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
+
+                                    <?php elseif ($campo['tipo_dato'] === 'booleano'): ?>
+                                        <select class="form-select w-auto"
+                                            id="campoExtra_<?= $campo['idcampo'] ?>"
+                                            name="extra_<?= $campo['nombre'] ?>">
+                                            <option value="1" <?= (trim($actividad['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 'Sí' ? 'selected' : '' ?>>Sí</option>
+                                            <option value="0" <?= (trim($actividad['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 'No' ? 'selected' : '' ?>>No</option>
+                                        </select>
+
+                                    <?php elseif ($campo['tipo_dato'] === 'opciones' && is_array($campo['valor_inicial'])): ?>
+                                        <select class="form-select w-auto"
+                                            id="campoExtra_<?= $campo['idcampo'] ?>"
+                                            name="extra_<?= $campo['nombre'] ?>"
+                                            <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                            <?php foreach ($campo['valor_inicial'] as $opcion): ?>
+                                                <option value="<?= htmlspecialchars($opcion) ?>"
+                                                    <?= (isset($actividad['extra'][$campo['nombre']]) && $actividad['extra'][$campo['nombre']] == $opcion) ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($opcion) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
-                <div class="notas-container w-100 d-flex gap-2 mb-3" style="height: 180px;">
+                <div class="notas-container w-100 d-flex gap-2 mb-3" style="height: 120px;">
                     <div data-bs-toggle="tooltip" data-bs-placement="top" title="Notas de la actividad">
                         <?php include('../../../assets/svg/document-text-2.svg') ?>
                     </div>
-                    <textarea id="notaInput" class="form-control w-100" name="nota" rows="3"><?= !empty($actividad['notas']) ? $actividad['notas'][0]['contenido'] : '' ?></textarea>
+                    <textarea id="notaInput" class="form-control w-100" name="nota" rows="3" placeholder="Ingrese nota"><?= !empty($actividad['notas']) ? $actividad['notas'][0]['contenido'] : '' ?></textarea>
                 </div>
                 <div class="cliente-container d-flex gap-2 w-100 mb-3">
                     <div data-bs-toggle="tooltip" data-bs-placement="top" title="Asignada al cliente">

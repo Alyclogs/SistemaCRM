@@ -288,6 +288,20 @@ try {
                 $clienteModel->eliminarEmpresa($_POST['idexistente']);
                 $response = ["success" => true, "message" => "Organización eliminada"];
                 break;
+
+            case 'asignarUsuario':
+                if (!isset($_POST['tipo']) || empty($_POST['tipo'])) throw new Exception("Tipo requerido");
+                if (!isset($_POST['idusuario']) || empty($_POST['idusuario'])) throw new Exception("ID de usuario requerido");
+                if (!isset($_POST['idcliente']) || empty($_POST['idcliente'])) throw new Exception("ID de cliente requerido");
+
+                if ($_POST['tipo'] == '1') {
+                    $clienteModel->asignarUsuarioACliente($_POST['idcliente'], $_POST['idusuario']);
+                }
+                if ($_POST['tipo'] == '2') {
+                    $clienteModel->asignarUsuarioAEmpresa($_POST['idcliente'], $_POST['idusuario']);
+                }
+                $response = ["success" => true, "message" => "Asesor reasignado"];
+                break;
         }
     }
 } catch (Exception $e) {

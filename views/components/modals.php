@@ -50,7 +50,7 @@
 
 <!-- AJUSTES -->
 <div class="modal fade" id="ajustesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ajustesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h1 class="modal-title text-large" id="ajustesModalLabel">Agregar nuevo</h1>

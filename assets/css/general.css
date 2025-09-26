@@ -28,12 +28,12 @@ select:-internal-autofill-selected .form-control:-webkit-autofill:focus,
 .form-select:-internal-autofill-selected {
   background-color: transparent !important;
   color: var(--default-text-color) !important;
-  font-family: "Poppins", sans-serif !important;
+  font-family: "Plus Jakarta Sans", sans-serif !important;
   transition: background-color 5000000s ease-in-out 0s;
 }
 
 body {
-  font-family: "Poppins", sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 14px;
   color: var(--default-text-color);
   height: 100vh;
@@ -42,7 +42,7 @@ body {
 }
 
 * {
-  font-family: "Poppins", sans-serif !important;
+  font-family: "Plus Jakarta Sans", sans-serif !important;
 }
 
 *::-webkit-scrollbar {
@@ -69,65 +69,71 @@ svg path {
 .bg-default {
   background-color: var(--default-theme-color) !important;
   color: #fff;
-  transition: background-color 0.2 ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .bg-primary {
   background-color: var(--primary-theme-color) !important;
   color: #fff;
-  transition: background-color 0.2 ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .bg-secondary {
   background-color: var(--secondary-theme-color) !important;
   color: #fff;
-  transition: background-color 0.2 ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .bg-light {
   background-color: var(--default-bg-color-light) !important;
   color: var(--default-text-color);
-  transition: background-color 0.2 ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .bg-white {
   background-color: #fff !important;
   color: var(--default-text-color);
-  transition: background-color 0.2 ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .bg-accent {
   background-color: var(--default-theme-color-accent) !important;
   color: #fff;
-  transition: background-color 0.2 ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
-.bg-white:not(.disable-hover):hover {
+.bg-white:not(.disable-hover):hover,
+.bg-white:not(.disable-hover).clickable.selected {
   background-color: var(--default-bg-color-light) !important;
   color: var(--default-text-color) !important;
 }
 
-.bg-default:not(.disable-hover):hover {
+.bg-default:not(.disable-hover):hover,
+.bg-default:not(.disable-hover).clickable.selected {
   background-color: var(--default-theme-color-dark) !important;
   color: #fff !important;
 }
 
-.bg-primary:not(.disable-hover):hover {
+.bg-primary:not(.disable-hover):hover,
+.bg-primary:not(.disable-hover).clickable.selected {
   background-color: var(--primary-theme-color-accent) !important;
   color: #fff !important;
 }
 
-.bg-secondary:not(.disable-hover):hover {
+.bg-secondary:not(.disable-hover):hover,
+.bg-secondary:not(.disable-hover).clickable.selected {
   background-color: var(--secondary-theme-color-dark) !important;
   color: #fff !important;
 }
 
-.bg-accent:not(.disable-hover):hover {
+.bg-accent:not(.disable-hover):hover,
+.bg-acent:not(.disable-hover).clickable.selected {
   background-color: var(--default-theme-color-dark);
   color: #fff !important;
 }
 
-.bg-light:not(.disable-hover):hover {
+.bg-light:not(.disable-hover):hover,
+.bg-light:not(.disable-hover).clickable.selected {
   background-color: #e6e6e6 !important;
   color: var(--default-text-color) !important;
 }
@@ -137,7 +143,8 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
-.bg-success:not(.disable-hover):hover {
+.bg-success:not(.disable-hover):hover,
+.bg-success:not(.disable-hover).clickable.selected {
   background-color: var(--success-bg-color-hover) !important;
 }
 
@@ -154,7 +161,8 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
-.bg-warning:not(.disable-hover):hover {
+.bg-warning:not(.disable-hover):hover,
+.bg-warning:not(.disable-hover).clickable.selected {
   background-color: var(--warning-bg-color-hover) !important;
 }
 
@@ -171,7 +179,8 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
-.bg-info:not(.disable-hover):hover {
+.bg-info:not(.disable-hover):hover,
+.bg-info:not(.disable-hover).clickable.selected {
   background-color: var(--info-bg-color-hover) !important;
 }
 
@@ -188,7 +197,8 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
-.bg-danger:not(.disable-hover):hover {
+.bg-danger:not(.disable-hover):hover,
+.bg-danger:not(.disable-hover).clickable.selected {
   background-color: var(--danger-bg-color-hover) !important;
 }
 
@@ -198,7 +208,8 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
-.bg-text-danger:not(.disable-hover):hover {
+.bg-text-danger:not(.disable-hover):hover,
+.bg-text-danger:not(.disable-hover).clickable.selected {
   background-color: #cc2e3b !important;
 }
 
@@ -661,6 +672,7 @@ svg path {
   display: flex;
   align-items: flex-start;
   padding-left: 50px;
+  padding-right: 1.5rem;
   margin-bottom: 12px;
 }
 

@@ -20,6 +20,13 @@ class RegistroCambioModel
     public function registrarCambio($idusuario, $idreferencia, $tipo, $accion, $campo = null, $anterior = null, $nuevo = null, $descripcion = null)
     {
         try {
+            if (is_array($anterior)) {
+                $anterior = json_encode($anterior);
+            }
+            if (is_array($nuevo)) {
+                $nuevo = json_encode($nuevo);
+            }
+
             $sql = "INSERT INTO registro_cambios (idusuario, idreferencia, tipo, accion, campo, anterior, nuevo, descripcion, fecha) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
             $stmt = $this->pdo->prepare($sql);
@@ -46,8 +53,16 @@ class RegistroCambioModel
         foreach ($datosNuevos as $campo => $valorNuevo) {
             $valorAnterior = $datosAnteriores[$campo] ?? null;
 
-            if ($valorAnterior == $valorNuevo) {
+            if (!$valorAnterior || $valorAnterior == $valorNuevo) {
                 continue;
+            }
+
+            if (is_array($valorAnterior)) {
+                $valorAnterior = json_encode($valorAnterior);
+            }
+
+            if (is_array($valorNuevo)) {
+                $valorNuevo = json_encode($valorNuevo);
             }
 
             $descripcion = $this->generarDescripcion($tipo, $accion, $campo, $valorAnterior, $valorNuevo);
@@ -86,7 +101,7 @@ class RegistroCambioModel
             case "eliminacion":
                 return "{$tipo} eliminado: " . ($anterior ?? "Sin datos");
             case "actualizacion":
-                return "{$campo}: {$anterior} → {$nuevo}";
+                return "{$campo}: {$anterior} → " . ($nuevo ?? 'Sin datos');
             default:
                 return "{$tipo} modificado";
         }
@@ -145,15 +160,15 @@ class RegistroCambioModel
             
             SELECT rc.*, CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
             CASE 
-                WHEN n.tipo_cliente = 'cliente' THEN CONCAT(c.nombres, ' ', c.apellidos)
-                WHEN n.tipo_cliente = 'empresa' THEN e.razon_social
+                WHEN n.tipo = 'cliente' THEN CONCAT(c.nombres, ' ', c.apellidos)
+                WHEN n.tipo = 'empresa' THEN e.razon_social
             END AS nombre
             FROM registro_cambios rc
             INNER JOIN usuarios u ON u.idusuario = rc.idusuario
             INNER JOIN notas n ON rc.idreferencia = n.idnota AND rc.tipo = 'nota'
-            LEFT JOIN clientes c ON n.idreferencia = c.idcliente AND n.tipo_cliente = 'cliente'
-            LEFT JOIN empresas e ON n.idreferencia = e.idempresa AND n.tipo_cliente = 'empresa'
-            WHERE n.idreferencia = ? AND n.tipo_cliente = ?
+            LEFT JOIN clientes c ON n.idreferencia = c.idcliente AND n.tipo = 'cliente'
+            LEFT JOIN empresas e ON n.idreferencia = e.idempresa AND n.tipo = 'empresa'
+            WHERE n.idreferencia = ? AND n.tipo = ?
             
             UNION ALL
             
