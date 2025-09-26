@@ -14,11 +14,11 @@ $menuItems = [
     ["label" => "Clientes", "categoria" => "clientes", "url" => "index.php?p=clientes/index", "icon" => "assets/svg/people.svg"],
     ["label" => "Usuarios", "categoria" => "usuarios", "url" => "index.php?p=usuarios/index", "icon" => "assets/svg/profile-2user.svg"],
     ["label" => "Proyectos", "categoria" => "proyectos", "url" => "index.php?p=timeline", "icon" => "assets/svg/document-text-2.svg"],
-    ["label" => "Tareas", "categoria" => "tareas", "url" => "index.php?p=tareas", "icon" => "assets/svg/task-square.svg"]
+    ["label" => "Tareas", "categoria" => "tareas", "url" => "index.php?p=tareas", "icon" => "assets/svg/task-square.svg"],
 ];
 
 $footerItems = [
-    ["label" => "Ajustes", "url" => "index.php?p=ajustes", "icon" => "assets/svg/setting-2.svg"]
+    ["label" => "Ajustes", "categoria" => "tareas", "url" => "index.php?p=ajustes/index", "icon" => "assets/svg/setting-2.svg"]
 ];
 ?>
 
@@ -56,7 +56,7 @@ $footerItems = [
     <div class="sidebar-footer">
         <div class="sidebar-items">
             <?php foreach ($footerItems as $item): ?>
-                <div class="sidebar-item <?= isActive($item['url']) ?>" data-bs-toggle="tooltip" data-bs-placement="right" title="<?= $item['label'] ?>">
+                <div class="sidebar-item <?= isActive($item['categoria']) ?>" data-url="<?= $item['url'] ?>" data-bs-toggle="tooltip" data-bs-placement="right" title="<?= $item['label'] ?>">
                     <div class="sidebar-item-left"></div>
                     <div class="sidebar-item-content">
                         <div class="sidebar-item-content-main">

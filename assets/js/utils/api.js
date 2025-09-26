@@ -12,6 +12,8 @@ function getController(source) {
             return 'controller/proyectos/ProyectoController.php?';
         case "tareas":
             return 'controller/tareas/TareaController.php?';
+        case "ajustes":
+            return 'controller/ajustes/AjustesController.php?';
         default:
             throw new Error(`Controller no definido para: ${source}`);
     }

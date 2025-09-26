@@ -81,6 +81,31 @@ $estados = $clienteModel->obtenerEstadosClientes();
                     <label for="correoInput" class="form-label">Correo <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="correoInput" name="correo" value="<?= $cliente['correo'] ?? '' ?>">
                 </div>
+                <?php if (!empty($cliente['campos_extra'])): ?>
+                    <?php foreach ($cliente['campos_extra'] as $campo): ?>
+                        <div class="col-6 mb-3">
+                            <label for="campoExtra_<?= $campo['idcampo'] ?>" class="form-label">
+                                <?= htmlspecialchars($campo['nombre']) ?>
+                            </label>
+                            <?php if ($campo['tipo_dato'] === 'texto'): ?>
+                                <input type="text" class="form-control"
+                                    id="campoExtra_<?= $campo['idcampo'] ?>"
+                                    name="campos_extra[<?= $campo['idcampo'] ?>]"
+                                    value="<?= htmlspecialchars($campo['valor_inicial'] ?? '') ?>">
+                            <?php elseif ($campo['tipo_dato'] === 'numero'): ?>
+                                <input type="number" class="form-control"
+                                    id="campoExtra_<?= $campo['idcampo'] ?>"
+                                    name="campos_extra[<?= $campo['idcampo'] ?>]"
+                                    value="<?= htmlspecialchars($campo['valor_inicial'] ?? '') ?>">
+                            <?php elseif ($campo['tipo_dato'] === 'fecha'): ?>
+                                <input type="date" class="form-control"
+                                    id="campoExtra_<?= $campo['idcampo'] ?>"
+                                    name="campos_extra[<?= $campo['idcampo'] ?>]"
+                                    value="<?= htmlspecialchars($campo['valor_inicial'] ?? '') ?>">
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>

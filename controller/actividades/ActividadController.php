@@ -12,8 +12,8 @@ try {
         switch ($_GET['action']) {
 
             case 'listar':
-                if (isset($_GET['idcliente'])) {
-                    $data = $actividadModel->obtenerActividadesPorCliente($_GET['idcliente']);
+                if (isset($_GET['idcliente']) && isset($_GET['tipo_cliente'])) {
+                    $data = $actividadModel->obtenerActividadesPorCliente($_GET['idcliente'], $_GET['tipo_cliente']);
                     $response = $data;
                 } elseif (isset($_GET['idusuario'])) {
                     $data = $actividadModel->obtenerActividadesPorUsuario($_GET['idusuario']);
@@ -68,25 +68,6 @@ try {
                 $response = [
                     "success" => true,
                     "message" => "Actividad eliminada"
-                ];
-                break;
-
-            case 'listar_notas':
-                if (!isset($_GET['idactividad'])) throw new Exception("ID de actividad requerido");
-                $data = $actividadModel->obtenerNotasActividad($_GET['idactividad']);
-                $response = [
-                    "success" => true,
-                    "message" => "Notas obtenidas",
-                    "data" => $data
-                ];
-                break;
-
-            case 'guardar_nota':
-                if (!isset($_POST['idactividad'])) throw new Exception("ID de actividad requerido");
-                $actividadModel->guardarNotaActividad($_POST['idactividad'], $_POST['idusuario'], $_POST['nota'] ?? "");
-                $response = [
-                    "success" => true,
-                    "message" => "Nota guardada"
                 ];
                 break;
         }

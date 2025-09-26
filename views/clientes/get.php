@@ -21,6 +21,8 @@ $usuarios = $usuarioModel->obtenerUsuarios();
 $estadosActividad = $actividadModel->obtenerEstados();
 ?>
 
+<link rel="stylesheet" href="./assets/css/actividad.css">
+
 <?php if (!empty($mensaje)): ?>
     <div class="h-100 w-100 align-items-center d-flex justify-content-center">
         <div class="alert alert-danger"><?= $mensaje ?></div>
@@ -29,34 +31,36 @@ $estadosActividad = $actividadModel->obtenerEstados();
     <div class="page-content px-4 pt-1 pb-4">
         <input type="hidden" id="clienteActual" value="<?= $cliente['idcliente'] ?? '' ?>">
         <input type="hidden" id="tipoCliente" value="<?= 'cliente' ?>">
-        <div class="row h-100">
-            <div class="col-3">
+        <div class="d-flex h-100 gap-3">
+            <div style="width: 30%;">
                 <div class="container-shadow d-flex flex-column justify-content-between gap-3 h-100">
                     <div class="flex-grow-1">
-                        <div class="d-flex justify-content-between p-3 mb-2">
-                            <div class="info-row gap-2">
-                                <img class="user-icon" data-type="cliente" data-id="<?= $cliente['idcliente'] ?>" src="<?= $cliente['foto'] ?>" alt="Foto de <?= $cliente['nombres'] ?>">
-                                <div class="d-flex flex-column">
-                                    <h5 class="text-large mb-2"><?= $cliente['nombres'] . ' ' . $cliente['apellidos'] ?></h5>
-                                    <?php
-                                    $claseChip = 'info';
-                                    switch ($cliente['estado']) {
-                                        case 'PROSPECTO':
-                                            $claseChip = 'warning';
-                                            break;
-                                        case 'CLIENTE':
-                                            $claseChip = 'success';
-                                            break;
-                                        default:
-                                            $claseChip = 'danger';
-                                            break;
-                                    }
-                                    ?>
-                                    <div class="chip chip-<?= $claseChip ?>"><?= $cliente['estado'] ?? 'SIN ESTADO' ?></div>
+                        <div class="info-container">
+                            <div class="d-flex justify-content-between p-3 mb-2">
+                                <div class="info-row gap-2">
+                                    <img class="user-icon" data-type="cliente" data-id="<?= $cliente['idcliente'] ?>" src="<?= $cliente['foto'] ?>" alt="Foto de <?= $cliente['nombres'] ?>">
+                                    <div class="d-flex flex-column">
+                                        <h5 class="text-large mb-2"><?= $cliente['nombres'] . ' ' . $cliente['apellidos'] ?></h5>
+                                        <?php
+                                        $claseChip = 'info';
+                                        switch ($cliente['estado']) {
+                                            case 'PROSPECTO':
+                                                $claseChip = 'warning';
+                                                break;
+                                            case 'CLIENTE':
+                                                $claseChip = 'success';
+                                                break;
+                                            default:
+                                                $claseChip = 'danger';
+                                                break;
+                                        }
+                                        ?>
+                                        <div class="chip chip-<?= $claseChip ?>"><?= $cliente['estado'] ?? 'SIN ESTADO' ?></div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="icons-row">
-                                <button class="btn btn-icon bg-light edit-cliente edit-details" id="btnEditCliente" data-id="<?= $cliente['idcliente'] ?>" title="Editar cliente"><?php include('./assets/svg/edit.svg') ?></button>
+                                <div class="icons-row">
+                                    <button class="btn btn-icon bg-light edit-cliente edit-details" id="btnEditCliente" data-id="<?= $cliente['idcliente'] ?>" title="Editar cliente"><?php include('./assets/svg/edit.svg') ?></button>
+                                </div>
                             </div>
                         </div>
                         <div class="info-container">
@@ -129,7 +133,7 @@ $estadosActividad = $actividadModel->obtenerEstados();
                     <?php endif; ?>
                 </div>
             </div>
-            <div class="col-9">
+            <div style="width: 70%;">
                 <div class="container-shadow h-100">
                     <div class="tabs-container">
                         <div class="tab-item selected" data-value="notas">

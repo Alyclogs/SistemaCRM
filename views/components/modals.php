@@ -47,3 +47,20 @@
         </div>
     </div>
 </div>
+
+<!-- AJUSTES -->
+<div class="modal fade" id="ajustesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ajustesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title text-large" id="ajustesModalLabel">Agregar nuevo</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="ajustesModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cancelar" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-default" id="btnGuardarAjustes">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>

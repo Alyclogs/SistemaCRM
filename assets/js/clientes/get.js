@@ -74,16 +74,16 @@ function renderActividad(actividad) {
     return `
         <div class="timeline-item">
             <div class="timeline-point"></div>
-            <div class="actividad-container container-border info-row w-100 gap-3">
+            <div class="actividad-container timeline-content">
                 <div class="chip" style="background-color: ${actividadTipos[actividad.tipo]?.bg}; width: 52px; height: 52px;">
                     ${window.getIcon(actividadTipos[actividad.tipo]?.svg, actividadTipos[actividad.tipo]?.text, 26)}
                 </div>
                 <div class="d-flex flex-column">
                     <div class="info-row">
                         ${window.getIcon(actividadEstados[actividad.estado.toLowerCase()]?.svg, actividadEstados[actividad.estado.toLowerCase()]?.color)}
-                        <h6 class="fw-bold">${actividad.nombre}</h6>
+                        <span class="fw-bold">${actividad.nombre}</span>
                     </div>
-                    <div class="info-row gap-4">
+                    <div class="info-row gap-4 text-muted text-sm">
                         <div class="info-row">
                             <span>${formatearRangoFecha(actividad.fecha, actividad.hora_inicio, actividad.hora_fin)}</span>
                             <span>•</span>
@@ -100,10 +100,10 @@ function renderNota(nota) {
     return `
         <div class="timeline-item">
             <div class="timeline-point"></div>
-            <div class="nota-container container-border bg-warning info-row w-100 gap-3">
+            <div class="nota-container timeline-content">
                 ${window.icons.document}
                 <div class="d-flex flex-column">
-                    <div class="info-row mb-2">
+                    <div class="info-row mb-2 text-muted text-sm">
                         <span>${formatearDateTime(nota.fecha_creacion)}</span>
                         <span>•</span>
                         <span>${nota.usuario}</span>
@@ -118,12 +118,12 @@ function renderWhatsapp(whatsapp) {
     return `
         <div class="timeline-item">
             <div class="timeline-point"></div>
-            <div class="whatsapp-container container-border info-row w-100 gap-3">
+            <div class="whatsapp-container timeline-content">
                 <div class="chip bg-success" style="width: 52px; height: 52px;">
                     ${window.icons.telefono}
                 </div>
                 <div class="d-flex flex-column">
-                    <div class="info-row mb-2">
+                    <div class="info-row mb-2 text-muted text-sm">
                         <span>${formatearDateTime(whatsapp.fecha_envio)}</span>
                         <span>•</span>
                         <span>${whatsapp.usuario}</span>
@@ -138,12 +138,12 @@ function renderCorreo(correo) {
     return `
         <div class="timeline-item">
             <div class="timeline-point"></div>
-            <div class="correo-container container-border info-row w-100 gap-3">
+            <div class="correo-container timeline-content">
                 <div class="chip bg-success" style="width: 52px; height: 52px;">
                     ${window.icons.correo}
                 </div>
                 <div class="d-flex flex-column">
-                    <div class="info-row mb-2">
+                    <div class="info-row mb-2 text-muted text-sm">
                         <span>${formatearDateTime(correo.fecha_envio)}</span>
                         <span>•</span>
                         <span>${correo.usuario}</span>
@@ -158,12 +158,12 @@ function renderArchivo(archivo) {
     return `
         <div class="timeline-item">
             <div class="timeline-point"></div>
-            <div class="archivo-container container-border info-row w-100 gap-3">
+            <div class="archivo-container timeline-content">
                 <div class="chip bg-info" style="width: 52px; height: 52px;">
                     ${window.icons.paperclip}
                 </div>
                 <div class="d-flex flex-column">
-                    <div class="info-row mb-2">
+                    <div class="info-row mb-2 text-muted text-sm">
                         <span>${formatearDateTime(archivo.fecha_creacion)}</span>
                         <span>•</span>
                         <span>${archivo.usuario}</span>
@@ -178,10 +178,10 @@ function renderCambio(cambio) {
     return `
         <div class="timeline-item">
             <div class="timeline-point"></div>
-            <div class="cambio-container info-row w-100 gap-3">
+            <div class="cambio-container timeline-content">
                 <div class="d-flex flex-column">
-                    <div>${cambio.descripcion}</div>
-                    <div class="info-row mb-2">
+                    <div class="mb-1">${cambio.descripcion}</div>
+                    <div class="info-row text-muted text-sm">
                         <span>${formatearDateTime(cambio.fecha)}</span>
                         <span>•</span>
                         <span>${cambio.usuario}</span>

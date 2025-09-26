@@ -102,6 +102,11 @@ svg path {
   transition: background-color 0.2 ease-in-out;
 }
 
+.bg-white:not(.disable-hover):hover {
+  background-color: var(--default-bg-color-light) !important;
+  color: var(--default-text-color) !important;
+}
+
 .bg-default:not(.disable-hover):hover {
   background-color: var(--default-theme-color-dark) !important;
   color: #fff !important;
@@ -291,7 +296,7 @@ svg path {
 
 .page-header {
   display: flex;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
   width: 100%;
   margin-bottom: 1.5rem;
@@ -578,10 +583,9 @@ svg path {
 
 .info-container {
   padding: 1.5rem 1rem;
-  border-top: 1px solid var(--default-border-color);
 }
 
-.info-container:first-child {
+.info-container:not(:last-child) {
   border-bottom: 1px solid var(--default-border-color);
 }
 
@@ -666,8 +670,12 @@ svg path {
   top: 36px;
   bottom: 0;
   left: 19px;
-  border-left: 3px dashed var(--default-border-color);
+  border-left: 2px solid var(--default-border-color);
   width: 2px;
+}
+
+.timeline-content {
+  height: 86px;
 }
 
 .timeline-item:not(:only-child):not(:last-child)::before {

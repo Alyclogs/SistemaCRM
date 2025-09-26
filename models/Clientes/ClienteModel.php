@@ -148,6 +148,12 @@ class ClienteModel
             $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
             $cliente['proyectos'] = $this->obtenerProyectosPorCliente($cliente['idcliente'], "cliente");
 
+            if ($cliente) {
+                require_once __DIR__ . '/../ajustes/AjustesModel.php';
+                $ajustesModel = new AjustesModel();
+                $cliente['campos_extra'] = $ajustesModel->obtenerCampos($idcliente, 'cliente');
+            }
+
             return $cliente;
         } catch (Exception $e) {
             throw new Exception("Error al obtener cliente: " . $e->getMessage());

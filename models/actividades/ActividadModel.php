@@ -226,6 +226,43 @@ class ActividadModel
         }
     }
 
+    public function obtenerActividadesPorCliente($idcliente, $tipo_cliente = 'cliente')
+    {
+        try {
+            $sql = "SELECT a.*,
+                    CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                    ea.estado
+                FROM actividades a
+                INNER JOIN estados_actividades ea ON ea.idestado = a.idestado
+                INNER JOIN usuarios u ON u.idusuario = a.idusuario
+                INNER JOIN actividades_clientes ac ON ac.idactividad = a.idactividad
+                WHERE ac.idreferencia = ? 
+                ORDER BY a.fecha_creacion ASC";
+            $stmt = $this->pdo->prepare($sql);
+
+            $params = [$idcliente];
+            if ($tipo_cliente) {
+                $sql .= " AND ac.tipo_cliente = ?";
+                $params[] = $tipo_cliente;
+            }
+
+            $stmt->execute($params);
+            $actividades = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($actividades as &$actividad) {
+                $actividad['notas'] = $this->obtenerNotasActividad($actividad['idactividad']);
+                $actividad['clientes'] = $this->obtenerClientesPorActividad($actividad['idactividad']);
+                if (!empty($actividad['extra'])) {
+                    $actividad['extra'] = json_decode($actividad['extra'], true);
+                }
+            }
+
+            return $actividades;
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener actividades por cliente/empresa: " . $e->getMessage());
+        }
+    }
+
     public function obtenerActividadesPorUsuario($idusuario)
     {
         try {
