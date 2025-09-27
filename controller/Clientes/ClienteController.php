@@ -6,7 +6,8 @@ header('Content-Type: application/json; charset=utf-8');
 $response = ["success" => false, "message" => "Acción no válida"];
 
 try {
-    $clienteModel = new ClienteModel();
+    $pdo = Database::getConnection();
+    $clienteModel = new ClienteModel($pdo);
 
     if (isset($_GET['action'])) {
         switch ($_GET['action']) {

@@ -4,6 +4,19 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'neuroeduca_sistema_crm');
 
+class Database
+{
+    private static $instance = null;
+
+    public static function getConnection()
+    {
+        if (self::$instance === null) {
+            self::$instance = connectDatabase();
+        }
+        return self::$instance;
+    }
+}
+
 function connectDatabase()
 {
     try {
@@ -16,7 +29,7 @@ function connectDatabase()
 
         return $pdo;
     } catch (PDOException $e) {
-        die("Error de conexión a la base de datos: " . $e->getMessage());
+        throw new Exception("Error de conexión a la base de datos: " . $e->getMessage());
     }
 }
 
@@ -28,15 +41,4 @@ function isDatabaseConnected($pdo)
 function closeDatabase(&$pdo)
 {
     $pdo = null;
-}
-
-try {
-    $pdo = connectDatabase();
-    if (isDatabaseConnected($pdo)) {
-    } else {
-        echo "No se pudo conectar a la base de datos.";
-    }
-    closeDatabase($pdo);
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
 }

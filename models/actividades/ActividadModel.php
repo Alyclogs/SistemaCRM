@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . "/../../config/database.php";
 require_once __DIR__ . "/../notas/NotaModel.php";
 require_once __DIR__ . "/../cambios/RegistroCambio.php";
 
@@ -9,14 +8,14 @@ class ActividadModel
     private $notaModel;
     private $registroCambioModel;
 
-    public function __construct()
+    public function __construct($pdo, $registroCambioModel = null)
     {
         try {
-            $this->pdo = connectDatabase();
-            $this->notaModel = new NotaModel();
-            $this->registroCambioModel = new RegistroCambioModel();
+            $this->pdo = $pdo;
+            $this->notaModel = new NotaModel($this->pdo);
+            $this->registroCambioModel = $registroCambioModel ?: new RegistroCambioModel($this->pdo);
         } catch (PDOException $e) {
-            die("Error al conectar en ActividadModel: " . $e->getMessage());
+            throw new Exception("Error al conectar en ActividadModel: " . $e->getMessage());
         }
     }
 
@@ -44,21 +43,40 @@ class ActividadModel
         }
     }
 
-    public function asignarClientesActividad($idactividad, $clientes = [])
+    public function asignarClientesActividad($idactividad, $clientes = [], $idusuario = null)
     {
         try {
-            // Eliminar relaciones previas
+            // 1. Obtener relaciones previas
+            $sqlPrevios = "SELECT idreferencia, tipo_cliente FROM actividades_clientes WHERE idactividad = ?";
+            $stmtPrevios = $this->pdo->prepare($sqlPrevios);
+            $stmtPrevios->execute([$idactividad]);
+            $clientesAnteriores = $stmtPrevios->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            // 2. Eliminar relaciones previas
             $sqlDelete = "DELETE FROM actividades_clientes WHERE idactividad = ?";
             $stmtDelete = $this->pdo->prepare($sqlDelete);
             $stmtDelete->execute([$idactividad]);
 
-            // Insertar nuevas relaciones
+            // 3. Insertar nuevas relaciones
             if (!empty($clientes)) {
                 $sqlInsert = "INSERT INTO actividades_clientes (idactividad, idreferencia, tipo_cliente) VALUES (?, ?, ?)";
                 $stmtInsert = $this->pdo->prepare($sqlInsert);
+
                 foreach ($clientes as $cliente) {
                     $stmtInsert->execute([$idactividad, $cliente['idreferencia'], $cliente['tipo_cliente']]);
                 }
+            }
+
+            // 4. Registrar cambios en log
+            if ($idusuario) {
+                $this->registroCambioModel->registrarAsignaciones(
+                    $idusuario,
+                    $idactividad,          // referencia principal
+                    'actividad',           // tipo principal
+                    'clientes',            // campo de relación
+                    $clientesAnteriores,   // estado previo
+                    $clientes              // estado nuevo
+                );
             }
 
             return true;
@@ -136,7 +154,7 @@ class ActividadModel
     public function crearActividad($data)
     {
         try {
-            $sql = "INSERT INTO actividades (nombre, idusuario, fecha, hora_inicio, hora_fin, tipo, idestado, extra) 
+            $sql = "INSERT INTO actividades (nombre, idusuario, fecha, hora_inicio, hora_fin, tipo, prioridad, idestado, extra) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
@@ -146,6 +164,7 @@ class ActividadModel
                 $data['hora_inicio'],
                 $data['hora_fin'],
                 $data['tipo'],
+                $data['prioridad'],
                 $data['idestado'] ?? 1,
                 !empty($data['extra']) ? json_encode($data['extra']) : null
             ]);
@@ -155,7 +174,7 @@ class ActividadModel
             // Asignar clientes/empresas
             if (!empty($data['clientes'])) {
                 $clientes = json_decode($data['clientes'], true);
-                $this->asignarClientesActividad($idactividad, $clientes);
+                $this->asignarClientesActividad($idactividad, $clientes, $data['idusuario']);
             }
 
             // Nota inicial
@@ -185,9 +204,12 @@ class ActividadModel
     {
         try {
             $sql = "UPDATE actividades 
-                    SET nombre=?, idusuario=?, fecha=?, hora_inicio=?, hora_fin=?, tipo=?, idestado=?, extra=? 
+                    SET nombre=?, idusuario=?, fecha=?, hora_inicio=?, hora_fin=?, tipo=?, prioridad=?, idestado=?, extra=? 
                     WHERE idactividad=?";
             $stmt = $this->pdo->prepare($sql);
+
+            $actividadAntes = $this->obtenerActividad($id);
+
             $stmt->execute([
                 $data['nombre'],
                 $data['idusuario'],
@@ -195,6 +217,7 @@ class ActividadModel
                 $data['hora_inicio'],
                 $data['hora_fin'],
                 $data['tipo'],
+                $data['prioridad'],
                 $data['idestado'] ?? 1,
                 !empty($data['extra']) ? json_encode($data['extra']) : null,
                 $id
@@ -203,7 +226,7 @@ class ActividadModel
             // Actualizar relaciones con clientes/empresas
             if (isset($data['clientes'])) {
                 $clientes = json_decode($data['clientes'], true);
-                $this->asignarClientesActividad($id, $clientes);
+                $this->asignarClientesActividad($id, $clientes, $data['idusuario']);
             }
 
             // Actualizar nota
@@ -216,7 +239,7 @@ class ActividadModel
                 $id,
                 'actividad',
                 'actualizacion',
-                $this->obtenerActividad($id),
+                $actividadAntes,
                 $data
             );
 
@@ -311,7 +334,6 @@ class ActividadModel
             // Borrar la actividad
             $sql = "DELETE FROM actividades WHERE idactividad = ?";
             $stmt = $this->pdo->prepare($sql);
-            $resultado = $stmt->execute([$id]);
 
             if ($actividad) {
                 $this->registroCambioModel->registrarCambio(
@@ -327,6 +349,7 @@ class ActividadModel
                 );
             }
 
+            $resultado = $stmt->execute([$id]);
             return $resultado;
         } catch (Exception $e) {
             throw new Exception("Error al eliminar actividad: " . $e->getMessage());

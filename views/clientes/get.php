@@ -4,9 +4,10 @@ require_once __DIR__ . '/../../models/actividades/ActividadModel.php';
 require_once __DIR__ . '/../../models/Usuarios/UsuarioModel.php';
 
 $id = $_GET['id'] ?? null;
-$model = new ClienteModel();
-$actividadModel = new ActividadModel();
-$usuarioModel = new UsuarioModel();
+$pdo = Database::getConnection();
+$model = new ClienteModel($pdo);
+$actividadModel = new ActividadModel($pdo);
+$usuarioModel = new UsuarioModel($pdo);
 $cliente = null;
 $mensaje = '';
 

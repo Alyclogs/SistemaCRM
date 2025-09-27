@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../../models/clientes/ClienteModel.php';
 
-$clienteModel = new ClienteModel();
+$pdo = Database::getConnection();
+$clienteModel = new ClienteModel($pdo);
 $estados = $clienteModel->obtenerEstadosClientes();
 ?>
 

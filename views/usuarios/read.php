@@ -1,7 +1,3 @@
-<?php
-require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
-?>
-
 <div class="page-body">
     <div class="animate__animated animate__fadeInUp page-header">
         <div class="d-flex gap-3 align-items-center">

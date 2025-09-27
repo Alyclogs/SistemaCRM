@@ -1,6 +1,5 @@
 <?php
 // Importa la clase PDO
-require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../cambios/RegistroCambio.php';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -13,11 +12,11 @@ class UsuarioModel
     private $pdo;
     private $registroCambioModel;
 
-    public function __construct()
+    public function __construct($pdo, $registroCambioModel = null)
     {
         try {
-            $this->pdo = connectDatabase();
-            $this->registroCambioModel = new RegistroCambioModel();
+            $this->pdo = $pdo;
+            $this->registroCambioModel = $registroCambioModel  ?: new RegistroCambioModel($this->pdo);
         } catch (PDOException $e) {
             die("Error al conectar en UsuarioModel: " . $e->getMessage());
         }

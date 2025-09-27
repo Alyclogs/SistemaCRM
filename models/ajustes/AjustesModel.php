@@ -7,11 +7,11 @@ class AjustesModel
     private $pdo;
     private $registroCambioModel;
 
-    public function __construct()
+    public function __construct($pdo, $registroCambioModel = null)
     {
         try {
-            $this->pdo = connectDatabase();
-            $this->registroCambioModel = new RegistroCambioModel();
+            $this->pdo = $pdo;
+            $this->registroCambioModel = $registroCambioModel;
         } catch (PDOException $e) {
             die("Error al conectar en AjustesModel: " . $e->getMessage());
         }

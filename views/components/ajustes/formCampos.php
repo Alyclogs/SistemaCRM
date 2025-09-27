@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../../models/ajustes/AjustesModel.php';
-$ajustesModel = new AjustesModel();
+$pdo = Database::getConnection();
+$ajustesModel = new AjustesModel($pdo);
 
 $id = $_GET['id'] ?? null;
 $mensaje = "";

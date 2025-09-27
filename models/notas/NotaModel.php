@@ -1,13 +1,14 @@
 <?php
 require_once __DIR__ . "/../../config/database.php";
+require_once __DIR__ . "/../../models/cambios/RegistroCambio.php";
 
 class NotaModel
 {
     private $pdo;
 
-    public function __construct()
+    public function __construct($pdo)
     {
-        $this->pdo = connectDatabase();
+        $this->pdo = $pdo;
     }
 
     public function obtenerNotas($idreferencia, $tipo)
@@ -18,12 +19,13 @@ class NotaModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function crearNota($idreferencia, $tipo, $contenido)
+    public function crearNota($idreferencia, $tipo, $idusuario, $contenido)
     {
-        $sql = "INSERT INTO notas (idreferencia, tipo, contenido) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO notas (idreferencia, tipo, idusuario, contenido) VALUES (?, ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$idreferencia, $tipo, $contenido]);
-        return $this->pdo->lastInsertId();
+        $stmt->execute([$idreferencia, $tipo, $idusuario, $contenido]);
+        $idnota = $this->pdo->lastInsertId();
+        return $idnota;
     }
 
     public function guardarNota($idreferencia, $tipo, $idusuario, $contenido)
@@ -37,17 +39,17 @@ class NotaModel
         $idnota = $this->obtenerNotaPorReferencia($idreferencia, $tipo, $idusuario);
 
         if ($idnota) {
-            return $this->actualizarNota($idnota, $contenido);
+            return $this->actualizarNota($idnota, $idusuario, $contenido);
         } else {
-            return $this->crearNota($idreferencia, $tipo, $contenido);
+            return $this->crearNota($idreferencia, $tipo, $idusuario, $contenido);
         }
     }
 
-    public function actualizarNota($idnota, $contenido)
+    public function actualizarNota($idnota, $idusuario, $contenido)
     {
-        $sql = "UPDATE notas SET contenido = ? WHERE idnota = ?";
+        $sql = "UPDATE notas SET contenido = ? WHERE idnota = ? AND idusuario = ?";
         $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([$contenido, $idnota]);
+        return $stmt->execute([$contenido, $idnota, $idusuario]);
     }
 
     public function obtenerNotaPorReferencia($idreferencia, $tipo, $idusuario)

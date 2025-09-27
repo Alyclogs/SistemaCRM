@@ -1,3 +1,4 @@
+import { normalizarHora } from "./date.js";
 import { mostrarToast } from "./utils.js";
 
 function getController(source) {
@@ -110,6 +111,21 @@ export default {
                 data.append("idusuario", window.idusuario);
             } else if (!isFormData && !data.idusuario && window.idusuario) {
                 data.idusuario = window.idusuario;
+            }
+
+            const camposHora = ["hora_inicio", "hora_fin", "hora"];
+            if (isFormData) {
+                camposHora.forEach(campo => {
+                    if (data.has(campo)) {
+                        data.set(campo, normalizarHora(data.get(campo)));
+                    }
+                });
+            } else {
+                camposHora.forEach(campo => {
+                    if (data[campo]) {
+                        data[campo] = normalizarHora(data[campo]);
+                    }
+                });
             }
 
             const result = await apiFetch(url, {

@@ -172,6 +172,10 @@ export function formatearHora(fecha) {
     return `${HH}:${mm}:${ss}`;
 }
 
+export function normalizarHora(hora) {
+    return /^\d{2}:\d{2}$/.test(hora) ? hora + ":00" : hora;
+}
+
 export function ajustarFecha(fechaStr, dias) {
     const [year, month, day] = fechaStr.split('-').map(Number);
     const fecha = new Date(year, month - 1, day); // mes base 0

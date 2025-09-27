@@ -7,7 +7,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario = $_POST['usuario'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    $modelo = new UsuarioModel();
+    $pdo = Database::getConnection();
+    $modelo = new UsuarioModel($pdo);
     $datosUsuario = $modelo->verificarUsuario($usuario, $password);
 
     if ($datosUsuario) {

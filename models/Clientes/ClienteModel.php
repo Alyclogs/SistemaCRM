@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . "/../../config/database.php";
 require_once __DIR__ . "/../cambios/RegistroCambio.php";
 require_once __DIR__ . "/../actividades/ActividadModel.php";
 require_once __DIR__ . '/../ajustes/AjustesModel.php';
@@ -9,14 +8,10 @@ class ClienteModel
     private $pdo;
     private $registroCambioModel;
 
-    public function __construct()
+    public function __construct($pdo, $registroCambioModel = null)
     {
-        try {
-            $this->pdo = connectDatabase();
-            $this->registroCambioModel = new RegistroCambioModel();
-        } catch (PDOException $e) {
-            die("Error al conectar en ClienteModel: " . $e->getMessage());
-        }
+        $this->pdo = $pdo;
+        $this->registroCambioModel = $registroCambioModel  ?: new RegistroCambioModel($this->pdo);
     }
 
     public function obtenerClientes($idestado = null)
@@ -186,7 +181,7 @@ class ClienteModel
             $sql = "SELECT e.*,
             CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
             u.foto AS usuario_foto
-            FROM empresas INNER JOIN usuarios u ON e.idusuario = u.idusuario";
+            FROM empresas e INNER JOIN usuarios u ON e.idusuario = u.idusuario";
 
             $stmt = $this->pdo->query($sql);
             $organizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -203,7 +198,7 @@ class ClienteModel
             $sql = "SELECT e.*,
                         CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
                         u.foto AS usuario_foto
-                        FROM empresas
+                        FROM empresas e
                     INNER JOIN usuarios u ON e.idusuario = u.idusuario
                     WHERE (razon_social LIKE ? OR ruc LIKE ?)";
 
@@ -225,8 +220,8 @@ class ClienteModel
             $sql = "SELECT e.*,
                         CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
                         u.foto AS usuario_foto
-                    FROM empresas
-                    INNER JOIN usuarios u ON c.idusuario = u.idusuario
+                    FROM empresas e
+                    INNER JOIN usuarios u ON e.idusuario = u.idusuario
                     WHERE e.idempresa = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id]);
@@ -456,7 +451,7 @@ class ClienteModel
     public function crearCliente($data)
     {
         try {
-            $sql = "INSERT INTO clientes (nombres, apellidos, num_doc, telefono, correo, idestado, foto, extra) 
+            $sql = "INSERT INTO clientes (nombres, apellidos, num_doc, telefono, correo, idusuario, idestado, foto, extra) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
@@ -465,6 +460,7 @@ class ClienteModel
                 $data['num_doc'] ?? null,
                 $data['telefono'] ?? null,
                 $data['correo'] ?? null,
+                $data['idusuario'] ?? null,
                 $data['idestado'] ?? null,
                 $data['foto'] ?? 'assets/img/usuariodefault.png',
                 $data['extra'] ?? null
@@ -535,32 +531,78 @@ class ClienteModel
         }
     }
 
-    public function asignarProyectoACliente($idcliente, $idproyecto)
+    public function asignarProyectoACliente($idcliente, $idproyecto, $idusuario = null)
     {
         try {
+            // Estado anterior
+            $stmtPrevio = $this->pdo->prepare("SELECT idproyecto FROM clientes_proyectos WHERE idcliente = ?");
+            $stmtPrevio->execute([$idcliente]);
+            $proyectosPrevios = array_map(fn($p) => ['idreferencia' => $p['idproyecto']], $stmtPrevio->fetchAll(PDO::FETCH_ASSOC));
+
+            // Insertar nueva asignación
             $sql = "INSERT IGNORE INTO clientes_proyectos (idcliente, idproyecto) VALUES (?, ?)";
             $stmt = $this->pdo->prepare($sql);
-            return $stmt->execute([$idcliente, $idproyecto]);
+            $stmt->execute([$idcliente, $idproyecto]);
+
+            // Estado nuevo
+            $stmtNuevo = $this->pdo->prepare("SELECT idproyecto FROM clientes_proyectos WHERE idcliente = ?");
+            $stmtNuevo->execute([$idcliente]);
+            $proyectosNuevos = array_map(fn($p) => ['idreferencia' => $p['idproyecto']], $stmtNuevo->fetchAll(PDO::FETCH_ASSOC));
+
+            // Registrar cambios
+            if ($idusuario) {
+                $this->registroCambioModel->registrarAsignaciones(
+                    $idusuario,
+                    $idcliente,
+                    'cliente',
+                    'proyectos',
+                    $proyectosPrevios,
+                    $proyectosNuevos
+                );
+            }
+
+            return true;
         } catch (Exception $e) {
             throw new Exception("Error al asignar proyecto al cliente: " . $e->getMessage());
         }
     }
 
-    public function asignarEmpresaACliente($idcliente, $idempresa)
+    public function asignarEmpresaACliente($idcliente, $idempresa, $idusuario = null)
     {
         try {
-            $stmtCheck = $this->pdo->prepare("SELECT idempresa FROM empresas_clientes WHERE idcliente=?");
-            $stmtCheck->execute([$idcliente]);
-            $empresaExistente = $stmtCheck->fetchColumn();
+            // Estado anterior
+            $stmtPrevio = $this->pdo->prepare("SELECT idempresa FROM empresas_clientes WHERE idcliente = ?");
+            $stmtPrevio->execute([$idcliente]);
+            $empresaPrev = $stmtPrevio->fetchColumn();
+            $empresasPrevias = $empresaPrev ? [['idreferencia' => $empresaPrev]] : [];
 
-            if ($empresaExistente) {
-                // Actualizar relación
+            if ($empresaPrev) {
                 $stmtUpdate = $this->pdo->prepare("UPDATE empresas_clientes SET idempresa=? WHERE idcliente=?");
                 $stmtUpdate->execute([$idempresa, $idcliente]);
             } else {
                 $stmtInsert = $this->pdo->prepare("INSERT IGNORE INTO empresas_clientes (idcliente, idempresa) VALUES (?, ?)");
                 $stmtInsert->execute([$idcliente, $idempresa]);
             }
+
+            // Estado nuevo
+            $stmtNuevo = $this->pdo->prepare("SELECT idempresa FROM empresas_clientes WHERE idcliente = ?");
+            $stmtNuevo->execute([$idcliente]);
+            $empresaNuevo = $stmtNuevo->fetchColumn();
+            $empresasNuevas = $empresaNuevo ? [['idreferencia' => $empresaNuevo]] : [];
+
+            // Registrar cambios
+            if ($idusuario) {
+                $this->registroCambioModel->registrarAsignaciones(
+                    $idusuario,
+                    $idcliente,
+                    'cliente',
+                    'empresas',
+                    $empresasPrevias,
+                    $empresasNuevas
+                );
+            }
+
+            return true;
         } catch (Exception $e) {
             throw new Exception("Error al asignar empresa al cliente: " . $e->getMessage());
         }
@@ -580,7 +622,7 @@ class ClienteModel
 
             // --- 2) Actualizar datos del cliente
             $sql = "UPDATE clientes 
-                SET nombres=?, apellidos=?, num_doc=?, telefono=?, correo=?, idestado=?, foto=?, extra=?
+                SET nombres=?, apellidos=?, num_doc=?, telefono=?, correo=?, idusuario=?, idestado=?, foto=?, extra=?
                 WHERE idcliente=?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
@@ -589,6 +631,7 @@ class ClienteModel
                 $data['num_doc'] ?? null,
                 $data['telefono'] ?? null,
                 $data['correo'] ?? null,
+                $data['idusuario'] ?? null,
                 $data['idestado'] ?? null,
                 $data['foto'] ?? $fotoActual ?? "assets/img/usuariodefault.png",
                 $data['extra'] ?? null,
