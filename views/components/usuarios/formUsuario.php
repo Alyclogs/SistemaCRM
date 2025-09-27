@@ -2,7 +2,8 @@
 require_once __DIR__ . '/../../../models/usuarios/UsuarioModel.php';
 
 $idusuario = $_GET['id'] ?? null;
-$usuarioModel = new UsuarioModel();
+$pdo = Database::getConnection();
+$usuarioModel = new UsuarioModel($pdo);
 $usuario = null;
 $roles = [];
 

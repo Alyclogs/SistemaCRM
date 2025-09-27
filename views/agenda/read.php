@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
 
-$usuarioModel = new UsuarioModel();
+$pdo = Database::getConnection();
+$usuarioModel = new UsuarioModel($pdo);
 $usuarios = $usuarioModel->obtenerUsuarios();
 ?>
 

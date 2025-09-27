@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../../models/usuarios/UsuarioModel.php';
 
-$modelo = new UsuarioModel();
+$pdo = Database::getConnection();
+$modelo = new UsuarioModel($pdo);
 $mensaje = '';
 $success = false;
 

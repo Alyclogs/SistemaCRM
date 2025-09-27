@@ -6,16 +6,26 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $idactividad = $_GET['id'] ?? null;
-$agendaModel = new ActividadModel();
-$ajustesModel = new AjustesModel();
+$pdo = Database::getConnection();
+$agendaModel = new ActividadModel($pdo);
+$ajustesModel = new AjustesModel($pdo);
 $actividad = null;
 $actividadCliente = null;
 $actividadEmpresa = null;
 
 if ($idactividad) {
     $actividad = $agendaModel->obtenerActividad($idactividad);
-    $actividadCliente = $actividad['clientes'][0] ?? null;
-    $actividadEmpresa = $actividad['empresas'][0] ?? null;
+
+    if (!empty($actividad['clientes'])) {
+        foreach ($actividad['clientes'] as $relacion) {
+            if ($relacion['tipo_cliente'] === 'cliente') {
+                $actividadCliente = $relacion;
+            }
+            if ($relacion['tipo_cliente'] === 'empresa') {
+                $actividadEmpresa = $relacion;
+            }
+        }
+    }
 
     if (!$actividad) {
         echo '<div class="alert alert-danger">No se encontró la actividad</div>';
@@ -29,6 +39,7 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
     <div class="flex-grow-1 h-100 pe-3" style="overflow: hidden auto;">
         <form id="formActividad" method="POST">
             <input type="hidden" name="idactividad" id="idactividad" value="<?= $actividad['idactividad'] ?? '' ?>">
+            <input type="hidden" name="idestado" id="idestado" value="<?= $actividad['idestado'] ?? '' ?>">
             <div class="d-flex flex-column w-100">
                 <div class="buttons-row buttons-actividad mb-3">
                     <button type="button" class="btn btn-outline btn-actividad" data-type="llamada"><?php include('../../../assets/svg/call.svg') ?></button>
@@ -63,6 +74,19 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
                         </div>
                     </div>
                 </div>
+                <div class="prioridad-container d-flex gap-2 w-100 mb-3">
+                    <div data-bs-toggle="tooltip" data-bs-placement="top" title="Prioridad de la actividad">
+                        <?php include('../../../assets/svg/alarm.svg') ?>
+                    </div>
+                    <div class="busqueda-grupo" style="width: 110px">
+                        <input type="text" class="form-control" id="prioridadInput" name="prioridad" value="<?= $actividad['prioridad'] ?? '' ?>" placeholder="Prioridad">
+                        <div class="resultados-busqueda" data-parent="prioridadInput" style="top: 2.5rem;">
+                            <div class="resultado-item" data-value="alta">alta</div>
+                            <div class="resultado-item" data-value="media">media</div>
+                            <div class="resultado-item" data-value="baja">baja</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="extra-container w-100 d-flex gap-2 mb-3">
                     <div data-bs-toggle="tooltip" data-bs-placement="top" title="Detalles de la actividad">
                         <?php include('../../../assets/svg/message-add-1.svg') ?>
@@ -77,15 +101,15 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
                         <div id="extraContent">
                             <div class="descripcion-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['descripcion']) ? 'flex' : 'none' ?>">
                                 <label for="descripcionInput">Descripción:</label>
-                                <textarea class="extra-content form-control w-100" id="descripcionInput" name="descripcion" rows="3" placeholder="Ingrese una descripción"><?= isset($actividad['extra']) ? $actividad['extra']['descripcion'] ?? '' : '' ?></textarea>
+                                <textarea class="form-control w-100" id="descripcionInput" name="extra_descripcion" rows="3" placeholder="Ingrese una descripción"><?= isset($actividad['extra']) ? $actividad['extra']['descripcion'] ?? '' : '' ?></textarea>
                             </div>
                             <div class="direccion-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['direccion']) ? 'flex' : 'none' ?>">
                                 <label for="direccionInput">Dirección:</label>
-                                <input type="text" class="extra-content form-control w-100" id="direccionInput" name="direccion" placeholder="Ingrese un dirección">
-                                <input type="text" class="extra-content form-control w-100" id="direccionReferenciaInput" name="direccion_referencia" placeholder="Ingrese una dirección de referencia">
+                                <input type="text" class="form-control w-100" id="direccionInput" name="extra_direccion" placeholder="Ingrese un dirección">
+                                <input type="text" class="form-control w-100" id="direccionReferenciaInput" name="extra_direccion_referencia" placeholder="Ingrese una dirección de referencia">
                             </div>
                             <div class="enlace-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['enlace']) ? 'flex' : 'none' ?>">
-                                <input type="url" class="extra-content form-control w-100" id="enlaceInput" name="enlace" placeholder="Ingrese un enlace">
+                                <input type="url" class="form-control w-100" id="enlaceInput" name="extra_enlace" placeholder="Ingrese un enlace">
                                 <div class="d-flex align-items-center gap-2">
                                     <button class="btn btn-outline w-100" id="generarEnlaceZoom"><?php include('../../../assets/svg/video.svg') ?><span>Generar reunión con Zoom</span></button>
                                     <button class="btn btn-outline w-100" id="generarEnlaceMeet"><?php include('../../../assets/svg/video.svg') ?><span>Generar reunión con Meet</span></button>

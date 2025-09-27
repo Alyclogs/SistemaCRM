@@ -1,12 +1,15 @@
 <?php
 require_once __DIR__ . "/../../models/ajustes/AjustesModel.php";
+require_once __DIR__ . "/../../models/cambios/RegistroCambio.php";
 
 header('Content-Type: application/json; charset=utf-8');
 
 $response = ["success" => false, "message" => "Acción no válida"];
 
 try {
-    $ajustesModel = new AjustesModel();
+    $pdo = Database::getConnection();
+    $registroCambioModel = new RegistroCambioModel($pdo);
+    $ajustesModel = new AjustesModel($pdo, $registroCambioModel);
 
     if (isset($_GET['action'])) {
         switch ($_GET['action']) {

@@ -3,8 +3,9 @@ require_once __DIR__ . '/../../../models/clientes/ClienteModel.php';
 require_once __DIR__ . '/../../../models/ajustes/AjustesModel.php';
 
 $idcliente = $_GET['id'] ?? null;
-$clienteModel = new ClienteModel();
-$ajustesModel = new AjustesModel();
+$pdo = Database::getConnection();
+$clienteModel = new ClienteModel($pdo);
+$ajustesModel = new AjustesModel($pdo);
 $cliente = null;
 $estados = [];
 

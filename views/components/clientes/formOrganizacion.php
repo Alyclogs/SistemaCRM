@@ -2,7 +2,8 @@
 require_once __DIR__ . '/../../../models/clientes/ClienteModel.php';
 
 $id = $_GET['id'] ?? null;
-$clienteModel = new ClienteModel();
+$pdo = Database::getConnection();
+$clienteModel = new ClienteModel($pdo);
 $empresa = null;
 
 if ($id) {

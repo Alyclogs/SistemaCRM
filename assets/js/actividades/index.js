@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${actividad.cliente ? `${window.icons.user} <span>${actividad.cliente}</span>` : ''}
                 </div>
                 <div class="info-row">
-                    ${actividad.extra.descripcion ? `${window.icons.info} <span>${actividad.extra.descripcion}</span>` : ''}
+                    ${actividad.extra?.descripcion ? `${window.icons.info} <span>${actividad.extra.descripcion}</span>` : ''}
                 </div>
                 <div class="info-row">
                     ${actividad.notas?.length > 0 ? `${window.icons.document} <span>${actividad.notas[0].contenido}</span>` : ''}
@@ -401,11 +401,11 @@ function abrirFormActividad(actividad = {}) {
             fechaInput.addEventListener("change", function () {
                 actividadActual.fecha = fechaInput.value;
                 miniCalendar.gotoDate(actividadActual.fecha);
-                const startDate = new Date(`${actividadActual.fecha}T${horaInicioInput.value}`);
-                actividadActual.hora_inicio = horaInicioInput.value;
+                const startDate = new Date(`${actividadActual.fecha}T${horaInicioInput.value}:00`);
+                actividadActual.hora_inicio = `${horaInicioInput.value}:00`;
                 activeEvent.setStart(startDate);
-                const endDate = new Date(`${actividadActual.fecha}T${horaFinInput.value}`);
-                actividadActual.hora_fin = horaFinInput.value;
+                const endDate = new Date(`${actividadActual.fecha}T${horaFinInput.value}:00`);
+                actividadActual.hora_fin = `${horaFinInput.value}:00`;
                 activeEvent.setEnd(endDate);
             });
 
@@ -416,8 +416,8 @@ function abrirFormActividad(actividad = {}) {
                     item.addEventListener('click', function () {
                         horaInicioInput.value = this.dataset.value.slice(0, 5);
 
-                        const startDate = new Date(actividadActual.fecha + "T" + horaInicioInput.value);
-                        actividadActual.hora_inicio = horaInicioInput.value;
+                        const startDate = new Date(actividadActual.fecha + "T" + `${horaInicioInput.value}:00`);
+                        actividadActual.hora_inicio = `${horaInicioInput.value}:00`;
                         activeEvent.setStart(startDate);
 
                         selectorHoraInicio.style.display = 'none';
@@ -432,8 +432,8 @@ function abrirFormActividad(actividad = {}) {
                     item.addEventListener('click', function () {
                         horaFinInput.value = this.dataset.value.slice(0, 5);
 
-                        const endDate = new Date(actividadActual.fecha + "T" + horaFinInput.value);
-                        actividadActual.hora_fin = horaFinInput.value;
+                        const endDate = new Date(actividadActual.fecha + "T" + `${horaFinInput.value}:00`);
+                        actividadActual.hora_fin = `${horaFinInput.value}:00`;
                         activeEvent.setEnd(endDate);
 
                         selectorHoraFin.style.display = 'none';
@@ -466,9 +466,9 @@ function guardarActividad() {
 
     const extra = {};
     if (formActividad) {
-        formActividad.querySelectorAll(".extra-content").forEach(field => {
+        formActividad.querySelectorAll("[name^=extra_]").forEach(field => {
             if (field.value?.trim() !== "") {
-                extra[field.name] = field.value.trim();
+                extra[field.name.replace("extra_", "")] = field.value.trim();
             }
         });
     }
@@ -479,7 +479,7 @@ function guardarActividad() {
         formData.append("clientes", JSON.stringify(datos.clientes));
     }
     Object.entries(datos).forEach(([key, value]) => {
-        if (key !== "clientes") {
+        if (key !== "clientes" && !key.startsWith("extra_")) {
             formData.append(key, value);
         }
     });
