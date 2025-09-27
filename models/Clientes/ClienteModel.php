@@ -186,7 +186,7 @@ class ClienteModel
             $sql = "SELECT e.*,
             CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
             u.foto AS usuario_foto
-            FROM empresas INNER JOIN usuarios u ON e.idusuario = u.idusuario";
+            FROM empresas e INNER JOIN usuarios u ON e.idusuario = u.idusuario";
 
             $stmt = $this->pdo->query($sql);
             $organizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -203,7 +203,7 @@ class ClienteModel
             $sql = "SELECT e.*,
                         CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
                         u.foto AS usuario_foto
-                        FROM empresas
+                        FROM empresas e
                     INNER JOIN usuarios u ON e.idusuario = u.idusuario
                     WHERE (razon_social LIKE ? OR ruc LIKE ?)";
 
@@ -225,7 +225,7 @@ class ClienteModel
             $sql = "SELECT e.*,
                         CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
                         u.foto AS usuario_foto
-                    FROM empresas
+                    FROM empresas e
                     INNER JOIN usuarios u ON c.idusuario = u.idusuario
                     WHERE e.idempresa = ?";
             $stmt = $this->pdo->prepare($sql);
