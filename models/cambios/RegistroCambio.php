@@ -222,7 +222,7 @@ class RegistroCambioModel
                 return "proyecto {$proy['nombre']}";
             case 'actividades':
                 $actividad = $this->actividadModel->obtenerActividad($idreferencia);
-                return "actividad {$actividad['nombre']}";
+                return 'actividad "' . $actividad['nombre'] . '"';
             case 'actividad':
                 $actividad = $this->actividadModel->obtenerActividad($idreferencia);
                 return 'actividad "' . $actividad['nombre'] . '"';
