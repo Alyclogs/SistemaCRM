@@ -99,17 +99,18 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
                             <a class="text-primary <?= isset($actividad['extra']) && isset($actividad['extra']['enlace']) ? 'disable-click' : 'clickable' ?>" id="agregarEnlace">enlace</a>
                         </div>
                         <div id="extraContent">
-                            <div class="descripcion-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['descripcion']) ? 'flex' : 'none' ?>">
+                            <div class="descripcion-container flex-column gap-2 mb-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['descripcion']) ? 'flex' : 'none' ?>">
                                 <label for="descripcionInput">Descripción:</label>
                                 <textarea class="form-control w-100" id="descripcionInput" name="extra_descripcion" rows="3" placeholder="Ingrese una descripción"><?= isset($actividad['extra']) ? $actividad['extra']['descripcion'] ?? '' : '' ?></textarea>
                             </div>
-                            <div class="direccion-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['direccion']) ? 'flex' : 'none' ?>">
+                            <div class="direccion-container flex-column gap-2 mb-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['direccion']) ? 'flex' : 'none' ?>">
                                 <label for="direccionInput">Dirección:</label>
-                                <input type="text" class="form-control w-100" id="direccionInput" name="extra_direccion" placeholder="Ingrese un dirección">
-                                <input type="text" class="form-control w-100" id="direccionReferenciaInput" name="extra_direccion_referencia" placeholder="Ingrese una dirección de referencia">
+                                <input type="text" class="form-control w-100" id="direccionInput" name="extra_direccion" placeholder="Ingrese un dirección" value="<?= isset($actividad['extra']) ? $actividad['extra']['direccion'] ?? '' : '' ?>">
+                                <input type="text" class="form-control w-100" id="direccionReferenciaInput" name="extra_direccion_referencia" placeholder="Ingrese una dirección de referencia" value="<?= isset($actividad['extra']) ? $actividad['extra']['direccion_referencia'] ?? '' : '' ?>">
                             </div>
-                            <div class="enlace-container flex-column gap-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['enlace']) ? 'flex' : 'none' ?>">
-                                <input type="url" class="form-control w-100" id="enlaceInput" name="extra_enlace" placeholder="Ingrese un enlace">
+                            <div class="enlace-container flex-column gap-2 mb-3" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['enlace']) ? 'flex' : 'none' ?>">
+                                <label for="enlaceInput">Enlace:</label>
+                                <input type="url" class="form-control w-100" id="enlaceInput" name="extra_enlace" placeholder="Ingrese un enlace" value="<?= isset($actividad['extra']) ? $actividad['extra']['enlace'] ?? '' : '' ?>">
                                 <div class="d-flex align-items-center gap-2">
                                     <button class="btn btn-outline w-100" id="generarEnlaceZoom"><?php include('../../../assets/svg/video.svg') ?><span>Generar reunión con Zoom</span></button>
                                     <button class="btn btn-outline w-100" id="generarEnlaceMeet"><?php include('../../../assets/svg/video.svg') ?><span>Generar reunión con Meet</span></button>

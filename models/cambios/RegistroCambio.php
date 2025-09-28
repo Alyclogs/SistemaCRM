@@ -62,7 +62,7 @@ class RegistroCambioModel
         $contexto = null
     ) {
         // 1. Obtener contexto automáticamente si es creación o eliminación
-        if (in_array($accion, ['creacion', 'eliminacion']) && empty($contexto)) {
+        if (empty($contexto)) {
             $contexto = $this->resolverContextoEntidad($tipo, $idreferencia);
         }
 
@@ -167,13 +167,15 @@ class RegistroCambioModel
 
         foreach ($agregados as $idAsig) {
             $nombre = $this->resolverNombreAsignacion($campoRelacion, $idAsig);
-            $descripcion = "Asignación de {$nombre} a {$tipo}";
+            $nombreRef = $this->resolverNombreAsignacion($tipo, $idreferencia);
+            $descripcion = "Asignación de {$nombre} a {$tipo} {$nombreRef}";
             $this->registrarCambio($idusuario, $idreferencia, $tipo, 'asignacion', $campoRelacion, null, $idAsig, $descripcion);
         }
 
         foreach ($eliminados as $idAsig) {
             $nombre = $this->resolverNombreAsignacion($campoRelacion, $idAsig);
-            $descripcion = "Eliminación de {$nombre} de {$tipo}";
+            $nombreRef = $this->resolverNombreAsignacion($tipo, $idreferencia);
+            $descripcion = "Eliminación de {$nombre} de {$tipo} {$nombreRef}";
             $this->registrarCambio($idusuario, $idreferencia, $tipo, 'eliminacion', $campoRelacion, $idAsig, null, $descripcion);
         }
     }
@@ -218,6 +220,12 @@ class RegistroCambioModel
             case 'proyectos':
                 $proy = $this->proyectoModel->obtenerProyecto($idreferencia);
                 return "proyecto {$proy['nombre']}";
+            case 'actividades':
+                $actividad = $this->actividadModel->obtenerActividad($idreferencia);
+                return "actividad {$actividad['nombre']}";
+            case 'actividad':
+                $actividad = $this->actividadModel->obtenerActividad($idreferencia);
+                return 'actividad "' . $actividad['nombre'] . '"';
             default:
                 return "{$campo} {$idreferencia}";
         }

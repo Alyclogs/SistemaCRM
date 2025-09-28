@@ -518,7 +518,8 @@ function actualizarActividad(idactividad, fecha, horaInicio, horaFin) {
         hora_inicio: horaInicio,
         hora_fin: horaFin,
         idusuario: actividad.idusuario,
-        clientes: actividad.clientes,
+        clientes: JSON.stringify(actividad.clientes),
+        prioridad: actividad.prioridad,
         idestado: actividad.idestado,
         tipo: actividad.tipo
     };
