@@ -368,6 +368,46 @@ svg path {
   z-index: 2000;
 }
 
+.edicion-grupo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1rem;
+  border-radius: .5rem;
+  padding: .5rem;
+  position: relative;
+}
+
+.edicion-grupo.selected,
+.edicion-grupo:hover {
+  background-color: var(--default-bg-color-light);
+}
+
+.edicion-grupo.selected input,
+.edicion-grupo.selected select,
+.edicion-grupo.selected textarea {
+  border: var(--default-border-color) !important;
+  background-color: #fff !important;
+}
+
+.edicion-grupo .btn-edit-info {
+  display: none;
+}
+
+.edicion-grupo:hover .btn-edit-info {
+  display: flex;
+}
+
+.edicion-grupo.editing .btn-edit-info {
+  display: none;
+}
+
+.info-row.row-editable {
+  width: 100%;
+  align-items: start;
+}
+
 .busqueda-grupo {
   position: relative;
 }
@@ -707,7 +747,7 @@ svg path {
 .timeline-item::before {
   content: "";
   position: absolute;
-  top: 36px;
+  top: 30px;
   bottom: 0;
   left: 19px;
   border-left: 2px solid var(--default-border-color);
@@ -719,7 +759,7 @@ svg path {
 }
 
 .timeline-item:not(:only-child):not(:last-child)::before {
-  height: 110px;
+  height: 100px;
 }
 
 .timeline-item:only-child::before {
@@ -732,7 +772,7 @@ svg path {
 
 .timeline-point {
   position: absolute;
-  top: 36px;
+  top: 30px;
   left: 12px;
   width: 18px;
   height: 18px;

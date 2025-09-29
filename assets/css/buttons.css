@@ -157,6 +157,12 @@ button.btn-symmetrical-sm {
   display: inline-flex;
 }
 
+.btn.btn-sm {
+  border-radius: .25rem !important;
+  padding: .25rem !important;
+  font-size: 12px !important;
+}
+
 .btn-icon {
   width: 32px;
   height: 32px;
@@ -169,6 +175,6 @@ button.btn-symmetrical-sm {
 }
 
 .btn-icon.sm {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }

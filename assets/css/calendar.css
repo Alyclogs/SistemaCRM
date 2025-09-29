@@ -16,6 +16,11 @@
   border-top-right-radius: 1rem;
 }
 
+.fc thead th {
+  height: 32px;
+  vertical-align: middle;
+}
+
 .fc a {
   color: var(--default-text-color);
 }
@@ -70,12 +75,16 @@
   border-right-style: hidden !important;
 }
 
-.fc thead th {
+.fc thead th:last-child {
   border-right-style: hidden !important;
 }
 
 .fc tbody tr:last-child td:first-child {
-  border-bottom-style: hidden !important;
+  border-bottom-style: hidden;
+}
+
+td.fc-day.fc-day-sun.fc-daygrid-day {
+  border-bottom-style: solid !important;
 }
 
 .fc-highlight {

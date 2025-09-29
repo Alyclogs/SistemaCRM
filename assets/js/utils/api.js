@@ -107,12 +107,6 @@ export default {
         url += urlParams.toString();
 
         try {
-            if (isFormData && !data.has("idusuario") && window.idusuario) {
-                data.append("idusuario", window.idusuario);
-            } else if (!isFormData && !data.idusuario && window.idusuario) {
-                data.idusuario = window.idusuario;
-            }
-
             const camposHora = ["hora_inicio", "hora_fin", "hora"];
             if (isFormData) {
                 camposHora.forEach(campo => {

@@ -1,5 +1,6 @@
 import api from "../utils/api.js";
 import { formatearDateTime, formatearRangoFecha } from "../utils/date.js";
+import { abrirModal, guardarRegistro } from "./utils.js";
 
 let clienteActual = document.getElementById("clienteActual").value;
 let tipoCliente = document.getElementById("tipoCliente").value;
@@ -217,55 +218,26 @@ document.addEventListener('click', function (e) {
         selectedFiltro = item.dataset.value;
         fetchHistorial();
     }
+
+    if (e.target.closest('#btnGuardarCliente')) {
+        guardarRegistro(1, () => {
+            fetchHistorial();
+        });
+    }
 });
 
 document.querySelectorAll('.btn-edit').forEach(btn => {
     btn.addEventListener("click", async function () {
-        const { target, type, id } = btn.dataset;
-
-        if (target === "modalForm") {
-            try {
-                const urls = {
-                    cliente: "views/components/clientes/formCliente.php",
-                    empresa: "views/components/clientes/formOrganizacion.php"
-                }
-
-                const titulos = {
-                    cliente: "Editar cliente",
-                    empresa: "Editar organización"
-                };
-
-                const res = await fetch(window.baseurl + urls[type] + "?id=" + id);
-                const html = await res.text();
-
-                $("#clienteModalLabel").text(titulos[type] || "Editar");
-                $("#clienteModalBody").html(html);
-                $("#clienteModal").modal("show");
-
-                if (focus) $("#clienteModal").find(focus).focus();
-            } catch (e) {
-                mostrarToast({
-                    message: "Ocurrió un error al mostrar el formulario",
-                    type: "danger"
-                });
-                console.error(e);
-            }
-        }
-
-        if (target === "inlineForm") {
-            switch (type) {
-                case "cliente":
-                    // Accion para editar cliente inline
-                    break;
-                case "empresa":
-                    // Accion para editar empresa inline
-                    break;
-            }
-        }
+        const { type, id } = btn.dataset;
+        abrirModal({ id, esNuevo: false, tipo: type === "cliente" ? 1 : 2 });
     });
 });
 
 document.addEventListener('DOMContentLoaded', function () {
     selectedFiltro = document.querySelector(".filtro-historial-item.selected").dataset.value;
+    fetchHistorial();
+});
+
+document.addEventListener("entidadActualizada", function () {
     fetchHistorial();
 });

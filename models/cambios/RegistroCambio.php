@@ -90,24 +90,31 @@ class RegistroCambioModel
             }
 
             // 1. Manejar campo extra (JSON)
-            if ($campo === 'extra' && is_array($valorAnterior) && is_array($valorNuevo)) {
+            if ($campo === 'extra') {
+                if (!is_array($valorAnterior)) {
+                    $valorAnterior = json_decode($valorAnterior);
+                }
+                if (!is_array($valorNuevo)) {
+                    $valorNuevo = json_decode($valorNuevo);
+                }
+
                 foreach ($valorNuevo as $subCampo => $nuevoValor) {
                     $viejoValor = $valorAnterior[$subCampo] ?? null;
-                    if ($viejoValor != $nuevoValor) {
-                        $descripcion = $this->generarDescripcion(
-                            $tipo,
-                            $accion,
-                            $subCampo,
-                            $viejoValor,
-                            $nuevoValor,
-                            $contexto
-                        );
+
+                    // Normalizar valores
+                    $viejoValor = ($viejoValor === null || $viejoValor === '') ? '(vacío)' : $viejoValor;
+                    $nuevoValor = ($nuevoValor === null || $nuevoValor === '') ? '(vacío)' : $nuevoValor;
+
+                    if ($viejoValor !== $nuevoValor) {
+                        // Aquí forzamos que el label sea el nombre del subcampo
+                        $descripcion = "Actualización {$subCampo} de cliente {$contexto['nombres']} {$contexto['apellidos']}: {$viejoValor} -> {$nuevoValor}";
+
                         $this->registrarCambio(
                             $idusuario,
                             $idreferencia,
                             $tipo,
                             $accion,
-                            $subCampo,
+                            $subCampo,   // usamos el subcampo directamente
                             $viejoValor,
                             $nuevoValor,
                             $descripcion,
@@ -180,7 +187,7 @@ class RegistroCambioModel
         }
     }
 
-    private function resolverContextoEntidad($tipo, $idreferencia)
+    private function resolverContextoEntidad($tipo, $idreferencia = null)
     {
         // Mapeo explícito de tablas y claves primarias
         $mapa = [
@@ -188,11 +195,16 @@ class RegistroCambioModel
             'cliente'   => ['tabla' => 'clientes',    'pk' => 'idcliente'],
             'empresa'   => ['tabla' => 'empresas',    'pk' => 'idempresa'],
             'proyecto'  => ['tabla' => 'proyectos',   'pk' => 'idproyecto'],
-            'tarea'     => ['tabla' => 'tareas',      'pk' => 'idtarea']
+            'tarea'     => ['tabla' => 'tareas',      'pk' => 'idtarea'],
+            'campos_extra' => ['tabla' => 'campos_extra', 'pk' => 'idcampo']
         ];
 
         if (!isset($mapa[$tipo])) {
             throw new Exception("No se encontró configuración de contexto para tipo: {$tipo}");
+        }
+
+        if (!isset($idreferencia)) {
+            return $mapa[$tipo];
         }
 
         $tabla = $mapa[$tipo]['tabla'];
@@ -211,18 +223,15 @@ class RegistroCambioModel
     private function resolverNombreAsignacion($campo, $idreferencia)
     {
         switch ($campo) {
-            case 'clientes':
+            case 'cliente':
                 $cli = $this->clienteModel->obtenerCliente($idreferencia);
                 return "cliente {$cli['nombres']} {$cli['apellidos']}";
-            case 'empresas':
+            case 'empresa':
                 $emp = $this->clienteModel->obtenerOrganizacion($idreferencia);
                 return "empresa {$emp['razon_social']}";
-            case 'proyectos':
+            case 'proyecto':
                 $proy = $this->proyectoModel->obtenerProyecto($idreferencia);
                 return "proyecto {$proy['nombre']}";
-            case 'actividades':
-                $actividad = $this->actividadModel->obtenerActividad($idreferencia);
-                return 'actividad "' . $actividad['nombre'] . '"';
             case 'actividad':
                 $actividad = $this->actividadModel->obtenerActividad($idreferencia);
                 return 'actividad "' . $actividad['nombre'] . '"';
@@ -231,18 +240,28 @@ class RegistroCambioModel
         }
     }
 
+    public function obtenerCampoTabla($tipo)
+    {
+        $tableName = $this->resolverContextoEntidad($tipo)['tabla'];
+        $sql = "SELECT campo, descripcion FROM diccionario_campos WHERE tabla = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$tableName]);
+        $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // campo => etiqueta
+
+        if (!$rows) {
+            throw new Exception("No existen campos definidos para la tabla " . $tableName);
+        }
+        return $rows;
+    }
+
     /**
      * Genera una descripción genérica según la acción
      */
     private function generarDescripcion($tipo, $accion, $campo, $valorAnterior, $valorNuevo, $contexto = [])
     {
-        // Buscar descripción en diccionario_campos
-        $sql = "SELECT descripcion FROM diccionario_campos WHERE tabla = ? AND campo = ?";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$tipo . 's', $campo]); // Ojo: pluralizamos las tablas
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        $campoLabel = $row ? $row['descripcion'] : ucfirst(str_replace("_", " ", $campo));
+        // Buscar nombre del campo en diccionario_campos
+        $diccionario = $this->obtenerCampoTabla($tipo);
+        $campoLabel  = $diccionario[$campo] ?? ucfirst(str_replace("_", " ", $campo));
         $accionTexto = ucfirst($accion);
 
         $valorAnterior = ($valorAnterior === null || $valorAnterior === '') ? '(vacío)' : $valorAnterior;
@@ -270,7 +289,7 @@ class RegistroCambioModel
             return "{$accionTexto} {$tipo}: {$valorAnterior}";
         }
 
-        // ACTUALIZACIÓN con contexto
+        // ACTUALIZACIÓN
         if ($accion === 'actualizacion') {
             if ($tipo === 'actividad' && isset($contexto['nombre'])) {
                 return "Actualización {$campoLabel} de actividad \"{$contexto['nombre']}\": {$valorAnterior} -> {$valorNuevo}";
@@ -283,7 +302,7 @@ class RegistroCambioModel
             }
         }
 
-        // GENÉRICO
+        // fallback genérico
         return "{$accionTexto} {$campoLabel} de {$tipo}: {$valorAnterior} -> {$valorNuevo}";
     }
 

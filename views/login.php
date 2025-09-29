@@ -40,7 +40,7 @@ $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
                             <input type="text" class="form-control" name="usuario" placeholder="Nombre de usuario" required>
                         </div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label">Contraseña</label>
                         <div class="grupo-input mb-4">
                             <div class="px-1">

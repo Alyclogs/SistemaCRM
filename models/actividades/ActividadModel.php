@@ -2,6 +2,10 @@
 require_once __DIR__ . "/../notas/NotaModel.php";
 require_once __DIR__ . "/../cambios/RegistroCambio.php";
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 class ActividadModel
 {
     private $pdo;
@@ -43,7 +47,7 @@ class ActividadModel
         }
     }
 
-    public function asignarClientesActividad($idactividad, $clientes = [], $idusuario = null)
+    public function asignarClientesActividad($idactividad, $clientes = [])
     {
         try {
             // 1. Obtener relaciones previas
@@ -68,9 +72,9 @@ class ActividadModel
             }
 
             // 4. Registrar cambios en log
-            if ($idusuario) {
+            if (isset($_SESSION['idusuario'])) {
                 $this->registroCambioModel->registrarAsignaciones(
-                    $idusuario,
+                    $_SESSION['idusuario'],
                     $idactividad,          // referencia principal
                     'actividad',           // tipo principal
                     'clientes',            // campo de relación
@@ -155,7 +159,7 @@ class ActividadModel
     {
         try {
             $sql = "INSERT INTO actividades (nombre, idusuario, fecha, hora_inicio, hora_fin, tipo, prioridad, idestado, extra) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 $data['nombre'],
@@ -165,7 +169,7 @@ class ActividadModel
                 $data['hora_fin'],
                 $data['tipo'],
                 $data['prioridad'],
-                $data['idestado'] ?? 1,
+                !empty($data['idestado']) ? $data['idestado'] : 1,
                 !empty($data['extra']) ? json_encode($data['extra']) : null
             ]);
 
@@ -337,7 +341,7 @@ class ActividadModel
 
             if ($actividad) {
                 $this->registroCambioModel->registrarCambio(
-                    $actividad['idusuario'],
+                    $_SESSION['idusuario'],
                     $id,
                     'actividad',
                     'eliminacion',

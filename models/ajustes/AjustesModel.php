@@ -163,12 +163,24 @@ class AjustesModel
         }
     }
 
-    public function obtenerCamposPorTipo($idreferencia, $tipo_referencia)
+    public function obtenerCamposPorTipo($idreferencia = null, $tipo_referencia = null)
     {
         try {
-            $sql = "SELECT * FROM campos_extra WHERE idreferencia = ? OR tipo_referencia = ?";
+            $sql = "SELECT * FROM campos_extra WHERE 1=1"; // base
+            $params = [];
+
+            if ($idreferencia !== null) {
+                $sql .= " AND idreferencia = ?";
+                $params[] = $idreferencia;
+            }
+
+            if ($tipo_referencia !== null) {
+                $sql .= " AND tipo_referencia = ?";
+                $params[] = $tipo_referencia;
+            }
+
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$idreferencia, $tipo_referencia]);
+            $stmt->execute($params);
             $campos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($campos as &$campo) {

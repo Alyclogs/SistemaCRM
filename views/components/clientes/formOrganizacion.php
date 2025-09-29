@@ -1,23 +1,26 @@
 <?php
 require_once __DIR__ . '/../../../models/clientes/ClienteModel.php';
+require_once __DIR__ . '/../../../models/ajustes/AjustesModel.php';
 
 $id = $_GET['id'] ?? null;
 $pdo = Database::getConnection();
-$clienteModel = new ClienteModel($pdo);
+$empresaModel = new ClienteModel($pdo);
+$ajustesModel = new AjustesModel($pdo);
 $empresa = null;
 
 if ($id) {
-    $empresa = $clienteModel->obtenerOrganizacion($id);
+    $empresa = $empresaModel->obtenerOrganizacion($id);
 
     if (!$empresa) {
         echo '<div class="alert alert-danger">No se encontró la organización</div>';
         exit;
     }
 }
+$camposExtra = $ajustesModel->obtenerCamposPorTipo(null, 'empresa');
 ?>
 
 <form method="POST" id="formOrganizacion">
-    <input type="hidden" name="idexistente" value="<?= $empresa['idempresa'] ?? '' ?>">
+    <input type="hidden" name="id" value="<?= $empresa['idempresa'] ?? '' ?>">
 
     <div class="row">
         <div class="col-3 flex-column  d-flex align-items-center justify-content-center gap-3">
@@ -60,6 +63,64 @@ if ($id) {
                     <label for="direccionRefInput" class="form-label">Dirección (Referencia) <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="direccionRefInput" name="direccion_referencia" value="<?= $empresa['direccion_referencia'] ?? '' ?>">
                 </div>
+                <?php if (!empty($camposExtra)): ?>
+                    <?php foreach ($camposExtra as $campo): ?>
+                        <div class="col-6 mb-3">
+                            <label for="campoExtra_<?= $campo['idcampo'] ?>" class="form-label">
+                                <?= htmlspecialchars(ucfirst($campo['nombre'])) ?>
+                            </label>
+
+                            <?php if ($campo['tipo_dato'] === 'texto'): ?>
+                                <input type="text"
+                                    class="form-control"
+                                    id="campoExtra_<?= $campo['idcampo'] ?>"
+                                    name="extra_<?= $campo['nombre'] ?>"
+                                    value="<?= trim($empresa['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                    <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
+
+                            <?php elseif ($campo['tipo_dato'] === 'numero'): ?>
+                                <input type="number"
+                                    class="form-control"
+                                    id="campoExtra_<?= $campo['idcampo'] ?>"
+                                    name="extra_<?= $campo['nombre'] ?>"
+                                    value="<?= trim($empresa['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                    <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
+
+                            <?php elseif ($campo['tipo_dato'] === 'fecha'): ?>
+                                <input type="date"
+                                    class="form-control"
+                                    id="campoExtra_<?= $campo['idcampo'] ?>"
+                                    name="extra_<?= $campo['nombre'] ?>"
+                                    value="<?= trim($empresa['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
+
+                            <?php elseif ($campo['tipo_dato'] === 'booleano'): ?>
+                                <select class="form-select"
+                                    id="campoExtra_<?= $campo['idcampo'] ?>"
+                                    name="extra_<?= $campo['nombre'] ?>"
+                                    <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                    <option value="1" <?= (trim($empresa['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 1 ? 'selected' : '' ?>>Sí</option>
+                                    <option value="0" <?= (trim($empresa['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 2 ? 'selected' : '' ?>>No</option>
+                                </select>
+
+                            <?php elseif ($campo['tipo_dato'] === 'opciones' && is_array($campo['valor_inicial'])): ?>
+                                <select class="form-select"
+                                    id="campoExtra_<?= $campo['idcampo'] ?>"
+                                    name="extra_<?= $campo['nombre'] ?>"
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                    <?php foreach ($campo['valor_inicial'] as $opcion): ?>
+                                        <option value="<?= htmlspecialchars($opcion) ?>"
+                                            <?= (isset($empresa['extra'][$campo['nombre']]) && $empresa['extra'][$campo['nombre']] == $opcion) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($opcion) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>

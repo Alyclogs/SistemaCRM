@@ -1,5 +1,5 @@
 import api from "../utils/api.js";
-import { mostrarToast } from "../utils/utils.js";
+import { abrirModal, eliminarRegistro, guardarRegistro } from "./utils.js";
 
 let filtroBuscado = '';
 let selectedEstado = '';
@@ -121,63 +121,6 @@ function updateSelectedTipo(tipo) {
     }
 }
 
-export function guardarRegistro(tipo) {
-    const forms = {
-        1: "formCliente",
-        2: "formOrganizacion"
-    };
-
-    const acciones = {
-        1: { create: "crear", update: "actualizar" },
-        2: { create: "crearOrganizacion", update: "actualizarOrganizacion" }
-    };
-
-    const form = document.getElementById(forms[tipo]);
-    const formData = new FormData(form);
-
-    const extra = {};
-    form.querySelectorAll("[name^=extra_]").forEach(field => {
-        if (field.value?.trim() !== "") {
-            extra[field.name.replace("extra_", "")] = field.value.trim();
-        }
-    });
-    if (Object.keys(extra).length > 0) {
-        formData.append("extra", JSON.stringify(extra));
-    }
-
-    const id = formData.get("idexistente");
-    const action = id ? acciones[tipo].update : acciones[tipo].create;
-
-    api.post({
-        source: "clientes",
-        action,
-        data: formData,
-        onSuccess: () => {
-            fetchClientes('', '', tipo);
-            $("#clienteModal").modal("hide");
-        }
-    });
-}
-
-export function eliminarRegistro(tipo, id) {
-    const acciones = {
-        1: { action: "eliminar", mensaje: "¿Seguro que desea eliminar al cliente del sistema?" },
-        2: { action: "eliminarOrganizacion", mensaje: "¿Seguro que desea eliminar a la organización del sistema?" }
-    };
-
-    if (!confirm(acciones[tipo].mensaje)) return;
-
-    const formData = new FormData();
-    formData.append("idexistente", id);
-
-    api.post({
-        source: "clientes",
-        action: acciones[tipo].action,
-        data: formData,
-        onSuccess: () => fetchClientes(tipo)
-    });
-}
-
 function asignarProyectos() {
     const seleccionados = [...document.querySelectorAll("#selectorItems .selector-item.selected")]
         .map(el => el.dataset.id);
@@ -195,38 +138,6 @@ function asignarProyectos() {
             $("#selectorModal").modal("hide");
         }
     });
-}
-
-export function abrirModal({ tipo, id = null, esNuevo = false, focus = null }) {
-    const urls = {
-        1: "views/components/clientes/formCliente.php",
-        2: "views/components/clientes/formOrganizacion.php"
-    };
-
-    const titulos = {
-        1: esNuevo ? "Agregar nuevo cliente" : "Editar cliente",
-        2: esNuevo ? "Agregar nueva organización" : "Editar organización"
-    };
-
-    let url = window.baseurl + urls[tipo];
-    if (id) url += "?id=" + id;
-
-    fetch(url)
-        .then(res => res.text())
-        .then(html => {
-            $("#clienteModalLabel").text(titulos[tipo]);
-            $("#clienteModalBody").html(html);
-            $("#clienteModal").modal("show");
-
-            if (focus) $("#clienteModal").find(focus).focus();
-        })
-        .catch(e => {
-            mostrarToast({
-                message: "Ocurrió un error al mostrar el formulario",
-                type: "danger"
-            });
-            console.error(e);
-        });
 }
 
 document.addEventListener('click', function (e) {
@@ -298,7 +209,9 @@ document.addEventListener('click', function (e) {
     if (e.target.closest('#btnDeleteRegistro')) {
         e.stopPropagation();
         const id = e.target.closest('#btnDeleteRegistro').dataset.id;
-        eliminarRegistro(selectedTipo, id);
+        eliminarRegistro(selectedTipo, id, () => {
+            fetchClientes('', '', selectedTipo);
+        });
     }
 
     if (e.target.closest('#btnProyectosCliente')) {
@@ -320,7 +233,9 @@ document.addEventListener('click', function (e) {
     }
 
     if (e.target.closest('#btnGuardarCliente')) {
-        guardarRegistro(selectedTipo);
+        guardarRegistro(selectedTipo, () => {
+            fetchClientes('', '', selectedTipo);
+        });
     }
 
     if (e.target.closest("#btnNuevaOrganizacion")) {

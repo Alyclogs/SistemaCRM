@@ -2,12 +2,14 @@
 require_once __DIR__ . '/../../models/clientes/ClienteModel.php';
 require_once __DIR__ . '/../../models/actividades/ActividadModel.php';
 require_once __DIR__ . '/../../models/Usuarios/UsuarioModel.php';
+require_once __DIR__ . '/../../models/ajustes/AjustesModel.php';
 
 $id = $_GET['id'] ?? null;
 $pdo = Database::getConnection();
 $model = new ClienteModel($pdo);
 $actividadModel = new ActividadModel($pdo);
 $usuarioModel = new UsuarioModel($pdo);
+$ajustesModel = new AjustesModel($pdo);
 $cliente = null;
 $mensaje = '';
 
@@ -20,6 +22,7 @@ if (!$cliente) {
 }
 $usuarios = $usuarioModel->obtenerUsuarios();
 $estadosActividad = $actividadModel->obtenerEstados();
+$camposExtra = $ajustesModel->obtenerCamposPorTipo(null, "cliente");
 ?>
 
 <link rel="stylesheet" href="./assets/css/actividad.css">
@@ -70,7 +73,8 @@ $estadosActividad = $actividadModel->obtenerEstados();
                                 <?php if (isset($cliente['num_doc'])): ?>
                                     <div class="info-row">
                                         <?php include('./assets/svg/document-text-2.svg') ?>
-                                        <span>DNI: <?= $cliente['num_doc'] ?></span>
+                                        <span>DNI: </span>
+                                        <span><?= $cliente['num_doc'] ?></span>
                                     </div>
                                 <?php endif; ?>
                                 <?php if (isset($cliente['telefono'])): ?>
@@ -90,6 +94,74 @@ $estadosActividad = $actividadModel->obtenerEstados();
                                 <?php endif; ?>
                             </div>
                         </div>
+                        <?php if (!empty($camposExtra)): ?>
+                            <div class="info-container">
+                                <h6 class="fw-bold mb-2">Información extra:</h6>
+                                <div class="d-flex flex-column">
+
+                                    <?php foreach ($camposExtra as $campo): ?>
+                                        <?php
+                                        $valor = isset($cliente['extra'][$campo['nombre']])
+                                            ? $cliente['extra'][$campo['nombre']]
+                                            : null;
+
+                                        // Normalizar el valor según tipo
+                                        switch ($campo['tipo_dato']) {
+                                            case 'texto':
+                                                $valorFormateado = $valor ?: '(Vacío)';
+                                                break;
+
+                                            case 'fecha':
+                                                $valorFormateado = $valor
+                                                    ? date('d/m/Y', strtotime($valor))
+                                                    : '(Vacío)';
+                                                break;
+
+                                            case 'booleano':
+                                                $valorFormateado = $valor
+                                                    ? 'Sí'
+                                                    : 'No';
+                                                break;
+
+                                            case 'numero':
+                                                $valorFormateado = $valor !== null && $valor !== ''
+                                                    ? number_format((float)$valor, 2, ',', '.')
+                                                    : '(Vacío)';
+                                                break;
+
+                                            case 'opciones':
+                                                $opciones = $campo['valor_inicial'] ?? [];
+                                                $valorFormateado = in_array($valor, $opciones)
+                                                    ? $valor
+                                                    : '(Vacío)';
+                                                break;
+
+                                            default:
+                                                $valorFormateado = $valor ?: '(Vacío)';
+                                                break;
+                                        }
+                                        ?>
+
+                                        <div class="edicion-grupo">
+                                            <div class="info-row row-editable"
+                                                data-element="extra_<?= $campo['nombre'] ?>"
+                                                data-campo='<?= json_encode($campo) ?>'
+                                                data-source="clientes"
+                                                data-action="actualizar"
+                                                data-id="<?= $cliente['idcliente'] ?>">
+
+                                                <span class="fw-bold"><?= htmlspecialchars($campo['nombre']) ?>:</span>
+                                                <span id="extra_<?= $campo['nombre'] ?>"><?= $valorFormateado ?></span>
+                                            </div>
+
+                                            <button class="btn btn-icon sm border btn-edit-info">
+                                                <?php include('./assets/svg/edit.svg') ?>
+                                            </button>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                         <div class="info-container">
                             <h6 class="fw-bold mb-2">Organización:</h6>
                             <?php if (isset($cliente['correo'])): ?>

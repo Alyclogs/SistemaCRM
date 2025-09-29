@@ -32,7 +32,7 @@ if ($idactividad) {
         exit;
     }
 }
-$camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad');
+$camposExtra = $ajustesModel->obtenerCamposPorTipo(null, 'actividad');
 ?>
 
 <div class="d-flex gap-3 h-100">
@@ -99,17 +99,32 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
                             <a class="text-primary <?= isset($actividad['extra']) && isset($actividad['extra']['enlace']) ? 'disable-click' : 'clickable' ?>" id="agregarEnlace">enlace</a>
                         </div>
                         <div id="extraContent">
-                            <div class="descripcion-container flex-column gap-2 mb-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['descripcion']) ? 'flex' : 'none' ?>">
-                                <label for="descripcionInput">Descripción:</label>
+                            <div class="extra-content descripcion-container flex-column gap-2 mb-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['descripcion']) ? 'flex' : 'none' ?>">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label for="descripcionInput">Descripción:</label>
+                                    <button type="button" class="btn btn-icon sm btn-hide-element" data-elements=".descripcion-container">
+                                        <?php include('../../../assets/svg/x.svg') ?>
+                                    </button>
+                                </div>
                                 <textarea class="form-control w-100" id="descripcionInput" name="extra_descripcion" rows="3" placeholder="Ingrese una descripción"><?= isset($actividad['extra']) ? $actividad['extra']['descripcion'] ?? '' : '' ?></textarea>
                             </div>
-                            <div class="direccion-container flex-column gap-2 mb-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['direccion']) ? 'flex' : 'none' ?>">
-                                <label for="direccionInput">Dirección:</label>
+                            <div class="extra-content direccion-container flex-column gap-2 mb-2" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['direccion']) ? 'flex' : 'none' ?>">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label for="direccionInput">Dirección:</label>
+                                    <button type="button" class="btn btn-icon sm btn-hide-element" data-elements=".direccion-container">
+                                        <?php include('../../../assets/svg/x.svg') ?>
+                                    </button>
+                                </div>
                                 <input type="text" class="form-control w-100" id="direccionInput" name="extra_direccion" placeholder="Ingrese un dirección" value="<?= isset($actividad['extra']) ? $actividad['extra']['direccion'] ?? '' : '' ?>">
                                 <input type="text" class="form-control w-100" id="direccionReferenciaInput" name="extra_direccion_referencia" placeholder="Ingrese una dirección de referencia" value="<?= isset($actividad['extra']) ? $actividad['extra']['direccion_referencia'] ?? '' : '' ?>">
                             </div>
-                            <div class="enlace-container flex-column gap-2 mb-3" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['enlace']) ? 'flex' : 'none' ?>">
-                                <label for="enlaceInput">Enlace:</label>
+                            <div class="extra-content enlace-container flex-column gap-2 mb-3" style="display: <?= isset($actividad['extra']) && isset($actividad['extra']['enlace']) ? 'flex' : 'none' ?>">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label for="enlaceInput">Enlace:</label>
+                                    <button type="button" class="btn btn-icon sm btn-hide-element" data-elements=".enlace-container">
+                                        <?php include('../../../assets/svg/x.svg') ?>
+                                    </button>
+                                </div>
                                 <input type="url" class="form-control w-100" id="enlaceInput" name="extra_enlace" placeholder="Ingrese un enlace" value="<?= isset($actividad['extra']) ? $actividad['extra']['enlace'] ?? '' : '' ?>">
                                 <div class="d-flex align-items-center gap-2">
                                     <button class="btn btn-outline w-100" id="generarEnlaceZoom"><?php include('../../../assets/svg/video.svg') ?><span>Generar reunión con Zoom</span></button>
@@ -119,7 +134,6 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
                         </div>
                         <?php if (!empty($camposExtra)): ?>
                             <?php foreach ($camposExtra as $campo): ?>
-                                <?php if (isset($campo['idreferencia']) && $campo['idreferencia'] != $idactividad) return; ?>
                                 <div class="col-6">
                                     <label for="campoExtra_<?= $campo['idcampo'] ?>" class="form-label">
                                         <?= htmlspecialchars(ucfirst($campo['nombre'])) ?>
@@ -132,7 +146,7 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
                                             name="extra_<?= $campo['nombre'] ?>"
                                             value="<?= trim($actividad['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
                                             <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
-                                            <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                            <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                                     <?php elseif ($campo['tipo_dato'] === 'numero'): ?>
                                         <input type="number"
@@ -141,7 +155,7 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
                                             name="extra_<?= $campo['nombre'] ?>"
                                             value="<?= trim($actividad['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
                                             <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
-                                            <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                            <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                                     <?php elseif ($campo['tipo_dato'] === 'fecha'): ?>
                                         <input type="date"
@@ -149,21 +163,21 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
                                             id="campoExtra_<?= $campo['idcampo'] ?>"
                                             name="extra_<?= $campo['nombre'] ?>"
                                             value="<?= trim($actividad['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
-                                            <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                            <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                                     <?php elseif ($campo['tipo_dato'] === 'booleano'): ?>
                                         <select class="form-select w-auto"
                                             id="campoExtra_<?= $campo['idcampo'] ?>"
                                             name="extra_<?= $campo['nombre'] ?>">
-                                            <option value="1" <?= (trim($actividad['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 'Sí' ? 'selected' : '' ?>>Sí</option>
-                                            <option value="0" <?= (trim($actividad['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 'No' ? 'selected' : '' ?>>No</option>
+                                            <option value="1" <?= (trim($actividad['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 1 ? 'selected' : '' ?>>Sí</option>
+                                            <option value="0" <?= (trim($actividad['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 0 ? 'selected' : '' ?>>No</option>
                                         </select>
 
                                     <?php elseif ($campo['tipo_dato'] === 'opciones' && is_array($campo['valor_inicial'])): ?>
                                         <select class="form-select w-auto"
                                             id="campoExtra_<?= $campo['idcampo'] ?>"
                                             name="extra_<?= $campo['nombre'] ?>"
-                                            <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                            <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
                                             <?php foreach ($campo['valor_inicial'] as $opcion): ?>
                                                 <option value="<?= htmlspecialchars($opcion) ?>"
                                                     <?= (isset($actividad['extra'][$campo['nombre']]) && $actividad['extra'][$campo['nombre']] == $opcion) ? 'selected' : '' ?>>
@@ -216,7 +230,7 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idactividad ?? 0, 'actividad
             </div>
         </form>
     </div>
-    <div style="width: 280px; height: 100%;">
+    <div style="width: 280px; min-width: 280px; height: 100%;">
         <div id="miniCalendar"></div>
     </div>
 </div>

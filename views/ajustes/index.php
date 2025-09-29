@@ -1,7 +1,7 @@
 <div class="h-100 d-flex flex-column p-4">
     <div class="d-flex h-100 gap-3">
         <div class="bg-white disable-hover"
-            style="width: 25%;
+            style="width: 20%;
             border-right: 1px solid var(--bs-border-color);">
             <div class="h-100 p-4 pe-0">
                 <h5 class="page-title mb-3">Ajustes</h5>
@@ -19,7 +19,7 @@
                 </div>
             </div>
         </div>
-        <div style="width: 75%; height: 100%;">
+        <div style="width: 80%; height: 100%;">
             <div class="h-100 p-4">
                 <div id="rolesSection" class="h-100">
                     <div class="mb-4">

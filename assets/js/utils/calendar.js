@@ -36,6 +36,11 @@ export default class CalendarUI {
                 week: 'Semanal',
                 day: 'Diario',
                 list: 'Lista'
+            },
+            eventContent: function (arg) {
+                return {
+                    html: arg.event.title
+                };
             }
         });
         return calendar;

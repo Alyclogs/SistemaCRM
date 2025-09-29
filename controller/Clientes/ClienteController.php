@@ -128,7 +128,7 @@ try {
                 break;
 
             case 'actualizar':
-                if (!isset($_POST['idexistente'])) throw new Exception("ID requerido");
+                if (!isset($_POST['id'])) throw new Exception("ID requerido");
 
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                     $archivoFoto = $_FILES['foto'];
@@ -174,13 +174,13 @@ try {
                     $_POST['foto'] = null;
                 }
 
-                $clienteModel->actualizarCliente($_POST['idexistente'], $_POST);
+                $clienteModel->editarCliente($_POST['id'], $_POST);
                 $response = ["success" => true, "message" => "Cliente actualizado"];
                 break;
 
             case 'eliminar':
-                if (!isset($_POST['idexistente'])) throw new Exception("ID requerido");
-                $clienteModel->eliminarCliente($_POST['idexistente']);
+                if (!isset($_POST['id'])) throw new Exception("ID requerido");
+                $clienteModel->eliminarCliente($_POST['id']);
                 $response = ["success" => true, "message" => "Cliente eliminado"];
                 break;
 
@@ -234,7 +234,7 @@ try {
                 break;
 
             case 'actualizarOrganizacion':
-                if (!isset($_POST['idexistente'])) throw new Exception("ID requerido");
+                if (!isset($_POST['id'])) throw new Exception("ID requerido");
 
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                     $archivoFoto = $_FILES['foto'];
@@ -280,13 +280,13 @@ try {
                     $_POST['foto'] = null;
                 }
 
-                $clienteModel->actualizarEmpresa($_POST['idexistente'], $_POST);
+                $clienteModel->editarEmpresa($_POST['id'], $_POST);
                 $response = ["success" => true, "message" => "Organización actualizada"];
                 break;
 
             case 'eliminarOrganizacion':
-                if (!isset($_POST['idexistente'])) throw new Exception("ID requerido");
-                $clienteModel->eliminarEmpresa($_POST['idexistente']);
+                if (!isset($_POST['id'])) throw new Exception("ID requerido");
+                $clienteModel->eliminarEmpresa($_POST['id']);
                 $response = ["success" => true, "message" => "Organización eliminada"];
                 break;
 

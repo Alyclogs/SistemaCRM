@@ -18,11 +18,11 @@ if ($idcliente) {
     }
 }
 $estados = $clienteModel->obtenerEstadosClientes();
-$camposExtra = $ajustesModel->obtenerCamposPorTipo($idcliente ?? 0, 'cliente');
+$camposExtra = $ajustesModel->obtenerCamposPorTipo(null, 'cliente');
 ?>
 
 <form method="POST" id="formCliente">
-    <input type="hidden" name="idexistente" value="<?= $cliente['idcliente'] ?? '' ?>">
+    <input type="hidden" name="id" value="<?= $cliente['idcliente'] ?? '' ?>">
 
     <div class="row">
         <div class="col-3 flex-column  d-flex align-items-center justify-content-center gap-3">
@@ -77,7 +77,7 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idcliente ?? 0, 'cliente');
                     <label for="organizacionInput" class="form-label">Organización <span class="text-danger">*</span></label>
                     <div class="busqueda-grupo disable-auto">
                         <input type="text" class="form-control" id="organizacionInput" name="empresa" value="<?= $cliente['empresa_nombre'] ?? '' ?>" required>
-                        <input type="hidden" name="idempresa" id="idOrganizacionInput" value="">
+                        <input type="hidden" name="idempresa" id="idOrganizacionInput" value="<?= $cliente['idempresa'] ?? '' ?>">
                         <div class="resultados-busqueda" data-parent="organizacionInput" style="top: 2.5rem;"></div>
                     </div>
                 </div>
@@ -87,7 +87,6 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idcliente ?? 0, 'cliente');
                 </div>
                 <?php if (!empty($camposExtra)): ?>
                     <?php foreach ($camposExtra as $campo): ?>
-                        <?php if (isset($campo['idreferencia']) && $campo['idreferencia'] != $idcliente) return; ?>
                         <div class="col-6 mb-3">
                             <label for="campoExtra_<?= $campo['idcampo'] ?>" class="form-label">
                                 <?= htmlspecialchars(ucfirst($campo['nombre'])) ?>
@@ -99,7 +98,8 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idcliente ?? 0, 'cliente');
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
                                     name="extra_<?= $campo['nombre'] ?>"
                                     value="<?= trim($cliente['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
-                                    <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>>
+                                    <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                             <?php elseif ($campo['tipo_dato'] === 'numero'): ?>
                                 <input type="number"
@@ -107,27 +107,31 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo($idcliente ?? 0, 'cliente');
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
                                     name="extra_<?= $campo['nombre'] ?>"
                                     value="<?= trim($cliente['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
-                                    <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>>
+                                    <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                             <?php elseif ($campo['tipo_dato'] === 'fecha'): ?>
                                 <input type="date"
                                     class="form-control"
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
                                     name="extra_<?= $campo['nombre'] ?>"
-                                    value="<?= trim($cliente['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>">
+                                    value="<?= trim($cliente['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                             <?php elseif ($campo['tipo_dato'] === 'booleano'): ?>
                                 <select class="form-select"
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
-                                    name="extra_<?= $campo['nombre'] ?>">
-                                    <option value="1" <?= (trim($cliente['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 'Sí' ? 'selected' : '' ?>>Sí</option>
-                                    <option value="0" <?= (trim($cliente['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 'No' ? 'selected' : '' ?>>No</option>
+                                    name="extra_<?= $campo['nombre'] ?>"
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                    <option value="1" <?= (isset($cliente['extra']) && isset($cliente['extra'][$campo['nombre']]) ? trim($cliente['extra'][$campo['nombre']]) : $campo['valor_inicial']) == 1 ? 'selected' : '' ?>>Sí</option>
+                                    <option value="0" <?= (isset($cliente['extra']) && isset($cliente['extra'][$campo['nombre']]) ? trim($cliente['extra'][$campo['nombre']]) : $campo['valor_inicial']) == 2 ? 'selected' : '' ?>>No</option>
                                 </select>
 
                             <?php elseif ($campo['tipo_dato'] === 'opciones' && is_array($campo['valor_inicial'])): ?>
                                 <select class="form-select"
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
-                                    name="extra_<?= $campo['nombre'] ?>">
+                                    name="extra_<?= $campo['nombre'] ?>"
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
                                     <?php foreach ($campo['valor_inicial'] as $opcion): ?>
                                         <option value="<?= htmlspecialchars($opcion) ?>"
                                             <?= (isset($cliente['extra'][$campo['nombre']]) && $cliente['extra'][$campo['nombre']] == $opcion) ? 'selected' : '' ?>>

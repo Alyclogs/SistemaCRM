@@ -3,6 +3,10 @@ require_once __DIR__ . "/../cambios/RegistroCambio.php";
 require_once __DIR__ . "/../actividades/ActividadModel.php";
 require_once __DIR__ . '/../ajustes/AjustesModel.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 class ClienteModel
 {
     private $pdo;
@@ -473,16 +477,18 @@ class ClienteModel
             }
 
             // Registrar cambio de creación
-            $this->registroCambioModel->registrarCambio(
-                $data['idusuario'],
-                $idcliente,
-                'cliente',
-                'creacion',
-                null,
-                null,
-                null,
-                "Cliente creado: {$data['nombres']} {$data['apellidos']}"
-            );
+            if (!empty($_SESSION['idusuario'])) {
+                $this->registroCambioModel->registrarCambio(
+                    $_SESSION['idusuario'],
+                    $idcliente,
+                    'cliente',
+                    'creacion',
+                    null,
+                    null,
+                    null,
+                    "Cliente creado: {$data['nombres']} {$data['apellidos']}"
+                );
+            }
 
             return $idcliente;
         } catch (Exception $e) {
@@ -512,22 +518,84 @@ class ClienteModel
     public function asignarUsuarioACliente($idcliente, $idusuario)
     {
         try {
+            // Estado anterior
+            $stmtPrevio = $this->pdo->prepare("SELECT idusuario FROM clientes WHERE idcliente = ?");
+            $stmtPrevio->execute([$idcliente]);
+            $usuarioPrevio = $stmtPrevio->fetch(PDO::FETCH_ASSOC);
+            $estadoPrevio = $usuarioPrevio && $usuarioPrevio['idusuario']
+                ? [['idreferencia' => $usuarioPrevio['idusuario']]]
+                : [];
+
+            // Actualizar asignación
             $sql = "UPDATE clientes SET idusuario = ? WHERE idcliente = ?";
             $stmt = $this->pdo->prepare($sql);
-            return $stmt->execute([$idusuario, $idcliente]);
+            $stmt->execute([$idusuario, $idcliente]);
+
+            // Estado nuevo
+            $stmtNuevo = $this->pdo->prepare("SELECT idusuario FROM clientes WHERE idcliente = ?");
+            $stmtNuevo->execute([$idcliente]);
+            $usuarioNuevo = $stmtNuevo->fetch(PDO::FETCH_ASSOC);
+            $estadoNuevo = $usuarioNuevo && $usuarioNuevo['idusuario']
+                ? [['idreferencia' => $usuarioNuevo['idusuario']]]
+                : [];
+
+            // Registrar cambios
+            if (!empty($_SESSION['idusuario'])) {
+                $this->registroCambioModel->registrarAsignaciones(
+                    $_SESSION['idusuario'],   // usuario que hace el cambio
+                    $idcliente,               // id de referencia
+                    'cliente',                // tipo
+                    'usuario',                // relación
+                    $estadoPrevio,
+                    $estadoNuevo
+                );
+            }
+
+            return true;
         } catch (Exception $e) {
             throw new Exception("Error al asignar usuario al cliente: " . $e->getMessage());
         }
     }
 
-    public function asignarUsuarioAEmpresa($idcliente, $idusuario)
+    public function asignarUsuarioAEmpresa($idempresa, $idusuario)
     {
         try {
-            $sql = "UPDATE empresas SET idusuario = ? WHERE idcliente = ?";
+            // Estado anterior
+            $stmtPrevio = $this->pdo->prepare("SELECT idusuario FROM empresas WHERE idempresa = ?");
+            $stmtPrevio->execute([$idempresa]);
+            $usuarioPrevio = $stmtPrevio->fetch(PDO::FETCH_ASSOC);
+            $estadoPrevio = $usuarioPrevio && $usuarioPrevio['idusuario']
+                ? [['idreferencia' => $usuarioPrevio['idusuario']]]
+                : [];
+
+            // Actualizar asignación
+            $sql = "UPDATE empresas SET idusuario = ? WHERE idempresa = ?";
             $stmt = $this->pdo->prepare($sql);
-            return $stmt->execute([$idusuario, $idcliente]);
+            $stmt->execute([$idusuario, $idempresa]);
+
+            // Estado nuevo
+            $stmtNuevo = $this->pdo->prepare("SELECT idusuario FROM empresas WHERE idempresa = ?");
+            $stmtNuevo->execute([$idempresa]);
+            $usuarioNuevo = $stmtNuevo->fetch(PDO::FETCH_ASSOC);
+            $estadoNuevo = $usuarioNuevo && $usuarioNuevo['idusuario']
+                ? [['idreferencia' => $usuarioNuevo['idusuario']]]
+                : [];
+
+            // Registrar cambios
+            if (!empty($_SESSION['idusuario'])) {
+                $this->registroCambioModel->registrarAsignaciones(
+                    $_SESSION['idusuario'],   // usuario que hace el cambio
+                    $idempresa,               // id de referencia
+                    'empresa',                // tipo
+                    'usuario',                // relación
+                    $estadoPrevio,
+                    $estadoNuevo
+                );
+            }
+
+            return true;
         } catch (Exception $e) {
-            throw new Exception("Error al asignar usuario al cliente: " . $e->getMessage());
+            throw new Exception("Error al asignar usuario a la empresa: " . $e->getMessage());
         }
     }
 
@@ -550,9 +618,9 @@ class ClienteModel
             $proyectosNuevos = array_map(fn($p) => ['idreferencia' => $p['idproyecto']], $stmtNuevo->fetchAll(PDO::FETCH_ASSOC));
 
             // Registrar cambios
-            if ($idusuario) {
+            if (!empty($_SESSION['idusuario'])) {
                 $this->registroCambioModel->registrarAsignaciones(
-                    $idusuario,
+                    $_SESSION['idusuario'],
                     $idcliente,
                     'cliente',
                     'proyectos',
@@ -591,9 +659,9 @@ class ClienteModel
             $empresasNuevas = $empresaNuevo ? [['idreferencia' => $empresaNuevo]] : [];
 
             // Registrar cambios
-            if ($idusuario) {
+            if (!empty($_SESSION['idusuario'])) {
                 $this->registroCambioModel->registrarAsignaciones(
-                    $idusuario,
+                    $_SESSION['idusuario'],
                     $idcliente,
                     'cliente',
                     'empresas',
@@ -644,14 +712,81 @@ class ClienteModel
             }
 
             // --- 4) Registrar cambios automáticos
-            $this->registroCambioModel->registrarCambiosAutomaticos(
-                $data['idusuario'],
-                $id,
-                'cliente',
-                'actualizacion',
-                $clienteAntes,
-                $data
-            );
+            if (!empty($_SESSION['idusuario'])) {
+                $this->registroCambioModel->registrarCambiosAutomaticos(
+                    $_SESSION['idusuario'],
+                    $id,
+                    'cliente',
+                    'actualizacion',
+                    $clienteAntes,
+                    $data
+                );
+            }
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw new Exception("Error al actualizar cliente: " . $e->getMessage());
+        }
+    }
+
+    public function editarCliente($id, $data)
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            // --- 1) Obtener cliente antes (para auditoría)
+            $clienteAntes = $this->obtenerCliente($id);
+
+            // --- 2) Armar actualización dinámica
+            $campos = [];
+            $params = [];
+            $dataValidos = []; // <- Solo guardaremos los campos válidos
+
+            $camposTabla = $this->registroCambioModel->obtenerCampoTabla("cliente");
+
+            foreach ($data as $campo => $valor) {
+                if (!isset($camposTabla[$campo])) {
+                    continue; // ignorar campos que no existen en la tabla/diccionario
+                }
+
+                // control especial para foto (si no viene, no la tocamos)
+                if ($campo === "foto") {
+                    $campos[] = "foto = :foto";
+                    $params[':foto'] = $valor ?? $clienteAntes['foto'] ?? "assets/img/usuariodefault.png";
+                    $dataValidos[$campo] = $params[':foto'];
+                } elseif (!in_array($campo, ["id", "idempresa", "idcliente"])) {
+                    $campos[] = "$campo = :$campo";
+                    $params[":$campo"] = $valor;
+                    $dataValidos[$campo] = $valor;
+                }
+            }
+
+            if (!empty($campos)) {
+                $sql = "UPDATE clientes SET " . implode(", ", $campos) . " WHERE idcliente = :id";
+                $params[':id'] = $id;
+
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($params);
+            }
+
+            // --- 3) Si viene una empresa en los datos, actualizar la relación
+            if (!empty($data['idempresa'])) {
+                $this->asignarEmpresaACliente($id, $data['idempresa']);
+            }
+
+            // --- 4) Registrar cambios automáticos SOLO con campos válidos
+            if (!empty($_SESSION['idusuario']) && !empty($dataValidos)) {
+                $this->registroCambioModel->registrarCambiosAutomaticos(
+                    $_SESSION['idusuario'],
+                    $id,
+                    'cliente',
+                    'actualizacion',
+                    $clienteAntes,
+                    $dataValidos
+                );
+            }
 
             $this->pdo->commit();
             return true;
@@ -668,10 +803,10 @@ class ClienteModel
             $stmt = $this->pdo->prepare($sql);
 
             $cliente = $this->obtenerCliente($id);
-            if ($cliente) {
+            if ($cliente && !empty($_SESSION['idusuario'])) {
                 // Registrar cambio de eliminación
                 $this->registroCambioModel->registrarCambio(
-                    null,
+                    $_SESSION['idusuario'],
                     $id,
                     'cliente',
                     'eliminacion',
@@ -702,16 +837,18 @@ class ClienteModel
                 $data['foto'] ?? 'assets/img/organizaciondefault.png'
             ]);
 
-            $this->registroCambioModel->registrarCambio(
-                $data['idusuario'],
-                $this->pdo->lastInsertId(),
-                'empresa',
-                'creacion',
-                null,
-                null,
-                null,
-                "Empresa creada: {$data['razon_social']}"
-            );
+            if (!empty($_SESSION['idusuario'])) {
+                $this->registroCambioModel->registrarCambio(
+                    $_SESSION['idusuario'],
+                    $this->pdo->lastInsertId(),
+                    'empresa',
+                    'creacion',
+                    null,
+                    null,
+                    null,
+                    "Empresa creada: {$data['razon_social']}"
+                );
+            }
 
             return $this->pdo->lastInsertId();
         } catch (Exception $e) {
@@ -739,18 +876,80 @@ class ClienteModel
                 $idempresa
             ]);
 
-            $this->registroCambioModel->registrarCambiosAutomaticos(
-                $data['idusuario'],
-                $idempresa,
-                'empresa',
-                'actualizacion',
-                $this->obtenerOrganizacion($idempresa),
-                $data
-            );
+            if (!empty($_SESSION['idusuario'])) {
+                $this->registroCambioModel->registrarCambiosAutomaticos(
+                    $_SESSION['idusuario'],
+                    $idempresa,
+                    'empresa',
+                    'actualizacion',
+                    $this->obtenerOrganizacion($idempresa),
+                    $data
+                );
+            }
 
             return true;
         } catch (Exception $e) {
             throw new Exception("Error al actualizar empresa: " . $e->getMessage());
+        }
+    }
+
+    public function editarEmpresa($id, $data)
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            // --- 1) Obtener empresa antes (para auditoría)
+            $empresaAntes = $this->obtenerOrganizacion($id);
+
+            // --- 2) Armar actualización dinámica
+            $campos = [];
+            $params = [];
+            $dataValidos = []; // <- Solo guardaremos los campos válidos
+
+            $camposTabla = $this->registroCambioModel->obtenerCampoTabla("empresa");
+
+            foreach ($data as $campo => $valor) {
+                if (!isset($camposTabla[$campo])) {
+                    continue; // ignorar campos que no existen en la tabla/diccionario
+                }
+
+                // control especial para foto (si no viene, no la tocamos)
+                if ($campo === "foto") {
+                    $campos[] = "foto = :foto";
+                    $params[':foto'] = $valor ?? $empresaAntes['foto'] ?? "assets/img/organizaciondefault.png";
+                    $dataValidos[$campo] = $params[':foto'];
+                } elseif (!in_array($campo, ["id", "idempresa", "idcliente"])) {
+                    $campos[] = "$campo = :$campo";
+                    $params[":$campo"] = $valor;
+                    $dataValidos[$campo] = $valor;
+                }
+            }
+
+            if (!empty($campos)) {
+                $sql = "UPDATE empresas SET " . implode(", ", $campos) . " WHERE idempresa = :id";
+                $params[':id'] = $id;
+
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($params);
+            }
+
+            // --- 4) Registrar cambios automáticos SOLO con campos válidos
+            if (!empty($_SESSION['idusuario']) && !empty($dataValidos)) {
+                $this->registroCambioModel->registrarCambiosAutomaticos(
+                    $_SESSION['idusuario'],
+                    $id,
+                    'empresa',
+                    'actualizacion',
+                    $empresaAntes,
+                    $dataValidos
+                );
+            }
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw new Exception("Error al actualizar cliente: " . $e->getMessage());
         }
     }
 
@@ -761,10 +960,10 @@ class ClienteModel
             $stmt = $this->pdo->prepare($sql);
 
             $empresa = $this->obtenerOrganizacion($id);
-            if ($empresa) {
+            if ($empresa && !empty($_SESSION['idusuario'])) {
                 // Registrar cambio de eliminación
                 $this->registroCambioModel->registrarCambio(
-                    null,
+                    $_SESSION['idusuario'],
                     $id,
                     'empresa',
                     'eliminacion',

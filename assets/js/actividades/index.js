@@ -1,5 +1,5 @@
 import CalendarUI from "../utils/calendar.js";
-import { formatearFecha, formatearHora, formatearRangoFecha, formatEventDate, generarIntervalosHoras, sumarMinutos } from "../utils/date.js";
+import { formatearFecha, formatearHora, formatearHora12h, formatearRangoFecha, formatEventDate, generarIntervalosHoras, sumarMinutos } from "../utils/date.js";
 import { mostrarToast } from "../utils/utils.js";
 import api from "../utils/api.js";
 
@@ -14,6 +14,11 @@ const labels = {
     videollamada: "Videollamada",
     reunion: "Reunión"
 };
+const icons = {
+    llamada: "telefono",
+    videollamada: "video",
+    reunion: "reunion",
+}
 const usuarioActual = document.getElementById('idUsuario').value;
 const nombreUsuarioActual = document.getElementById('nombreUsuario').value;
 var selectedUsuario = usuarioActual;
@@ -47,7 +52,9 @@ function fetchActividades(idusuario = usuarioActual) {
 
                 calendar.addEvent({
                     id: act.idactividad,
-                    title: act.nombre,
+                    title: `<div class="d-flex align-items-center gap-1 h-100">
+                                ${window.getIcon([icons[act.tipo]], "white", 16)} <span>${formatearHora12h(act.hora_inicio)} - ${formatearHora12h(act.hora_fin)} / ${act.nombre}<span>
+                            </div>`,
                     start: start,
                     end: end,
                     classNames: ["evento-existente"]
@@ -190,12 +197,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!actividad) return;
 
         const popup = document.getElementById('popupActividad');
-
-        const icons = {
-            "llamada": "telefono",
-            "videollamada": "video",
-            "reunion": "profile-2user",
-        }
 
         let html = `
             <div class="info-row">
@@ -752,16 +753,7 @@ document.addEventListener('click', function (e) {
         const link = e.target.closest('a');
         if (!link) return;
         e.preventDefault();
-
         const container = e.target.closest(".extra-container");
-        const detailOptions = container.querySelector("#detailOptions");
-
-        /*
-        detailOptions.querySelectorAll("a").forEach(a => {
-            a.classList.add("clickable");
-            a.classList.remove("disable-click");
-        });
-        */
 
         link.classList.remove("clickable");
         link.classList.add("disable-click");
@@ -769,6 +761,15 @@ document.addEventListener('click', function (e) {
         if (link.id === "agregarDescripcion") container.querySelector(".descripcion-container").style.display = "flex";
         if (link.id === "agregarDireccion") container.querySelector(".direccion-container").style.display = "flex";
         if (link.id === "agregarEnlace") container.querySelector(".enlace-container").style.display = "flex";
+
+        const btnHide = container.querySelectorAll(".btn-hide-element");
+        btnHide.forEach(btn => {
+            btn.addEventListener("click", function () {
+                btn.closest(".extra-content").style.display = "none";
+                link.classList.remove("disable-click");
+                link.classList.add("clickable");
+            });
+        });
     }
 
     if (!e.target.closest('.fc-view')
