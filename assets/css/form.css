@@ -3,9 +3,10 @@
 input,
 select,
 .form-control {
-  border-color: var(--default-border-color) !important;
+  border-color: transparent !important;
+  border: none !important;
   border-radius: 0.5rem;
-  background-color: transparent;
+  background-color: var(--default-bg-color-light) !important;
   color: var(--default-text-color) !important;
   font-family: "Poppins", sans-serif !important;
 }
@@ -50,8 +51,9 @@ input:focus {
 
 .grupo-input {
   border-radius: 0.5rem;
-  border: 1px solid var(--default-border-color);
-  background-color: transparent;
+  border: none;
+  border-color: transparent;
+  background-color: var(--default-bg-color-light);
   display: flex;
   align-items: center;
   font-size: 14px;

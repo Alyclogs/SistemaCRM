@@ -65,12 +65,12 @@
 }
 
 .sidebar-item-content-divider {
-  height: .75rem;
+  height: 0.75rem;
 }
 
 .sidebar-link {
   flex-grow: 1;
-  padding: .5rem 1rem;
+  padding: 0.5rem 1rem;
   display: flex;
   gap: 0.5rem;
   align-items: center;
@@ -89,7 +89,7 @@
 
 .sidebar-content-corner-top,
 .sidebar-content-corner-bottom {
-  height: .75rem;
+  height: 0.75rem;
   background-color: var(--default-bg-color-light);
 }
 

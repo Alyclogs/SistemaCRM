@@ -20,16 +20,11 @@ if (isset($_SESSION['usuario']) && isset($_SESSION['rol'])) {
 $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
 ?>
 
-<style>
-    .grupo-input {
-        background-color: light-dark(rgba(232, 240, 254, 0.4), rgba(70, 90, 126, 0.4)) !important;
-    }
-</style>
 <div class="d-flex vh-100 d-flex align-items-center justify-content-center">
     <img src="./assets/img/capedu-large.png" alt="Imagen de Capedu" class="fondo-logo">
-    <div class="p-4 container-backdrop login-container">
+    <div class="p-4 container-default login-container shadow-lg">
         <div class="p-4 d-flex flex-column">
-            <h4 class="text-center my-4 text-white">Iniciar sesión</h4>
+            <h4 class="text-center my-4">Iniciar sesión</h4>
 
             <?php if ($error === true): ?>
                 <div class="alert alert-danger">Usuario o contraseña incorrectos</div>
@@ -37,7 +32,7 @@ $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
             <div class="mb-4">
                 <form method="POST" action="http://localhost/SistemaCRM/controller/Usuarios/procesarLogin.php">
                     <div class="mb-3">
-                        <label class="form-label text-white">Usuario</label>
+                        <label class="form-label">Usuario</label>
                         <div class="grupo-input">
                             <div class="px-1">
                                 <?php include('./assets/svg/user.svg') ?>
@@ -46,7 +41,7 @@ $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label text-white">Contraseña</label>
+                        <label class="form-label">Contraseña</label>
                         <div class="grupo-input mb-4">
                             <div class="px-1">
                                 <?php include('./assets/svg/lock.svg') ?>
