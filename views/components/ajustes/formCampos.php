@@ -91,12 +91,12 @@ if ($id) {
 
         <div class="col-6 mb-3">
             <label for="tipoReferenciaInput" class="form-label">Asignado a</label>
-            <select class="form-select" id="tipoReferenciaInput" name="tipo_referencia" required>
-                <option value="cliente" <?= isset($campo['tipo_referencia']) && $campo['tipo_referencia'] === 'cliente' ? 'selected' : '' ?>>Clientes</option>
-                <option value="empresa" <?= isset($campo['tipo_referencia']) && $campo['tipo_referencia'] === 'empresa' ? 'selected' : '' ?>>Empresas</option>
-                <option value="actividad" <?= isset($campo['tipo_referencia']) && $campo['tipo_referencia'] === 'actividad' ? 'selected' : '' ?>>Actividades</option>
-                <option value="proyecto" <?= isset($campo['tipo_referencia']) && $campo['tipo_referencia'] === 'proyecto' ? 'selected' : '' ?>>Proyectos</option>
-                <option value="tarea" <?= isset($campo['tipo_referencia']) && $campo['tipo_referencia'] === 'tarea' ? 'selected' : '' ?>>Tareas</option>
+            <select class="form-select" id="tipoReferenciaInput" name="tabla" required>
+                <option value="clientes" <?= isset($campo['tabla']) && $campo['tabla'] === 'clientes' ? 'selected' : '' ?>>Clientes</option>
+                <option value="empresas" <?= isset($campo['tabla']) && $campo['tabla'] === 'empresas' ? 'selected' : '' ?>>Empresas</option>
+                <option value="actividades" <?= isset($campo['tabla']) && $campo['tabla'] === 'actividades' ? 'selected' : '' ?>>Actividades</option>
+                <option value="proyectos" <?= isset($campo['tabla']) && $campo['tabla'] === 'proyectos' ? 'selected' : '' ?>>Proyectos</option>
+                <option value="tareas" <?= isset($campo['tabla']) && $campo['tabla'] === 'tareas' ? 'selected' : '' ?>>Tareas</option>
             </select>
         </div>
 
@@ -104,7 +104,7 @@ if ($id) {
             <label for="idReferenciaInput" class="form-label">Referencia</label>
             <div class="busqueda-grupo">
                 <input type="text" class="form-control" id="referenciaInput"
-                    value="<?= $campo['referencia'] ?? '' ?>" data-type="cliente"
+                    value="<?= $campo['referencia'] ?? '' ?>" data-type="clientes"
                     placeholder="Buscar actividad, cliente o empresa..." autocomplete="off">
                 <input type="hidden" name="idreferencia" id="idReferenciaInput"
                     value="<?= $campo['idreferencia'] ?? '' ?>">

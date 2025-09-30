@@ -89,6 +89,7 @@ class RegistroCambioModel
                 $valorNuevo    = $normalizarHora($valorNuevo);
             }
 
+            /*
             // 1. Manejar campo extra (JSON)
             if ($campo === 'extra') {
                 if (!is_array($valorAnterior)) {
@@ -124,6 +125,7 @@ class RegistroCambioModel
                 }
                 continue;
             }
+                */
 
             // 2. Ignorar arrays complejos
             if (is_array($valorNuevo) || is_array($valorAnterior)) {
@@ -187,15 +189,15 @@ class RegistroCambioModel
         }
     }
 
-    private function resolverContextoEntidad($tipo, $idreferencia = null)
+    public function resolverContextoEntidad($tipo, $idreferencia = null)
     {
         // Mapeo explícito de tablas y claves primarias
         $mapa = [
-            'actividad' => ['tabla' => 'actividades', 'pk' => 'idactividad'],
-            'cliente'   => ['tabla' => 'clientes',    'pk' => 'idcliente'],
-            'empresa'   => ['tabla' => 'empresas',    'pk' => 'idempresa'],
-            'proyecto'  => ['tabla' => 'proyectos',   'pk' => 'idproyecto'],
-            'tarea'     => ['tabla' => 'tareas',      'pk' => 'idtarea'],
+            'actividades' => ['tabla' => 'actividades', 'pk' => 'idactividad'],
+            'clientes'   => ['tabla' => 'clientes',    'pk' => 'idcliente'],
+            'empresas'   => ['tabla' => 'empresas',    'pk' => 'idempresa'],
+            'proyectos'  => ['tabla' => 'proyectos',   'pk' => 'idproyecto'],
+            'tareas'     => ['tabla' => 'tareas',      'pk' => 'idtarea'],
             'campos_extra' => ['tabla' => 'campos_extra', 'pk' => 'idcampo']
         ];
 
@@ -240,16 +242,39 @@ class RegistroCambioModel
         }
     }
 
-    public function obtenerCampoTabla($tipo)
+    public function obtenerCampoTabla($tipo, $campo)
     {
-        $tableName = $this->resolverContextoEntidad($tipo)['tabla'];
-        $sql = "SELECT campo, descripcion FROM diccionario_campos WHERE tabla = ?";
+        $contexto = $this->resolverContextoEntidad($tipo);
+        $tableName = $contexto['tabla'];
+
+        $sql = "SELECT campo FROM diccionario_campos 
+            WHERE tabla = ? AND campo = ?
+            UNION ALL
+            SELECT campo FROM campos_extra 
+            WHERE tabla = ? AND campo = ?
+            LIMIT 1";
+
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$tableName]);
-        $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // campo => etiqueta
+        $stmt->execute([$tableName, $campo, $tableName, $campo]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ? $row['campo'] : null;
+    }
+
+    public function obtenerCamposTabla($tabla)
+    {
+        $sql = "SELECT dc.campo FROM diccionario_campos dc
+                WHERE dc.tabla = ?
+                UNION ALL
+                SELECT ce.campo FROM campos_extra ce WHERE
+                ce.tabla = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$tabla, $tabla]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (!$rows) {
-            throw new Exception("No existen campos definidos para la tabla " . $tableName);
+            throw new Exception("No existen campos predefinidos en la tabla " . $tabla);
         }
         return $rows;
     }
@@ -260,8 +285,8 @@ class RegistroCambioModel
     private function generarDescripcion($tipo, $accion, $campo, $valorAnterior, $valorNuevo, $contexto = [])
     {
         // Buscar nombre del campo en diccionario_campos
-        $diccionario = $this->obtenerCampoTabla($tipo);
-        $campoLabel  = $diccionario[$campo] ?? ucfirst(str_replace("_", " ", $campo));
+        $column = $this->obtenerCampoTabla($tipo, $campo);
+        $campoLabel  = $column ?? ucfirst(str_replace("_", " ", $campo));
         $accionTexto = ucfirst($accion);
 
         $valorAnterior = ($valorAnterior === null || $valorAnterior === '') ? '(vacío)' : $valorAnterior;

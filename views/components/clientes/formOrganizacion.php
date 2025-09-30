@@ -74,8 +74,8 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo(null, 'empresa');
                                 <input type="text"
                                     class="form-control"
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
-                                    name="extra_<?= $campo['nombre'] ?>"
-                                    value="<?= trim($empresa['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                    name="<?= $campo['campo'] ?>"
+                                    value="<?= trim($empresa[$campo['campo']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
                                     <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
                                     <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
@@ -83,8 +83,8 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo(null, 'empresa');
                                 <input type="number"
                                     class="form-control"
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
-                                    name="extra_<?= $campo['nombre'] ?>"
-                                    value="<?= trim($empresa['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                    name="<?= $campo['campo'] ?>"
+                                    value="<?= trim($empresa[$campo['campo']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
                                     <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
                                     <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
@@ -92,27 +92,27 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo(null, 'empresa');
                                 <input type="date"
                                     class="form-control"
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
-                                    name="extra_<?= $campo['nombre'] ?>"
-                                    value="<?= trim($empresa['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                    name="<?= $campo['campo'] ?>"
+                                    value="<?= trim($empresa[$campo['campo']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
                                     <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                             <?php elseif ($campo['tipo_dato'] === 'booleano'): ?>
                                 <select class="form-select"
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
-                                    name="extra_<?= $campo['nombre'] ?>"
-                                    <?= $campo['requerido'] === 1 ? 'required' : '' ?>>
-                                    <option value="1" <?= (trim($empresa['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 1 ? 'selected' : '' ?>>Sí</option>
-                                    <option value="0" <?= (trim($empresa['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 2 ? 'selected' : '' ?>>No</option>
+                                    name="<?= $campo['campo'] ?>"
+                                    <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                    <option value="1" <?= (isset($empresa[$campo['campo']]) ? trim($empresa[$campo['campo']]) : $campo['valor_inicial']) == 1 ? 'selected' : '' ?>>Sí</option>
+                                    <option value="0" <?= (isset($empresa[$campo['campo']]) ? trim($empresa[$campo['campo']]) : $campo['valor_inicial']) == 2 ? 'selected' : '' ?>>No</option>
                                 </select>
 
                             <?php elseif ($campo['tipo_dato'] === 'opciones' && is_array($campo['valor_inicial'])): ?>
                                 <select class="form-select"
                                     id="campoExtra_<?= $campo['idcampo'] ?>"
-                                    name="extra_<?= $campo['nombre'] ?>"
+                                    name="<?= $campo['campo'] ?>"
                                     <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
                                     <?php foreach ($campo['valor_inicial'] as $opcion): ?>
                                         <option value="<?= htmlspecialchars($opcion) ?>"
-                                            <?= (isset($empresa['extra'][$campo['nombre']]) && $empresa['extra'][$campo['nombre']] == $opcion) ? 'selected' : '' ?>>
+                                            <?= (isset($empresa[$campo['campo']]) && $empresa[$campo['campo']] == $opcion) ? 'selected' : '' ?>>
                                             <?= htmlspecialchars($opcion) ?>
                                         </option>
                                     <?php endforeach; ?>

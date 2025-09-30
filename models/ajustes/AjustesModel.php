@@ -221,12 +221,16 @@ class AjustesModel
     public function crearCampo($data, $idusuario)
     {
         try {
-            $sql = "INSERT INTO campos_extra (idreferencia, tipo_referencia, nombre, valor_inicial, tipo_dato, longitud) 
-                    VALUES (?, ?, ?, ?, ?, ?)";
+            $this->pdo->beginTransaction();
+
+            // 1. Insertar metadata en campos_extra
+            $sql = "INSERT INTO campos_extra (idreferencia, tabla, campo, nombre, valor_inicial, tipo_dato, longitud) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 !empty($data['idreferencia']) ? $data['idreferencia'] : null,
-                $data['tipo_referencia'],
+                $data['tabla'],
+                $data['campo'],
                 $data['nombre'],
                 $data['valor_inicial'] ?? null,
                 $data['tipo_dato'] ?? 'texto',
@@ -235,6 +239,17 @@ class AjustesModel
 
             $idcampo = $this->pdo->lastInsertId();
 
+            // 2. Resolver contexto (dónde se debe aplicar el campo)
+            $contexto = $this->registroCambioModel->resolverContextoEntidad($data['tabla']);
+            $tablaDestino = $contexto['tabla'];
+            $pk = $contexto['pk'];
+
+            // 3. Alter table para agregar la columna
+            $tipoSQL = $this->mapearTipoDato($data['tipo_dato'], $data['longitud']);
+            $sqlAlter = "ALTER TABLE {$tablaDestino} ADD COLUMN {$data['campo']} {$tipoSQL}";
+            $this->pdo->exec($sqlAlter);
+
+            // 4. Registrar cambio
             $this->registroCambioModel->registrarCambio(
                 $idusuario,
                 $idcampo,
@@ -244,11 +259,15 @@ class AjustesModel
                 null,
                 null,
                 null,
-                "Campo extra creado: " . $data['nombre']
+                "Campo extra creado en {$tablaDestino}: " . $data['nombre']
             );
 
+            $this->pdo->commit();
             return $idcampo;
         } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
             throw new Exception("Error al crear campo extra: " . $e->getMessage());
         }
     }
@@ -256,13 +275,25 @@ class AjustesModel
     public function actualizarCampo($id, $data, $idusuario)
     {
         try {
+            $this->pdo->beginTransaction();
+
+            // 1. Obtener campo actual
+            $stmt = $this->pdo->prepare("SELECT * FROM campos_extra WHERE idcampo=?");
+            $stmt->execute([$id]);
+            $campoAnterior = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$campoAnterior) {
+                throw new Exception("Campo no encontrado");
+            }
+
+            // 2. Actualizar metadata
             $sql = "UPDATE campos_extra 
-                    SET idreferencia=?, tipo_referencia=?, nombre=?, valor_inicial=?, tipo_dato=?, longitud=? 
-                    WHERE idcampo=?";
+                SET idreferencia=?, tabla=?, campo=?, nombre=?, valor_inicial=?, tipo_dato=?, longitud=? 
+                WHERE idcampo=?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 !empty($data['idreferencia']) ? $data['idreferencia'] : null,
-                $data['tipo_referencia'],
+                $data['tabla'],
+                $data['campo'],
                 $data['nombre'],
                 $data['valor_inicial'] ?? null,
                 $data['tipo_dato'] ?? 'texto',
@@ -270,20 +301,35 @@ class AjustesModel
                 $id
             ]);
 
+            // 3. Alterar tabla si cambió el nombre/tipo del campo
+            $contexto = $this->registroCambioModel->resolverContextoEntidad($data['tabla']);
+            $tablaDestino = $contexto['tabla'];
+
+            if ($campoAnterior['campo'] !== $data['campo'] || $campoAnterior['tipo_dato'] !== $data['tipo_dato']) {
+                $tipoSQL = $this->mapearTipoDato($data['tipo_dato'], $data['longitud']);
+                $sqlAlter = "ALTER TABLE {$tablaDestino} CHANGE {$campoAnterior['campo']} {$data['campo']} {$tipoSQL}";
+                $this->pdo->exec($sqlAlter);
+            }
+
+            // 4. Registrar cambio
             $this->registroCambioModel->registrarCambio(
                 $idusuario,
                 $id,
                 'campos_extra',
                 'actualizacion',
+                $campoAnterior,
+                $data,
                 null,
                 null,
-                null,
-                null,
-                "Campo extra actualizado: " . $data['nombre']
+                "Campo extra actualizado en {$tablaDestino}: " . $data['nombre']
             );
 
+            $this->pdo->commit();
             return true;
         } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
             throw new Exception("Error al actualizar campo extra: " . $e->getMessage());
         }
     }
@@ -291,6 +337,8 @@ class AjustesModel
     public function eliminarCampo($id, $idusuario)
     {
         try {
+            $this->pdo->beginTransaction();
+
             // 1. Obtener info del campo
             $sqlCampo = "SELECT * FROM campos_extra WHERE idcampo = ?";
             $stmtCampo = $this->pdo->prepare($sqlCampo);
@@ -301,46 +349,18 @@ class AjustesModel
                 throw new Exception("El campo no existe");
             }
 
-            $nombreCampo = $campo['nombre'];
-            $tipoRef = $campo['tipo_referencia'];
+            // 2. Resolver contexto
+            $contexto = $this->registroCambioModel->resolverContextoEntidad($campo['tabla']);
+            $tablaDestino = $contexto['tabla'];
 
-            // 2. Definir tablas que tienen columna `extra`
-            $tablas = [
-                'cliente'   => 'clientes',
-                'empresa'   => 'empresas',
-                'actividad' => 'actividades',
-                'proyecto'  => 'proyectos',
-                'tarea'     => 'tareas'
-            ];
+            // 3. Eliminar la columna en tabla destino
+            $sqlAlter = "ALTER TABLE {$tablaDestino} DROP COLUMN {$campo['campo']}";
+            $this->pdo->exec($sqlAlter);
 
-            if (isset($tablas[$tipoRef])) {
-                $tabla = $tablas[$tipoRef];
-
-                // 3. Buscar registros con extra
-                $sqlSel = "SELECT id{$tipoRef} as id, extra FROM {$tabla} WHERE extra IS NOT NULL AND extra != ''";
-                $stmtSel = $this->pdo->prepare($sqlSel);
-                $stmtSel->execute();
-                $registros = $stmtSel->fetchAll(PDO::FETCH_ASSOC);
-
-                foreach ($registros as $reg) {
-                    $extra = json_decode($reg['extra'], true);
-
-                    if (is_array($extra) && array_key_exists($nombreCampo, $extra)) {
-                        unset($extra[$nombreCampo]); // eliminar campo del json
-
-                        $nuevoExtra = !empty($extra) ? json_encode($extra) : null;
-
-                        $sqlUpd = "UPDATE {$tabla} SET extra = ? WHERE id{$tipoRef} = ?";
-                        $stmtUpd = $this->pdo->prepare($sqlUpd);
-                        $stmtUpd->execute([$nuevoExtra, $reg['id']]);
-                    }
-                }
-            }
-
-            // 4. Eliminar el campo de campos_extra
+            // 4. Eliminar metadata
             $sql = "DELETE FROM campos_extra WHERE idcampo = ?";
             $stmt = $this->pdo->prepare($sql);
-            $resultado = $stmt->execute([$id]);
+            $stmt->execute([$id]);
 
             // 5. Registrar cambio
             $this->registroCambioModel->registrarCambio(
@@ -348,16 +368,35 @@ class AjustesModel
                 $id,
                 'campos_extra',
                 'eliminacion',
+                $campo['campo'],
                 null,
                 null,
                 null,
-                null,
-                "Campo extra eliminado: {$nombreCampo} (referencia: {$tipoRef})"
+                "Campo extra eliminado en {$tablaDestino}: {$campo['nombre']}"
             );
 
-            return $resultado;
+            $this->pdo->commit();
+            return true;
         } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
             throw new Exception("Error al eliminar campo extra: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Mapea tipo_dato → tipo SQL
+     */
+    private function mapearTipoDato($tipo, $longitud = null)
+    {
+        return match ($tipo) {
+            'texto'    => "VARCHAR(" . ($longitud ?: 255) . ")",
+            'numero'   => "INT",
+            'booleano' => "TINYINT(1)",
+            'fecha'    => "DATE",
+            'opciones' => "VARCHAR(" . ($longitud ?: 255) . ")",
+            default    => "TEXT"
+        };
     }
 }

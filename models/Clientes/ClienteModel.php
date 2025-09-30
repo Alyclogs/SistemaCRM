@@ -744,7 +744,7 @@ class ClienteModel
             $params = [];
             $dataValidos = []; // <- Solo guardaremos los campos válidos
 
-            $camposTabla = $this->registroCambioModel->obtenerCampoTabla("cliente");
+            $camposTabla = $this->registroCambioModel->obtenerCamposTabla("clientes");
 
             foreach ($data as $campo => $valor) {
                 if (!isset($camposTabla[$campo])) {
@@ -906,7 +906,7 @@ class ClienteModel
             $params = [];
             $dataValidos = []; // <- Solo guardaremos los campos válidos
 
-            $camposTabla = $this->registroCambioModel->obtenerCampoTabla("empresa");
+            $camposTabla = $this->registroCambioModel->obtenerCamposTabla("empresas");
 
             foreach ($data as $campo => $valor) {
                 if (!isset($camposTabla[$campo])) {

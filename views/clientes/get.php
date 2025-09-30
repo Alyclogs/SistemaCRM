@@ -101,8 +101,8 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo(null, "cliente");
 
                                     <?php foreach ($camposExtra as $campo): ?>
                                         <?php
-                                        $valor = isset($cliente['extra'][$campo['nombre']])
-                                            ? $cliente['extra'][$campo['nombre']]
+                                        $valor = isset($cliente[$campo['nombre']])
+                                            ? $cliente[$campo['nombre']]
                                             : null;
 
                                         // Normalizar el valor según tipo

@@ -57,7 +57,7 @@ function fetchCamposExtra() {
                         <td>${campo.tipo_dato}</td>
                         <td>${campo.longitud || 'N/A'}</td>
                         <td>${campo.requerido ? 'Sí' : 'No'}</td>
-                        <td>${campo.tipo_referencia}</td>
+                        <td>${campo.tabla}</td>
                         <td>${campo.valor_inicial ? (Array.isArray(campo.valor_inicial) ? campo.valor_inicial.join(", ") : campo.valor_inicial) : 'N/A'}</td>
                         <td>
                             <div class="info-row">
@@ -175,6 +175,8 @@ document.addEventListener("click", function (e) {
         if (type === "campo") {
             const form = document.getElementById("formCampo");
             const formData = new FormData(form);
+            const campo = formData.get('nombre').replace(' ', '_');
+            formData.append("campo", campo);
 
             const action = formData.get("idcampo") ? "actualizar_campo" : "crear_campo";
             api.post({
@@ -228,13 +230,13 @@ document.addEventListener('input', function (e) {
         const resultados = input.closest('.busqueda-grupo').querySelector('.resultados-busqueda');
 
         if (value.length > 2) {
-            if (type === "cliente") {
+            if (type === "clientes") {
                 buscarClientes(value, resultados);
             }
-            if (type === "empresa") {
+            if (type === "empresas") {
                 buscarEmpresas(value, resultados);
             }
-            if (type === "actividad") {
+            if (type === "actividades") {
             }
         } else {
             resultados.innerHTML = '';
@@ -248,14 +250,14 @@ document.addEventListener("change", function (e) {
         const value = e.target.value;
         const inputReferencia = document.getElementById('referenciaInput');
 
-        if (value === "cliente") {
-            inputReferencia.dataset.type = "cliente";
+        if (value === "clientes") {
+            inputReferencia.dataset.type = "clientes";
         }
-        if (value === "empresa") {
-            inputReferencia.dataset.type = "empresa";
+        if (value === "empresas") {
+            inputReferencia.dataset.type = "empresas";
         }
-        if (value === "actividad") {
-            inputReferencia.dataset.type = "actividad";
+        if (value === "actividades") {
+            inputReferencia.dataset.type = "actividades";
         }
     }
 })

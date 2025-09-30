@@ -134,53 +134,54 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo(null, 'actividad');
                         </div>
                         <?php if (!empty($camposExtra)): ?>
                             <?php foreach ($camposExtra as $campo): ?>
-                                <div class="col-6">
+                                <div class="col-6 mb-3">
                                     <label for="campoExtra_<?= $campo['idcampo'] ?>" class="form-label">
                                         <?= htmlspecialchars(ucfirst($campo['nombre'])) ?>
                                     </label>
 
                                     <?php if ($campo['tipo_dato'] === 'texto'): ?>
                                         <input type="text"
-                                            class="form-control w-auto"
+                                            class="form-control"
                                             id="campoExtra_<?= $campo['idcampo'] ?>"
-                                            name="extra_<?= $campo['nombre'] ?>"
-                                            value="<?= trim($actividad['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                            name="<?= $campo['campo'] ?>"
+                                            value="<?= trim($actividad[$campo['campo']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
                                             <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
                                             <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                                     <?php elseif ($campo['tipo_dato'] === 'numero'): ?>
                                         <input type="number"
-                                            class="form-control w-auto"
+                                            class="form-control"
                                             id="campoExtra_<?= $campo['idcampo'] ?>"
-                                            name="extra_<?= $campo['nombre'] ?>"
-                                            value="<?= trim($actividad['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                            name="<?= $campo['campo'] ?>"
+                                            value="<?= trim($actividad[$campo['campo']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
                                             <?= $campo['longitud'] ? 'maxlength="' . (int)$campo['longitud'] . '"' : '' ?>
                                             <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                                     <?php elseif ($campo['tipo_dato'] === 'fecha'): ?>
                                         <input type="date"
-                                            class="form-control w-auto"
+                                            class="form-control"
                                             id="campoExtra_<?= $campo['idcampo'] ?>"
-                                            name="extra_<?= $campo['nombre'] ?>"
-                                            value="<?= trim($actividad['extra'][$campo['nombre']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
+                                            name="<?= $campo['campo'] ?>"
+                                            value="<?= trim($actividad[$campo['campo']]) ?? htmlspecialchars($campo['valor_inicial'] ?? '') ?>"
                                             <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
 
                                     <?php elseif ($campo['tipo_dato'] === 'booleano'): ?>
-                                        <select class="form-select w-auto"
+                                        <select class="form-select"
                                             id="campoExtra_<?= $campo['idcampo'] ?>"
-                                            name="extra_<?= $campo['nombre'] ?>">
-                                            <option value="1" <?= (trim($actividad['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 1 ? 'selected' : '' ?>>Sí</option>
-                                            <option value="0" <?= (trim($actividad['extra'][$campo['nombre']]) ?? $campo['valor_inicial']) == 0 ? 'selected' : '' ?>>No</option>
+                                            name="<?= $campo['campo'] ?>"
+                                            <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
+                                            <option value="1" <?= (isset($actividad) && isset($actividad[$campo['campo']]) ? trim($actividad[$campo['campo']]) : $campo['valor_inicial']) == 1 ? 'selected' : '' ?>>Sí</option>
+                                            <option value="0" <?= (isset($actividad) && isset($actividad[$campo['campo']]) ? trim($actividad[$campo['campo']]) : $campo['valor_inicial']) == 2 ? 'selected' : '' ?>>No</option>
                                         </select>
 
                                     <?php elseif ($campo['tipo_dato'] === 'opciones' && is_array($campo['valor_inicial'])): ?>
-                                        <select class="form-select w-auto"
+                                        <select class="form-select"
                                             id="campoExtra_<?= $campo['idcampo'] ?>"
-                                            name="extra_<?= $campo['nombre'] ?>"
+                                            name="<?= $campo['campo'] ?>"
                                             <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'required' : '' ?>>
                                             <?php foreach ($campo['valor_inicial'] as $opcion): ?>
                                                 <option value="<?= htmlspecialchars($opcion) ?>"
-                                                    <?= (isset($actividad['extra'][$campo['nombre']]) && $actividad['extra'][$campo['nombre']] == $opcion) ? 'selected' : '' ?>>
+                                                    <?= (isset($actividad[$campo['campo']]) && $actividad[$campo['campo']] == $opcion) ? 'selected' : '' ?>>
                                                     <?= htmlspecialchars($opcion) ?>
                                                 </option>
                                             <?php endforeach; ?>
