@@ -36,12 +36,12 @@ class RegistroCambioModel
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([
                 $idusuario,
-                $idreferencia,
+                !empty($idreferencia) ? $idreferencia : null,
                 $tipo,
                 $accion,
                 $campo,
                 $anterior,
-                $nuevo,
+                !empty($nuevo) ? $nuevo : null,
                 $descripcion ?? $this->generarDescripcion($tipo, $accion, $campo, $anterior, $nuevo, $contexto)
             ]);
         } catch (Exception $e) {
@@ -88,44 +88,6 @@ class RegistroCambioModel
                 $valorAnterior = $normalizarHora($valorAnterior);
                 $valorNuevo    = $normalizarHora($valorNuevo);
             }
-
-            /*
-            // 1. Manejar campo extra (JSON)
-            if ($campo === 'extra') {
-                if (!is_array($valorAnterior)) {
-                    $valorAnterior = json_decode($valorAnterior);
-                }
-                if (!is_array($valorNuevo)) {
-                    $valorNuevo = json_decode($valorNuevo);
-                }
-
-                foreach ($valorNuevo as $subCampo => $nuevoValor) {
-                    $viejoValor = $valorAnterior[$subCampo] ?? null;
-
-                    // Normalizar valores
-                    $viejoValor = ($viejoValor === null || $viejoValor === '') ? '(vacío)' : $viejoValor;
-                    $nuevoValor = ($nuevoValor === null || $nuevoValor === '') ? '(vacío)' : $nuevoValor;
-
-                    if ($viejoValor !== $nuevoValor) {
-                        // Aquí forzamos que el label sea el nombre del subcampo
-                        $descripcion = "Actualización {$subCampo} de cliente {$contexto['nombres']} {$contexto['apellidos']}: {$viejoValor} -> {$nuevoValor}";
-
-                        $this->registrarCambio(
-                            $idusuario,
-                            $idreferencia,
-                            $tipo,
-                            $accion,
-                            $subCampo,   // usamos el subcampo directamente
-                            $viejoValor,
-                            $nuevoValor,
-                            $descripcion,
-                            $contexto
-                        );
-                    }
-                }
-                continue;
-            }
-                */
 
             // 2. Ignorar arrays complejos
             if (is_array($valorNuevo) || is_array($valorAnterior)) {
@@ -193,12 +155,18 @@ class RegistroCambioModel
     {
         // Mapeo explícito de tablas y claves primarias
         $mapa = [
+            'actividad' => ['tabla' => 'actividades', 'pk' => 'idactividad'],
+            'cliente'   => ['tabla' => 'clientes',    'pk' => 'idcliente'],
+            'empresa'   => ['tabla' => 'empresas',    'pk' => 'idempresa'],
+            'proyecto'  => ['tabla' => 'proyectos',   'pk' => 'idproyecto'],
+            'tarea'     => ['tabla' => 'tareas',      'pk' => 'idtarea'],
+            'campo extra' => ['tabla' => 'campos_extra', 'pk' => 'idcampo'],
             'actividades' => ['tabla' => 'actividades', 'pk' => 'idactividad'],
             'clientes'   => ['tabla' => 'clientes',    'pk' => 'idcliente'],
             'empresas'   => ['tabla' => 'empresas',    'pk' => 'idempresa'],
             'proyectos'  => ['tabla' => 'proyectos',   'pk' => 'idproyecto'],
             'tareas'     => ['tabla' => 'tareas',      'pk' => 'idtarea'],
-            'campos_extra' => ['tabla' => 'campos_extra', 'pk' => 'idcampo']
+            'campos extra' => ['tabla' => 'campos_extra', 'pk' => 'idcampo']
         ];
 
         if (!isset($mapa[$tipo])) {
@@ -247,36 +215,38 @@ class RegistroCambioModel
         $contexto = $this->resolverContextoEntidad($tipo);
         $tableName = $contexto['tabla'];
 
-        $sql = "SELECT campo FROM diccionario_campos 
-            WHERE tabla = ? AND campo = ?
-            UNION ALL
-            SELECT campo FROM campos_extra 
-            WHERE tabla = ? AND campo = ?
-            LIMIT 1";
-
+        // 1. Verificar directamente en MySQL (campos físicos)
+        $sql = "SHOW COLUMNS FROM `{$tableName}` LIKE ?";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$tableName, $campo, $tableName, $campo]);
+        $stmt->execute([$campo]);
+        $columnaFisica = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($columnaFisica) {
+            return $campo; // existe físicamente
+        }
 
-        return $row ? $row['campo'] : null;
+        // 2. Si no existe físicamente, buscar en metadata
+        $sqlMeta = "SELECT nombre FROM diccionario_campos 
+                WHERE tabla = ? AND campo = ?
+                UNION ALL
+                SELECT nombre FROM campos_extra 
+                WHERE tabla = ? AND campo = ?
+                LIMIT 1";
+
+        $stmtMeta = $this->pdo->prepare($sqlMeta);
+        $stmtMeta->execute([$tableName, $campo, $tableName, $campo]);
+        $row = $stmtMeta->fetch(PDO::FETCH_ASSOC);
+
+        return $row ? $row['nombre'] : null;
     }
 
     public function obtenerCamposTabla($tabla)
     {
-        $sql = "SELECT dc.campo FROM diccionario_campos dc
-                WHERE dc.tabla = ?
-                UNION ALL
-                SELECT ce.campo FROM campos_extra ce WHERE
-                ce.tabla = ?";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$tabla, $tabla]);
+        $sql = "SHOW COLUMNS FROM `{$tabla}`";
+        $stmt = $this->pdo->query($sql);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (!$rows) {
-            throw new Exception("No existen campos predefinidos en la tabla " . $tabla);
-        }
-        return $rows;
+        return array_map(fn($col) => $col['Field'], $rows);
     }
 
     /**

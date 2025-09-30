@@ -22,7 +22,7 @@ if (!$cliente) {
 }
 $usuarios = $usuarioModel->obtenerUsuarios();
 $estadosActividad = $actividadModel->obtenerEstados();
-$camposExtra = $ajustesModel->obtenerCamposPorTipo(null, "cliente");
+$camposExtra = $ajustesModel->obtenerCamposExtraPorTabla(null, "clientes");
 ?>
 
 <link rel="stylesheet" href="./assets/css/actividad.css">
@@ -101,8 +101,8 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo(null, "cliente");
 
                                     <?php foreach ($camposExtra as $campo): ?>
                                         <?php
-                                        $valor = isset($cliente[$campo['nombre']])
-                                            ? $cliente[$campo['nombre']]
+                                        $valor = isset($cliente[$campo['campo']])
+                                            ? $cliente[$campo['campo']]
                                             : null;
 
                                         // Normalizar el valor según tipo
@@ -144,14 +144,14 @@ $camposExtra = $ajustesModel->obtenerCamposPorTipo(null, "cliente");
 
                                         <div class="edicion-grupo">
                                             <div class="info-row row-editable"
-                                                data-element="extra_<?= $campo['nombre'] ?>"
+                                                data-element="extra_<?= $campo['campo'] ?>"
                                                 data-campo='<?= json_encode($campo) ?>'
                                                 data-source="clientes"
                                                 data-action="actualizar"
                                                 data-id="<?= $cliente['idcliente'] ?>">
 
                                                 <span class="fw-bold"><?= htmlspecialchars($campo['nombre']) ?>:</span>
-                                                <span id="extra_<?= $campo['nombre'] ?>"><?= $valorFormateado ?></span>
+                                                <span id="extra_<?= $campo['campo'] ?>"><?= $valorFormateado ?></span>
                                             </div>
 
                                             <button class="btn btn-icon sm border btn-edit-info">

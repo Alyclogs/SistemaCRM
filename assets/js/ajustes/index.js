@@ -41,7 +41,7 @@ function fetchRoles() {
 function fetchCamposExtra() {
     api.get({
         source: "ajustes",
-        action: "listar_campos",
+        action: "listar_campos_extra",
         onSuccess: (campos) => {
             const camposContainer = document.getElementById("camposList");
             camposContainer.innerHTML = "";
@@ -175,7 +175,7 @@ document.addEventListener("click", function (e) {
         if (type === "campo") {
             const form = document.getElementById("formCampo");
             const formData = new FormData(form);
-            const campo = formData.get('nombre').replace(' ', '_');
+            const campo = formData.get('nombre').replace(' ', '_').toLowerCase();
             formData.append("campo", campo);
 
             const action = formData.get("idcampo") ? "actualizar_campo" : "crear_campo";
@@ -246,7 +246,7 @@ document.addEventListener('input', function (e) {
 });
 
 document.addEventListener("change", function (e) {
-    if (e.target.id === 'tipoReferenciaInput') {
+    if (e.target.id === 'tablaInput') {
         const value = e.target.value;
         const inputReferencia = document.getElementById('referenciaInput');
 

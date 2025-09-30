@@ -8,6 +8,20 @@ export function formatearHora12h(hora24) {
     return `${h.toString().padStart(2, '0')}:${m} ${suf}`;
 }
 
+export function formatearHoraEvento12h(dateObj) {
+    if (!dateObj) return '';
+
+    let h = dateObj.getHours();
+    let m = dateObj.getMinutes();
+
+    let suf = h >= 12 ? 'pm' : 'am';
+    h = h % 12;
+    if (h === 0) h = 12;
+
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${suf}`;
+}
+
+
 export function convertirHora(horaInput) {
     const [horas, minutos, segundos] = horaInput.split(":").map(Number);
     const horaFormateada = new Date();
@@ -272,7 +286,7 @@ export function formatEventDate(start, end) {
     return `${startTime} - ${endTime}, ${date}`;
 }
 
-export function formatearRangoFecha(fecha, horaInicio, horaFin, locale = "es-ES", timeZone = "America/Mexico_City") {
+export function formatearRangoFecha(fecha, horaInicio, horaFin, locale = "es-ES", timeZone = "America/Lima") {
     const inicio = new Date(`${fecha}T${horaInicio}`);
     const fin = new Date(`${fecha}T${horaFin}`);
 

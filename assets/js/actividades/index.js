@@ -1,5 +1,5 @@
 import CalendarUI from "../utils/calendar.js";
-import { formatearFecha, formatearHora, formatearHora12h, formatearRangoFecha, formatEventDate, generarIntervalosHoras, sumarMinutos } from "../utils/date.js";
+import { formatearFecha, formatearHora, formatearHora12h, formatearHoraEvento12h, formatearRangoFecha, formatEventDate, generarIntervalosHoras, sumarMinutos } from "../utils/date.js";
 import { mostrarToast } from "../utils/utils.js";
 import api from "../utils/api.js";
 
@@ -81,7 +81,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (activeEvent) activeEvent.remove();
         calendar.addEvent({
-            title: "Llamada",
+            title: `<div class="d-flex align-items-center gap-1 h-100">
+                        ${window.getIcon([icons["llamada"]], "white", 16)} <span>${formatearHoraEvento12h(start)} - ${formatearHoraEvento12h(end)} / Llamada<span>
+                    </div>`,
             start,
             end,
             extendedProps: { preview: true }
@@ -106,14 +108,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             titleInput.oninput = function () {
                 actividadActual.nombre = titleInput.value;
-                activeEvent.setProp("title", titleInput.value);
+                activeEvent.setProp("title", `<div class="d-flex align-items-center gap-1 h-100">
+                    ${window.getIcon([icons[actividadActual.tipo]], "white", 16)} <span>${formatearHora12h(actividadActual.hora_inicio)} - ${formatearHora12h(actividadActual.hora_fin)} / ${titleInput.value}<span>
+                </div>`);
                 if (titleInput.value.length === 0) {
                     titleInput.value = labels[actividadActual.tipo];
                 }
             };
 
             actividadActual = {
-                nombre: activeEvent.title,
+                nombre: "Llamada",
                 fecha: formatearFecha(activeEvent.start),
                 hora_inicio: formatearHora(activeEvent.start),
                 hora_fin: formatearHora(activeEvent.end),
@@ -211,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${actividad.cliente ? `${window.icons.user} <span>${actividad.cliente}</span>` : ''}
                 </div>
                 <div class="info-row">
-                    ${actividad.extra?.descripcion ? `${window.icons.info} <span>${actividad.extra.descripcion}</span>` : ''}
+                    ${actividad.descripcion ? `${window.icons.info} <span>${actividad.descripcion}</span>` : ''}
                 </div>
                 <div class="info-row">
                     ${actividad.notas?.length > 0 ? `${window.icons.document} <span>${actividad.notas[0].contenido}</span>` : ''}
@@ -358,7 +362,9 @@ function abrirFormActividad(actividad = {}) {
 
                 activeEvent = miniCalendar.addEvent({
                     id: actividadActual.idactividad,
-                    title: actividadActual.nombre,
+                    title: `<div class="d-flex align-items-center gap-1 h-100">
+                                ${window.getIcon([icons[actividadActual.tipo]], "white", 16)} <span>${formatearHora12h(actividadActual.hora_inicio)} - ${formatearHora12h(actividadActual.hora_fin)} / ${actividadActual.nombre}<span>
+                            </div>`,
                     start: actividadActual.fecha + "T" + actividadActual.hora_inicio,
                     end: actividadActual.fecha + "T" + actividadActual.hora_fin,
                     extendedProps: { preview: true, mini: true }
@@ -465,15 +471,6 @@ function guardarActividad() {
         Object.assign(datos, Object.fromEntries(new FormData(formActividad).entries()));
     }
 
-    const extra = {};
-    if (formActividad) {
-        formActividad.querySelectorAll("[name^=extra_]").forEach(field => {
-            if (field.value?.trim() !== "") {
-                extra[field.name.replace("extra_", "")] = field.value.trim();
-            }
-        });
-    }
-
     const formData = new FormData();
 
     if (datos.clientes) {
@@ -484,9 +481,6 @@ function guardarActividad() {
             formData.append(key, value);
         }
     });
-    if (Object.keys(extra).length > 0) {
-        formData.append("extra", JSON.stringify(extra));
-    }
 
     if (formData.get("hora_inicio") >= formData.get("hora_fin")) {
         return mostrarToast({
@@ -599,9 +593,11 @@ document.addEventListener('click', function (e) {
             if (source.id === 'actividadModal') {
                 source.querySelector('#tituloActividadLabel').textContent = labels[actividad];
             }
-            if (defaultActividades.includes(activeEvent.title)) {
+            if (defaultActividades.includes(actividadActual.nombre)) {
                 actividadActual.nombre = labels[actividad];
-                activeEvent.setProp("title", labels[actividad]);
+                activeEvent.setProp("title", `<div class="d-flex align-items-center gap-1 h-100">
+                    ${window.getIcon([icons[actividadActual.tipo]], "white", 16)} <span>${formatearHora12h(actividadActual.hora_inicio)} - ${formatearHora12h(actividadActual.hora_fin)} / ${actividadActual.nombre}<span>
+                </div>`);
             }
         }
     }
@@ -751,25 +747,40 @@ document.addEventListener('click', function (e) {
 
     if (e.target.closest('#detailOptions')) {
         const link = e.target.closest('a');
+        const container = e.target.closest(".extra-container");
+
         if (!link) return;
         e.preventDefault();
-        const container = e.target.closest(".extra-container");
 
         link.classList.remove("clickable");
         link.classList.add("disable-click");
 
-        if (link.id === "agregarDescripcion") container.querySelector(".descripcion-container").style.display = "flex";
-        if (link.id === "agregarDireccion") container.querySelector(".direccion-container").style.display = "flex";
-        if (link.id === "agregarEnlace") container.querySelector(".enlace-container").style.display = "flex";
+        if (link.id === "agregarDescripcion") container.querySelector("#descripcion-container").classList.remove("d-none");
+        if (link.id === "agregarDireccion") container.querySelector("#direccion-container").classList.remove("d-none");
+        if (link.id === "agregarEnlace") container.querySelector("#enlace-container").classList.remove("d-none");
+    }
 
-        const btnHide = container.querySelectorAll(".btn-hide-element");
-        btnHide.forEach(btn => {
-            btn.addEventListener("click", function () {
-                btn.closest(".extra-content").style.display = "none";
-                link.classList.remove("disable-click");
-                link.classList.add("clickable");
+    if (e.target.closest('.btn-hide-element')) {
+        const btn = e.target.closest('.btn-hide-element');
+        const container = btn.closest(".extra-container");
+        const link = container.querySelector(`a[data-target="${container.id}"]`);
+
+        btn.closest(".extra-content").classList.add("d-none");
+        btn.closest(".extra-content")
+            .querySelectorAll('input, textarea, select')
+            .forEach(el => {
+                if (el.type === "checkbox" || el.type === "radio") {
+                    el.checked = false;
+                } else {
+                    el.value = "";
+                    e.textContent = "";
+                }
             });
-        });
+
+        if (link) {
+            link.classList.remove("disable-click");
+            link.classList.add("clickable");
+        }
     }
 
     if (!e.target.closest('.fc-view')

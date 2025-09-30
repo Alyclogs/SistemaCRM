@@ -14,12 +14,9 @@ try {
     if (isset($_GET['action'])) {
         switch ($_GET['action']) {
 
-            /* =======================
-             * CAMPOS EXTRA
-             * ======================= */
             case 'listar_campos':
-                if (isset($_GET['tipo']) && isset($_GET['idreferencia'])) {
-                    $data = $ajustesModel->obtenerCamposPorTipo($_GET['idreferencia'], $_GET['tipo']);
+                if (isset($_GET['tabla'])) {
+                    $data = $ajustesModel->obtenerCamposPorTabla($_GET['tabla']);
                     $response = $data;
                     exit;
                 }
@@ -27,14 +24,24 @@ try {
                 $response = $data;
                 break;
 
+            case 'listar_campos_extra':
+                if (isset($_GET['tabla'])) {
+                    $data = $ajustesModel->obtenerCamposExtraPorTabla($_GET['idreferencia'] ?? null, $_GET['tabla']);
+                    $response = $data;
+                    exit;
+                }
+                $data = $ajustesModel->obtenerCamposExtra();
+                $response = $data;
+                break;
+
             case 'ver_campo':
                 if (!isset($_GET['idcampo'])) throw new Exception("ID requerido");
-                $data = $ajustesModel->obtenerCampo($_GET['idcampo']);
+                $data = $ajustesModel->obtenerCampoExtra($_GET['idcampo']);
                 $response = $data;
                 break;
 
             case 'crear_campo':
-                $id = $ajustesModel->crearCampo($_POST, $_POST['idusuario'] ?? null);
+                $id = $ajustesModel->crearCampoExtra($_POST);
                 $response = [
                     "success" => true,
                     "message" => "Campo extra creado",
@@ -44,7 +51,7 @@ try {
 
             case 'actualizar_campo':
                 if (!isset($_POST['idcampo'])) throw new Exception("ID requerido");
-                $ajustesModel->actualizarCampo($_POST['idcampo'], $_POST, $_POST['idusuario'] ?? null);
+                $ajustesModel->actualizarCampoExtra($_POST['idcampo'], $_POST);
                 $response = [
                     "success" => true,
                     "message" => "Campo extra actualizado"
@@ -53,7 +60,7 @@ try {
 
             case 'eliminar_campo':
                 if (!isset($_POST['idcampo'])) throw new Exception("ID requerido");
-                $ajustesModel->eliminarCampo($_POST['idcampo'], $_POST['idusuario'] ?? null);
+                $ajustesModel->eliminarCampo($_POST['idcampo']);
                 $response = [
                     "success" => true,
                     "message" => "Campo extra eliminado"

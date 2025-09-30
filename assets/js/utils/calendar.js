@@ -72,6 +72,11 @@ export default class CalendarUI {
                 hour: "2-digit",
                 minute: "2-digit",
                 hour12: false,
+            },
+            eventContent: function (arg) {
+                return {
+                    html: arg.event.title
+                };
             }
         });
         return calendar;

@@ -24,10 +24,6 @@
   padding-left: 0.5rem;
 }
 
-#titleInput:focus {
-  background-color: #fff !important;
-}
-
 .ql-toolbar {
   border: 1px solid var(--default-border-color) !important;
   border-top-left-radius: 0.5rem !important;

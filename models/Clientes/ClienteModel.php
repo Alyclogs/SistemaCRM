@@ -747,11 +747,15 @@ class ClienteModel
             $camposTabla = $this->registroCambioModel->obtenerCamposTabla("clientes");
 
             foreach ($data as $campo => $valor) {
-                if (!isset($camposTabla[$campo])) {
-                    continue; // ignorar campos que no existen en la tabla/diccionario
+                if (!in_array($campo, $camposTabla, true)) {
+                    continue;
                 }
 
-                // control especial para foto (si no viene, no la tocamos)
+                if (in_array($campo, ["idcliente"])) {
+                    continue;
+                }
+
+                // control especial para foto
                 if ($campo === "foto") {
                     $campos[] = "foto = :foto";
                     $params[':foto'] = $valor ?? $clienteAntes['foto'] ?? "assets/img/usuariodefault.png";
@@ -811,7 +815,7 @@ class ClienteModel
                     'cliente',
                     'eliminacion',
                     null,
-                    null,
+                    "{$cliente['nombres']} {$cliente['apellidos']}",
                     null,
                     "Cliente eliminado: {$cliente['nombres']} {$cliente['apellidos']}"
                 );
@@ -913,6 +917,10 @@ class ClienteModel
                     continue; // ignorar campos que no existen en la tabla/diccionario
                 }
 
+                if (in_array($campo, ["idempresa"])) {
+                    continue;
+                }
+
                 // control especial para foto (si no viene, no la tocamos)
                 if ($campo === "foto") {
                     $campos[] = "foto = :foto";
@@ -968,7 +976,7 @@ class ClienteModel
                     'empresa',
                     'eliminacion',
                     null,
-                    null,
+                    "{$empresa['razon_social']}",
                     null,
                     "Empresa eliminada: {$empresa['razon_social']}"
                 );

@@ -158,34 +158,58 @@ class ActividadModel
     public function crearActividad($data)
     {
         try {
-            $sql = "INSERT INTO actividades (nombre, idusuario, fecha, hora_inicio, hora_fin, tipo, prioridad, idestado, extra) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([
-                $data['nombre'],
-                $data['idusuario'],
-                $data['fecha'],
-                $data['hora_inicio'],
-                $data['hora_fin'],
-                $data['tipo'],
-                $data['prioridad'],
-                !empty($data['idestado']) ? $data['idestado'] : 1,
-                !empty($data['extra']) ? json_encode($data['extra']) : null
-            ]);
+            $this->pdo->beginTransaction();
+
+            $campos = [];
+            $placeholders = [];
+            $params = [];
+
+            $camposTabla = $this->registroCambioModel->obtenerCamposTabla("actividades");
+
+            foreach ($data as $campo => $valor) {
+                if (!in_array($campo, $camposTabla, true)) {
+                    continue; // ignorar campos que no existen
+                }
+
+                // Excluir PK
+                if ($campo === "idactividad") {
+                    continue;
+                }
+
+                // Validación especial: campos nulos
+                if (in_array($campo, ["descripcion", "direccion", "direccion_referencia", "enlace"])) {
+                    $valor = (isset($valor) && trim($valor) !== '') ? $valor : null;
+                }
+
+                // Serializar arrays como JSON (ej. extra)
+                $valor = is_array($valor) ? json_encode($valor) : $valor;
+
+                $campos[] = $campo;
+                $placeholders[] = ":$campo";
+                $params[":$campo"] = $valor;
+            }
+
+            if (!empty($campos)) {
+                $sql = "INSERT INTO actividades (" . implode(", ", $campos) . ") 
+                    VALUES (" . implode(", ", $placeholders) . ")";
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($params);
+            }
 
             $idactividad = $this->pdo->lastInsertId();
 
-            // Asignar clientes/empresas
+            // --- Relaciones con clientes
             if (!empty($data['clientes'])) {
-                $clientes = json_decode($data['clientes'], true);
+                $clientes = is_string($data['clientes']) ? json_decode($data['clientes'], true) : $data['clientes'];
                 $this->asignarClientesActividad($idactividad, $clientes, $data['idusuario']);
             }
 
-            // Nota inicial
+            // --- Nota inicial
             if (!empty($data['nota'])) {
                 $this->notaModel->guardarNota($idactividad, 'actividad', $data['idusuario'], $data['nota']);
             }
 
+            // --- Registrar cambio
             $this->registroCambioModel->registrarCambio(
                 $data['idusuario'],
                 $idactividad,
@@ -194,61 +218,90 @@ class ActividadModel
                 null,
                 null,
                 null,
-                null,
                 "Actividad creada: " . $data['nombre']
             );
 
+            $this->pdo->commit();
             return $idactividad;
         } catch (Exception $e) {
+            $this->pdo->rollBack();
             throw new Exception("Error al crear actividad: " . $e->getMessage());
         }
     }
 
+
     public function actualizarActividad($id, $data)
     {
         try {
-            $sql = "UPDATE actividades 
-                    SET nombre=?, idusuario=?, fecha=?, hora_inicio=?, hora_fin=?, tipo=?, prioridad=?, idestado=?, extra=? 
-                    WHERE idactividad=?";
-            $stmt = $this->pdo->prepare($sql);
+            $this->pdo->beginTransaction();
 
+            // --- 1) Obtener actividad antes (para auditoría)
             $actividadAntes = $this->obtenerActividad($id);
 
-            $stmt->execute([
-                $data['nombre'],
-                $data['idusuario'],
-                $data['fecha'],
-                $data['hora_inicio'],
-                $data['hora_fin'],
-                $data['tipo'],
-                $data['prioridad'],
-                $data['idestado'] ?? 1,
-                !empty($data['extra']) ? json_encode($data['extra']) : null,
-                $id
-            ]);
+            $campos = [];
+            $params = [];
+            $dataValidos = [];
 
-            // Actualizar relaciones con clientes/empresas
+            $camposTabla = $this->registroCambioModel->obtenerCamposTabla("actividades");
+
+            foreach ($data as $campo => $valor) {
+                if (!in_array($campo, $camposTabla, true)) {
+                    continue;
+                }
+
+                // Excluir PK
+                if ($campo === "idactividad") {
+                    continue;
+                }
+
+                // Validación especial: campos nulos
+                if (in_array($campo, ["descripcion", "direccion", "direccion_referencia", "enlace"])) {
+                    $valor = (isset($valor) && trim($valor) !== '') ? $valor : null;
+                }
+
+                // Serializar arrays como JSON (ej. extra)
+                $valor = is_array($valor) ? json_encode($valor) : $valor;
+
+                $campos[] = "$campo = :$campo";
+                $params[":$campo"] = $valor;
+                $dataValidos[$campo] = $valor;
+            }
+
+            if (!empty($campos)) {
+                $sql = "UPDATE actividades SET " . implode(", ", $campos) . " WHERE idactividad = :id";
+                $params[':id'] = $id;
+
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($params);
+            }
+
+            // --- 2) Relaciones con clientes
             if (isset($data['clientes'])) {
-                $clientes = json_decode($data['clientes'], true);
+                $clientes = is_string($data['clientes']) ? json_decode($data['clientes'], true) : $data['clientes'];
                 $this->asignarClientesActividad($id, $clientes, $data['idusuario']);
             }
 
-            // Actualizar nota
-            if (isset($data['nota'])) {
+            // --- 3) Guardar nota asociada
+            if (!empty($data['nota'])) {
                 $this->notaModel->guardarNota($id, 'actividad', $data['idusuario'], $data['nota']);
             }
 
-            $this->registroCambioModel->registrarCambiosAutomaticos(
-                $data['idusuario'],
-                $id,
-                'actividad',
-                'actualizacion',
-                $actividadAntes,
-                $data
-            );
+            // --- 4) Registrar cambios automáticos
+            if (!empty($_SESSION['idusuario']) && !empty($dataValidos)) {
+                $this->registroCambioModel->registrarCambiosAutomaticos(
+                    $_SESSION['idusuario'],
+                    $id,
+                    'actividad',
+                    'actualizacion',
+                    $actividadAntes,
+                    $dataValidos
+                );
+            }
 
+            $this->pdo->commit();
             return true;
         } catch (Exception $e) {
+            $this->pdo->rollBack();
             throw new Exception("Error al actualizar actividad: " . $e->getMessage());
         }
     }
@@ -347,7 +400,6 @@ class ActividadModel
                     'eliminacion',
                     null,
                     $actividad['nombre'],
-                    null,
                     null,
                     "Actividad eliminada: " . $actividad['nombre']
                 );

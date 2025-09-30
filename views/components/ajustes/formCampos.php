@@ -8,7 +8,7 @@ $mensaje = "";
 $campo = null;
 
 if ($id) {
-    $campo = $ajustesModel->obtenerCampo($id);
+    $campo = $ajustesModel->obtenerCampoExtra($id);
 
     if (!$campo) {
         $mensaje = "No se encontró el campo";
@@ -76,8 +76,8 @@ if ($id) {
         <div class="col-6 mb-3">
             <label for="requeridoInput" class="form-label">Requerido</label>
             <select class="form-select" id="requeridoInput" name="requerido" required>
-                <option value="texto" <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'selected' : '' ?>>Sí</option>
-                <option value="numero" <?= isset($campo['requerido']) && $campo['requerido'] === 0 ? 'selected' : '' ?>>No</option>
+                <option value="1" <?= isset($campo['requerido']) && $campo['requerido'] === 1 ? 'selected' : '' ?>>Sí</option>
+                <option value="0" <?= isset($campo['requerido']) && $campo['requerido'] === 0 ? 'selected' : '' ?>>No</option>
             </select>
         </div>
 
@@ -90,8 +90,8 @@ if ($id) {
         </div>
 
         <div class="col-6 mb-3">
-            <label for="tipoReferenciaInput" class="form-label">Asignado a</label>
-            <select class="form-select" id="tipoReferenciaInput" name="tabla" required>
+            <label for="tablaInput" class="form-label">Asignado a</label>
+            <select class="form-select" id="tablaInput" name="tabla" required>
                 <option value="clientes" <?= isset($campo['tabla']) && $campo['tabla'] === 'clientes' ? 'selected' : '' ?>>Clientes</option>
                 <option value="empresas" <?= isset($campo['tabla']) && $campo['tabla'] === 'empresas' ? 'selected' : '' ?>>Empresas</option>
                 <option value="actividades" <?= isset($campo['tabla']) && $campo['tabla'] === 'actividades' ? 'selected' : '' ?>>Actividades</option>
