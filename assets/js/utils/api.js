@@ -15,6 +15,10 @@ function getController(source) {
             return 'controller/tareas/TareaController.php?';
         case "ajustes":
             return 'controller/ajustes/AjustesController.php?';
+        case "campanias":
+            return 'controller/ajustes/CampaniaController.php?';
+        case "emisores":
+            return 'controller/ajustes/EmisorController.php?';
         default:
             throw new Error(`Controller no definido para: ${source}`);
     }

@@ -1,47 +1,46 @@
+<link rel="stylesheet" href="./assets/css/ajustes.css">
+
 <div class="h-100 d-flex flex-column p-4">
-    <div class="d-flex h-100 gap-3">
+    <div class="list-view" data-source="ajustes">
         <div class="bg-white disable-hover"
             style="width: 20%;
             border-right: 1px solid var(--bs-border-color);">
-            <h5 class="page-title p-4">Ajustes</h5>
-            <div class="h-100 p-4 d-flex flex-column gap-2">
-                <div class="ajuste-item menu-dropdown-button bg-white clickable selected" style="border-bottom: none;" data-target="rolesSection">
-                    <div class="d-flex gap-3 align-items-center">
-                        <?php include('./assets/svg/profile-2user.svg'); ?>
-                        <h6>Roles y permisos</h6>
-                    </div>
+            <h5 class="page-title p-4 pb-0 ms-3">Ajustes</h5>
+            <div class="p-4 list-items" data-source="ajustes">
+                <div class="list-item list-item-default selected" data-target="rolesSection">
+                    <?php include('./assets/svg/profile-2user.svg'); ?>
+                    <h6>Roles y permisos</h6>
                 </div>
-                <div class="ajuste-item menu-dropdown-button bg-white clickable" style="border-bottom: none;" data-target="camposSection">
-                    <div class="d-flex gap-3 align-items-center">
-                        <?php include('./assets/svg/edit.svg'); ?>
-                        <h6>Campos personalizados</h6>
-                    </div>
+                <div class="list-item list-item-default" data-target="camposSection">
+                    <?php include('./assets/svg/edit.svg'); ?>
+                    <h6>Campos personalizados</h6>
                 </div>
-                <div class="menu-dropdown" style="border-bottom: none;">
-                    <div class="ajuste-item menu-dropdown-button bg-white clickable">
+                <div class="list-item-dropdown">
+                    <div class="dropdown-button clickable bg-white">
                         <div class="d-flex gap-3 align-items-center">
                             <?php include('./assets/svg/sms.svg'); ?>
                             <h6>Envío de correos</h6>
                         </div>
-                        <button class="btn btn-icon sm menu-dropdown-collapse">
+                        <button class="btn btn-icon sm dropdown-collapse">
                             <div class="svg-collapsed">
-                                <?php include('./assets/svg/arrow-down-02.svg'); ?>
+                                <?php include('./assets/svg/arrow-right-02.svg'); ?>
                             </div>
                             <div class="svg-expanded">
-                                <?php include('./assets/svg/arrow-right-02.svg'); ?>
+                                <?php include('./assets/svg/arrow-down-02.svg'); ?>
                             </div>
                         </button>
                     </div>
-                    <div class="menu-dropdown-submenu">
-                        <div class="menu-dropdown-item ajuste-item clickable bg-white" data-target="correosPlantillasSection" data-target="correosPlantillasSection">Plantillas de correos</div>
-                        <div class="menu-dropdown-item ajuste-item clickable bg-white" data-target="correosProgramacionSection" data-target="correosProgramacionSection">Programación de campañas</div>
+                    <div class="dropdown-submenu">
+                        <div class="dropdown-item list-item list-item-default" data-target="correosSection">Configuración general</div>
+                        <div class="dropdown-item list-item list-item-default" data-target="correosPlantillasSection">Plantillas de correos</div>
+                        <div class="dropdown-item list-item list-item-default" data-target="correosCampaniasSection">Programación de campañas</div>
                     </div>
                 </div>
             </div>
         </div>
         <div style="width: 80%; height: 100%;">
-            <div class="h-100 p-4">
-                <div id="rolesSection" class="ajuste-section h-100" style="display: none;">
+            <div class="h-100 p-4 list-sections">
+                <div id="rolesSection" class="section-item show h-100">
                     <div class="mb-4">
                         <div class="page-header mb-1">
                             <h5 class="page-title">Roles</h5>
@@ -51,9 +50,9 @@
                         </div>
                         <span class="text-muted">Crea o edita roles</span>
                     </div>
-                    <div id="rolesList" class="d-flex flex-column gap-2"></div>
+                    <div id="rolesList" class="d-flex flex-column gap-2 section-body"></div>
                 </div>
-                <div id="camposSection" class="ajuste-section h-100" style="display: none;">
+                <div id="camposSection" class="section-item h-100">
                     <div class="mb-4">
                         <div class="page-header mb-1">
                             <h5 class="page-title">Campos personalizados</h5>
@@ -75,10 +74,19 @@
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody id="camposList"></tbody>
+                        <tbody id="camposList" class="section-body"></tbody>
                     </table>
                 </div>
-                <div id="correosPlantillasSection" class="ajuste-section h-100" style="display: none;">
+                <div id="correosSection" class="section-item h-100">
+                    <div class="mb-4">
+                        <div class="page-header mb-1">
+                            <h5 class="page-title">Configuración de correo</h5>
+                        </div>
+                        <span class="text-muted">Edita la configuración de correo</span>
+                    </div>
+                    <div id="correoConfiguracion" class="d-flex flex-column gap-2"></div>
+                </div>
+                <div id="correosPlantillasSection" class="section-item h-100">
                     <div class="mb-4">
                         <div class="page-header mb-1">
                             <h5 class="page-title">Plantillas de correo</h5>
@@ -88,19 +96,19 @@
                         </div>
                         <span class="text-muted">Crea o edita plantillas de correo</span>
                     </div>
-                    <div id="correosPlantillasList" class="d-flex flex-column gap-2"></div>
+                    <div id="correosPlantillasList" class="d-flex flex-column gap-2 section-body"></div>
                 </div>
-                <div id="correosProgramacionSection" class="ajuste-section h-100" style="display: none;">
+                <div id="correosCampaniasSection" class="section-item h-100">
                     <div class="mb-4">
                         <div class="page-header mb-1">
                             <h5 class="page-title">Programación de campañas</h5>
-                            <button class="btn btn-default" id="btnNuevoCampo">
-                                <?php include('./assets/svg/add.svg') ?><span>Nuevo campo</span>
+                            <button class="btn btn-default" id="btnNuevaCampania">
+                                <?php include('./assets/svg/add.svg') ?><span>Nueva campaña</span>
                             </button>
                         </div>
                         <span class="text-muted">Crea o edita programaciones de campañas</span>
                     </div>
-                    <div id="correosProgramacionList" class="d-flex flex-column gap-2"></div>
+                    <div id="campaniasList" class="d-flex flex-column gap-2 section-body"></div>
                 </div>
             </div>
         </div>

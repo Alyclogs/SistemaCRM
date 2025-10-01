@@ -30,6 +30,12 @@ export function convertirHora(horaInput) {
     return horaFormateada;
 }
 
+export function convertirFecha(fechaInput) {
+    if (!fechaInput) return null;
+    const [yyyy, mm, dd] = fechaStr.split("-").map(Number);
+    return new Date(yyyy, mm - 1, dd);
+}
+
 export function obtenerFechaHoraPeruFormateada(fechaStr) {
     const fecha = fechaStr ? new Date(fechaStr) : new Date();
 
@@ -55,11 +61,40 @@ export function formatFechaToDDMMYYYY(dateStr) {
     return `${dd}/${mm}/${yyyy}`;
 }
 
-export function esFechaPasada(fecha, hora) {
+export function esFechaHoraPasada(fecha, hora) {
     const citaCompleta = new Date(`${fecha}T${hora}`);
     const ahora = new Date();
 
     return citaCompleta <= ahora;
+}
+
+export function esFechaPasada(fechaStr) {
+    if (!fechaStr) return false;
+
+    const [yyyy, mm, dd] = fechaStr.split("-").map(Number);
+    const fecha = new Date(yyyy, mm - 1, dd);
+
+    // Normalizamos ambas fechas al inicio del día (00:00:00)
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    fecha.setHours(0, 0, 0, 0);
+
+    return fecha < hoy;
+}
+
+export function fechaEnRango(inicio, fin) {
+    if (!inicio || !fin) return false;
+
+    const f = new Date();
+    const i = new Date(inicio);
+    const j = new Date(fin);
+
+    // Normalizar a medianoche para evitar problemas con horas
+    f.setHours(0, 0, 0, 0);
+    i.setHours(0, 0, 0, 0);
+    j.setHours(0, 0, 0, 0);
+
+    return f >= i && f <= j;
 }
 
 // Sumar minutos a una hora en formato hh:mm

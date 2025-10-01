@@ -1,201 +1,46 @@
 import api from "../utils/api.js";
+import { ModalComponent } from "../utils/modal.js";
+import { fetchCampanias, guardarCampania } from "./campanias.js";
+import { fetchCamposExtra, guardarCampo } from "./campos.js";
+import { fetchRoles, guardarRol } from "./roles.js";
+
+export const modalAjustes = new ModalComponent("ajustes", { size: "md" });
 
 function fetchAjustes() {
     fetchRoles();
     fetchCamposExtra();
+    fetchCampanias();
 }
 
-function fetchRoles() {
-    api.get({
-        source: "usuarios",
-        action: "obtenerRoles",
-        onSuccess: (roles) => {
-            const rolesContainer = document.getElementById("rolesList");
-            rolesContainer.innerHTML = "";
+export function abrirModal(type, title, size = "md", id = null, options = {}) {
+    const urls = {
+        rol: window.baseurl + "views/components/ajustes/formRol.php",
+        campo: window.baseurl + "views/components/ajustes/formCampos.php",
+        campania: window.baseurl + "views/components/ajustes/modalCampania.php"
+    }
+    let url = urls[type];
+    if (id) url += "?id=" + id;
 
-            if (roles.length === 0) {
-                rolesContainer.innerHTML = "<p class='text-muted'>No hay roles disponibles.</p>";
-                return;
+    const { ocultarFooter = false } = options;
+
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            modalAjustes.setTitle(title)
+                .setBody(html).show();
+            modalAjustes.setAttribute(modalAjustes.getComponent("btnGuardar"), "data-type", type);
+            modalAjustes.setSize(size);
+            if (ocultarFooter) {
+                modalAjustes.getComponent("footer").hide();
             }
-
-            let html = "";
-
-            roles.forEach(role => {
-                html += `
-                    <div class="role-card p-3 border rounded d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6>${role.rol}</h6>
-                            <p class="text-muted">${role.descripcion || 'Sin descripción'}</p>
-                        </div>
-                        <div class="info-row">
-                            <button class="btn btn-icon bg-light" data-id="${role.idrol}" id="btnEditarRol">
-                                ${window.icons.edit}
-                            </button>
-                            <button class="btn btn-icon bg-light" data-id="${role.idrol}" id="btnEliminarRol">
-                                ${window.icons.trash}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            rolesContainer.innerHTML = html;
-        }
-    });
+        });
 }
 
-function fetchCamposExtra() {
-    api.get({
-        source: "ajustes",
-        action: "listar_campos_extra",
-        onSuccess: (campos) => {
-            const camposContainer = document.getElementById("camposList");
-            camposContainer.innerHTML = "";
-            if (campos.length === 0) {
-                camposContainer.innerHTML = "<p class='text-muted'>No hay campos personalizados disponibles.</p>";
-                return;
-            }
-            let html = "";
-            campos.forEach(campo => {
-                html += `
-                    <tr>
-                        <td>${campo.nombre}</td>
-                        <td>${campo.tipo_dato}</td>
-                        <td>${campo.longitud || 'N/A'}</td>
-                        <td>${campo.requerido ? 'Sí' : 'No'}</td>
-                        <td>${campo.tabla}</td>
-                        <td>${campo.valor_inicial ? (Array.isArray(campo.valor_inicial) ? campo.valor_inicial.join(", ") : campo.valor_inicial) : 'N/A'}</td>
-                        <td>
-                            <div class="info-row">
-                                <button class="btn btn-icon bg-light" data-id="${campo.idcampo}" id="btnEditarCampo">
-                                    ${window.icons.edit}
-                                </button>
-                                <button class="btn btn-icon bg-light" data-id="${campo.idcampo}" id="btnEliminarCampo">
-                                    ${window.icons.trash}
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-            camposContainer.innerHTML = html;
-        }
-    });
+export function obtenerModal() {
+    return $("#ajustesModal");
 }
 
 document.addEventListener("click", function (e) {
-    if (e.target.closest("#btnNuevoRol")) {
-        fetch(baseurl + "views/components/ajustes/formRol.php")
-            .then(response => response.text())
-            .then(html => {
-                $("#ajustesModalLabel").text("Nuevo rol");
-                $("#ajustesModalBody").html(html);
-                $("#ajustesModal").modal("show");
-            });
-    }
-
-    if (e.target.closest("#btnNuevoCampo")) {
-        fetch(baseurl + "views/components/ajustes/formCampos.php")
-            .then(response => response.text())
-            .then(html => {
-                $("#ajustesModalLabel").text("Nuevo campo personalizado");
-                $("#ajustesModalBody").html(html);
-                $("#ajustesModal").modal("show");
-                $("#btnGuardarAjustes").attr("data-type", "campo");
-            });
-    }
-
-    if (e.target.closest("#btnEditarRol")) {
-        fetch(baseurl + "views/components/ajustes/formRol.php?id=" + e.target.closest("button").dataset.id)
-            .then(response => response.text())
-            .then(html => {
-                $("#ajustesModalLabel").text("Editar rol");
-                $("#ajustesModalBody").html(html);
-                $("#ajustesModal").modal("show");
-            });
-    }
-
-    if (e.target.closest("#btnEditarCampo")) {
-        fetch(baseurl + "views/components/ajustes/formCampos.php?id=" + e.target.closest("button").dataset.id)
-            .then(response => response.text())
-            .then(html => {
-                $("#ajustesModalLabel").text("Editar campo personalizado");
-                $("#ajustesModalBody").html(html);
-                $("#ajustesModal").modal("show");
-                $("#btnGuardarAjustes").attr("data-type", "campo");
-            });
-    }
-
-    if (e.target.closest("#btnEliminarRol")) {
-        const id = e.target.closest("button").dataset.id;
-        if (confirm("¿Está seguro de que desea eliminar este rol? Esta acción no se puede deshacer.")) {
-            const formData = new FormData();
-            formData.append("idrol", id);
-
-            api.post({
-                source: "usuarios",
-                action: "eliminarRol",
-                data: formData,
-                onSuccess: () => {
-                    fetchRoles();
-                }
-            });
-        }
-    }
-
-    if (e.target.closest("#btnEliminarCampo")) {
-        const id = e.target.closest("button").dataset.id;
-
-        if (confirm("¿Está seguro de que desea eliminar este campo personalizado? Esta acción no se puede deshacer.")) {
-            const formData = new FormData();
-            formData.append("idcampo", id);
-
-            api.post({
-                source: "ajustes",
-                action: "eliminar_campo",
-                data: formData,
-                onSuccess: () => {
-                    fetchCamposExtra();
-                }
-            });
-        }
-    }
-
-    if (e.target.closest("#btnGuardarRol")) {
-        const form = document.getElementById("formRol");
-        const formData = new FormData(form);
-        api.post({
-            source: "usuarios",
-            action: "guardarRol",
-            data: formData,
-            onSuccess: () => {
-                $("#rolModal").modal("hide");
-                fetchRoles();
-            }
-        });
-    }
-
-    if (e.target.closest("#btnGuardarAjustes")) {
-        const type = e.target.closest("#btnGuardarAjustes").dataset.type;
-
-        if (type === "campo") {
-            const form = document.getElementById("formCampo");
-            const formData = new FormData(form);
-            const campo = formData.get('nombre').replace(' ', '_').toLowerCase();
-            formData.append("campo", campo);
-
-            const action = formData.get("idcampo") ? "actualizar_campo" : "crear_campo";
-            api.post({
-                source: "ajustes",
-                action: action,
-                data: formData,
-                onSuccess: () => {
-                    $("#ajustesModal").modal("hide");
-                    fetchCamposExtra();
-                }
-            });
-        }
-    }
-
     if (e.target.closest('.cliente-item')) {
         const target = e.target.closest('.cliente-item');
         const value = target.dataset.value;
@@ -225,6 +70,16 @@ document.addEventListener("click", function (e) {
         resultados.innerHTML = "";
         resultados.style.display = "none";
     }
+
+    if (e.target.closest("#btnGuardarAjustes")) {
+        const type = e.target.closest("#btnGuardarAjustes").dataset.type;
+        const actions = {
+            rol: () => guardarRol(),
+            campo: () => guardarCampo(),
+            campania: () => guardarCampania()
+        }
+        actions[type]();
+    }
 });
 
 document.addEventListener('input', function (e) {
@@ -250,24 +105,7 @@ document.addEventListener('input', function (e) {
     }
 });
 
-document.addEventListener("change", function (e) {
-    if (e.target.id === 'tablaInput') {
-        const value = e.target.value;
-        const inputReferencia = document.getElementById('referenciaInput');
-
-        if (value === "clientes") {
-            inputReferencia.dataset.type = "clientes";
-        }
-        if (value === "empresas") {
-            inputReferencia.dataset.type = "empresas";
-        }
-        if (value === "actividades") {
-            inputReferencia.dataset.type = "actividades";
-        }
-    }
-})
-
-function buscarClientes(filtro, resultados) {
+export function buscarClientes(filtro, resultados) {
     api.get({
         source: "clientes",
         action: "buscar",
@@ -312,7 +150,7 @@ function buscarClientes(filtro, resultados) {
     });
 }
 
-function buscarEmpresas(filtro, resultados) {
+export function buscarEmpresas(filtro, resultados) {
     api.get({
         source: "clientes",
         action: "buscarOrganizaciones",
@@ -339,24 +177,5 @@ function buscarEmpresas(filtro, resultados) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".ajuste-item.clickable").forEach(container => {
-        container.addEventListener("click", () => {
-            document.querySelectorAll(".ajuste-item.clickable").forEach(c =>
-                c.classList.remove("selected")
-            );
-
-            const section = document.getElementById(container.dataset.target);
-            if (section) {
-                document.querySelectorAll(".ajuste-section").forEach(section => section.style.display = "none");
-                container.classList.add("selected");
-                section.style.display = "block";
-            }
-        });
-    });
-
-    // Estado inicial
     fetchAjustes();
-    document.querySelectorAll(".ajuste-section").forEach(section => section.style.display = "none");
-    const itemSelected = document.querySelector('.ajuste-item.selected');
-    document.getElementById(itemSelected.dataset.target).style.display = "block";
 });
