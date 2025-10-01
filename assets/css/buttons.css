@@ -53,7 +53,6 @@ button.btn-symmetrical-sm {
   padding: 0.5rem 0.75rem;
   border: none;
   outline: none;
-  background-color: var(--default-bg-color);
   font-size: 14px;
   color: var(--default-text-color);
 }
@@ -158,8 +157,8 @@ button.btn-symmetrical-sm {
 }
 
 .btn.btn-sm {
-  border-radius: .25rem !important;
-  padding: .25rem !important;
+  border-radius: 0.25rem !important;
+  padding: 0.25rem !important;
   font-size: 12px !important;
 }
 

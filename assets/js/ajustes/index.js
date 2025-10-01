@@ -1,5 +1,10 @@
 import api from "../utils/api.js";
 
+function fetchAjustes() {
+    fetchRoles();
+    fetchCamposExtra();
+}
+
 function fetchRoles() {
     api.get({
         source: "usuarios",
@@ -334,32 +339,24 @@ function buscarEmpresas(filtro, resultados) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    const rolesSection = document.getElementById("rolesSection");
-    const camposSection = document.getElementById("camposSection");
-
-    document.querySelectorAll(".info-container.clickable").forEach(container => {
+    document.querySelectorAll(".ajuste-item.clickable").forEach(container => {
         container.addEventListener("click", () => {
-            document.querySelectorAll(".info-container.clickable").forEach(c =>
+            document.querySelectorAll(".ajuste-item.clickable").forEach(c =>
                 c.classList.remove("selected")
             );
-            container.classList.add("selected");
 
-            const target = container.getAttribute("data-target");
-            if (target === "roles") {
-                rolesSection.style.display = "block";
-                camposSection.style.display = "none";
-                fetchRoles();
-            }
-            else if (target === "campos") {
-                rolesSection.style.display = "none";
-                camposSection.style.display = "block";
-                fetchCamposExtra();
+            const section = document.getElementById(container.dataset.target);
+            if (section) {
+                document.querySelectorAll(".ajuste-section").forEach(section => section.style.display = "none");
+                container.classList.add("selected");
+                section.style.display = "block";
             }
         });
     });
 
     // Estado inicial
-    fetchCamposExtra();
-    camposSection.style.display = "block";
-    rolesSection.style.display = "none";
+    fetchAjustes();
+    document.querySelectorAll(".ajuste-section").forEach(section => section.style.display = "none");
+    const itemSelected = document.querySelector('.ajuste-item.selected');
+    document.getElementById(itemSelected.dataset.target).style.display = "block";
 });
