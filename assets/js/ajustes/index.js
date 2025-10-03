@@ -1,6 +1,6 @@
 import api from "../utils/api.js";
 import { ModalComponent } from "../utils/modal.js";
-import { fetchCampanias, guardarCampania } from "./campanias.js";
+import { fetchCampanias, fetchPlantillas, guardarCampania } from "./campanias.js";
 import { fetchCamposExtra, guardarCampo } from "./campos.js";
 import { fetchRoles, guardarRol } from "./roles.js";
 
@@ -10,34 +10,35 @@ function fetchAjustes() {
     fetchRoles();
     fetchCamposExtra();
     fetchCampanias();
+    fetchPlantillas("correosPlantillasList")
 }
 
 export function abrirModal(type, title, size = "md", id = null, options = {}) {
     const urls = {
         rol: window.baseurl + "views/components/ajustes/formRol.php",
         campo: window.baseurl + "views/components/ajustes/formCampos.php",
-        campania: window.baseurl + "views/components/ajustes/modalCampania.php"
+        campania: window.baseurl + "views/components/ajustes/modalCampania.php",
+        plantilla: window.baseurl + "views/components/ajustes/formPlantilla.php"
     }
     let url = urls[type];
     if (id) url += "?id=" + id;
 
-    const { ocultarFooter = false } = options;
+    const actions = {
+        campania: () => {
+            fetchPlantillas("campaniaPlantillasList");
+        }
+    }
 
     fetch(url)
         .then(response => response.text())
         .then(html => {
-            modalAjustes.setTitle(title)
-                .setBody(html).show();
-            modalAjustes.setAttribute(modalAjustes.getComponent("btnGuardar"), "data-type", type);
-            modalAjustes.setSize(size);
-            if (ocultarFooter) {
-                modalAjustes.getComponent("footer").hide();
-            }
+            modalAjustes
+                .setAttribute(modalAjustes.components.buttons.guardar, "data-type", type)
+                .setSize(size);
+            modalAjustes.show(title, html);
+            modalAjustes.setOption(options);
+            if (actions[type]) actions[type]();
         });
-}
-
-export function obtenerModal() {
-    return $("#ajustesModal");
 }
 
 document.addEventListener("click", function (e) {

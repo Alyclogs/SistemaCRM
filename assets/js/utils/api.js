@@ -19,6 +19,8 @@ function getController(source) {
             return 'controller/ajustes/CampaniaController.php?';
         case "emisores":
             return 'controller/ajustes/EmisorController.php?';
+        case "plantillas":
+            return "controller/ajustes/PlantillaController.php?"
         default:
             throw new Error(`Controller no definido para: ${source}`);
     }

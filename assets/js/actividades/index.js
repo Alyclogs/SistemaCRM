@@ -2,8 +2,10 @@ import CalendarUI from "../utils/calendar.js";
 import { formatearFecha, formatearHora, formatearHora12h, formatearHoraEvento12h, formatearRangoFecha, formatEventDate, generarIntervalosHoras, sumarMinutos } from "../utils/date.js";
 import { mostrarToast } from "../utils/utils.js";
 import api from "../utils/api.js";
+import { ModalComponent } from "../utils/modal.js";
 
 const calendarUI = new CalendarUI();
+const modalActividad = new ModalComponent("actividad", { size: "lg", height: "560px", ocultarHeader: true });
 var calendar = null;
 var miniCalendar = null;
 var activeEvent = null;
@@ -306,8 +308,7 @@ function abrirFormActividad(actividad = {}) {
     fetch(url)
         .then(res => res.text())
         .then(html => {
-            $("#actividadModalBody").html(html);
-            $("#actividadModal").modal('show');
+            modalActividad.show(null, html);
 
             actividadActual = {
                 idactividad: actividadActual?.idactividad ?? null,
@@ -324,15 +325,15 @@ function abrirFormActividad(actividad = {}) {
 
             $("#tituloActividadLabel").text(actividadActual.nombre);
 
-            const modal = document.getElementById("actividadModal");
-            const fechaInput = modal.querySelector("#fechaInput");
-            const horaInicioInput = modal.querySelector("#horaInicioInput");
-            const horaFinInput = modal.querySelector("#horaFinInput");
-            const titleInput = modal.querySelector("#titleInput");
-            const usuarioInput = modal.querySelector("#usuarioInput");
-            const idUsuarioInput = modal.querySelector("#idUsuarioInput");
-            const selectorHoraInicio = modal.querySelector(`.resultados-busqueda[data-parent="${horaInicioInput.id}"]`);
-            const selectorHoraFin = modal.querySelector(`.resultados-busqueda[data-parent="${horaFinInput.id}"]`);
+            const modal = modalActividad;
+            const fechaInput = modal.getComponent("#fechaInput");
+            const horaInicioInput = modal.getComponent("#horaInicioInput");
+            const horaFinInput = modal.getComponent("#horaFinInput");
+            const titleInput = modal.getComponent("#titleInput");
+            const usuarioInput = modal.getComponent("#usuarioInput");
+            const idUsuarioInput = modal.getComponent("#idUsuarioInput");
+            const selectorHoraInicio = modal.getComponent(`.resultados-busqueda[data-parent="${horaInicioInput.id}"]`);
+            const selectorHoraFin = modal.getComponent(`.resultados-busqueda[data-parent="${horaFinInput.id}"]`);
 
             setTimeout(() => {
                 miniCalendar = calendarUI.buildCalendarCustom(
@@ -347,15 +348,15 @@ function abrirFormActividad(actividad = {}) {
                 miniCalendar.setOption("eventResize", function (info) {
                     actividadActual.hora_inicio = formatearHora(info.event.start);
                     actividadActual.hora_fin = formatearHora(info.event.end);
-                    horaInicioInput.value = actividadActual.hora_inicio.slice(0, 5);
-                    horaFinInput.value = actividadActual.hora_fin.slice(0, 5);
+                    horaInicioInput.val(actividadActual.hora_inicio.slice(0, 5));
+                    horaFinInput.val(actividadActual.hora_fin.slice(0, 5));
                 });
 
                 miniCalendar.setOption("eventDrop", function (info) {
                     actividadActual.hora_inicio = formatearHora(info.event.start);
                     actividadActual.hora_fin = formatearHora(info.event.end);
-                    horaInicioInput.value = actividadActual.hora_inicio.slice(0, 5);
-                    horaFinInput.value = actividadActual.hora_fin.slice(0, 5);
+                    horaInicioInput.val(actividadActual.hora_inicio.slice(0, 5));
+                    horaFinInput.val(actividadActual.hora_fin.slice(0, 5));
                 });
 
                 miniCalendar.render();
@@ -383,7 +384,7 @@ function abrirFormActividad(actividad = {}) {
             }, 500);
 
             // seleccionar tipo
-            const button = modal.querySelector(
+            const button = modal.getComponent(
                 `.btn-actividad[data-type="${actividadActual.tipo}"]`
             );
             if (button) button.classList.add("selected");
@@ -459,7 +460,7 @@ function abrirFormActividad(actividad = {}) {
 
 function guardarActividad() {
     const formActividad = document.getElementById("formActividad");
-    const modal = $("#actividadModal");
+    const modal = modalActividad;
 
     if (formActividad && !formActividad.checkValidity()) {
         formActividad.reportValidity();
@@ -496,7 +497,7 @@ function guardarActividad() {
         action,
         data: formData,
         onSuccess: () => {
-            modal?.modal("hide");
+            modal?.hide();
             fetchActividades(selectedUsuario);
         }
     });
@@ -591,7 +592,7 @@ document.addEventListener('click', function (e) {
         if (labels[actividad]) {
             titleInput.placeholder = labels[actividad];
             if (source.id === 'actividadModal') {
-                source.querySelector('#tituloActividadLabel').textContent = labels[actividad];
+                modalActividad.getComponent('#tituloActividadLabel').text(labels[actividad]);
             }
             if (defaultActividades.includes(actividadActual.nombre)) {
                 actividadActual.nombre = labels[actividad];
@@ -624,7 +625,7 @@ document.addEventListener('click', function (e) {
 
     if (e.target.closest('#btnNuevoCliente')) {
         const target = e.target.closest('#btnNuevoCliente');
-        const modal = document.getElementById('actividadModal');
+        const modal = modalActividad;
         const value = target?.dataset?.value;
         const nombreArr = value?.split(' ');
         const nombres = nombreArr?.[0] ?? null;
@@ -640,15 +641,14 @@ document.addEventListener('click', function (e) {
             action: "crear",
             data: formData,
             onSuccess: function (response) {
-                const clienteInput = modal.querySelector('#clienteInput');
-                const clienteIdInput = modal.querySelector('#clienteIdInput');
+                const clienteInput = modal.getComponent('#clienteInput');
+                const clienteIdInput = modal.getComponent('#clienteIdInput');
                 const resultados = target.closest('.busqueda-grupo').querySelector('.resultados-busqueda');
-                clienteInput.value = value;
-                clienteIdInput.value = response.id;
+                clienteInput.val(value);
+                clienteIdInput.val(response.id);
                 if (!actividadActual.clientes.some(c => c.idreferencia === response.id && c.tipo_cliente === "cliente")) {
                     actividadActual.clientes.push({ idreferencia: id, tipo_cliente: "cliente" });
                 }
-
                 resultados.style.display = "none";
             }
         });

@@ -63,6 +63,10 @@ button.btn-symmetrical-sm {
   color: var(--default-text-color);
 }
 
+.btn.btn-disabled {
+  opacity: 0.8;
+}
+
 .btn.border,
 .btn.border:hover,
 .btn.border.selected {
@@ -148,12 +152,27 @@ button.btn-symmetrical-sm {
   color: var(--default-text-color) !important;
 }
 
-.btn-outline svg,
-.btn-outline path {
+.btn-outline svg path {
   stroke: var(--default-text-color);
   color: var(--default-text-color);
   max-height: 18px;
   display: inline-flex;
+}
+
+.btn-default span,
+.btn-secondary span,
+.btn-cancelar span {
+  color: #fff;
+}
+
+.btn-outline span {
+  color: var(--default-text-color);
+}
+
+.btn-default svg path,
+.btn-secondary svg path,
+.btn-cancelar svg path {
+  stroke: #fff;
 }
 
 .btn.btn-sm {

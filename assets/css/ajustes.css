@@ -1,0 +1,14 @@
+#modalCampania:not(:has(.campania-form .first-step)):not(
+    :has(.campania-form .last-step)
+  )
+  .buttons-navegacion {
+  display: flex;
+}
+
+.preview-iframe {
+  width: 100%;
+  min-height: 500px;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  background-color: #fff;
+}

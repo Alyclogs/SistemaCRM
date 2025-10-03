@@ -1,4 +1,7 @@
 import api from "../utils/api.js";
+import { ModalComponent } from "../utils/modal.js";
+
+const clienteModal = new ModalComponent("cliente", { size: "lg" });
 
 export function abrirModal({ tipo, id = null, esNuevo = false, focus = null }) {
     const urls = {
@@ -17,11 +20,8 @@ export function abrirModal({ tipo, id = null, esNuevo = false, focus = null }) {
     fetch(url)
         .then(res => res.text())
         .then(html => {
-            $("#clienteModalLabel").text(titulos[tipo]);
-            $("#clienteModalBody").html(html);
-            $("#clienteModal").modal("show");
-
-            if (focus) $("#clienteModal").find(focus).focus();
+            clienteModal.show(titulos[tipo], html);
+            if (focus) clienteModal.getComponent(focus).focus();
         })
         .catch(e => {
             mostrarToast({

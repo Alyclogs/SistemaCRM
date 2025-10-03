@@ -1,5 +1,5 @@
 import api from "../utils/api.js";
-import { abrirModal } from "./index.js";
+import { abrirModal, modalAjustes } from "./index.js";
 
 export function fetchCamposExtra() {
     api.get({
@@ -52,7 +52,7 @@ export function guardarCampo() {
         action: action,
         data: formData,
         onSuccess: () => {
-            $("#ajustesModal").modal("hide");
+            modalAjustes.hide();
             fetchCamposExtra();
         }
     });

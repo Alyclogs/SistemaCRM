@@ -1,16 +1,16 @@
-<div class="list-view">
+<div class="list-view campania-form first-step">
     <div style="width: 25%;
             border-right: 1px solid var(--bs-border-color);">
         <div class="list-items p-2">
-            <div class="list-item list-item-default selected" data-target="campaniaInfoSection">
+            <div class="list-item list-item-default selected" data-step="1" data-target="campaniaInfoSection">
                 <span class="list-item-bullet">1.</span>
                 <span>Información de campaña</span>
             </div>
-            <div class="list-item list-item-default" data-target="campaniaPlantillasSection">
+            <div class="list-item list-item-default" data-step="2" data-target="campaniaPlantillasSection">
                 <span class="list-item-bullet">2.</span>
                 <span>Elegir plantillas</span>
             </div>
-            <div class="list-item list-item-default" data-target="campaniaProgramacionSection">
+            <div class="list-item list-item-default" data-step="3" data-target="campaniaProgramacionSection">
                 <span class="list-item-bullet">3.</span>
                 <span>Programar fechas</span>
             </div>
@@ -18,7 +18,7 @@
     </div>
     <div style="width: 75%;">
         <div class="section-list p-2">
-            <div class="section-item show" id="campaniaInfoSection">
+            <div class="section-item show" id="campaniaInfoSection" data-step="1">
                 <div class="mb-4">
                     <div class="page-header mb-1">
                         <h6>Información de campaña</h6>
@@ -46,16 +46,16 @@
                     </div>
                 </form>
             </div>
-            <div class="section-item" id="campaniaPlantillasSection">
+            <div class="section-item" id="campaniaPlantillasSection" data-step="2">
                 <div class="mb-4">
                     <div class="page-header mb-1">
                         <h6>Elegir plantillas</h6>
                     </div>
                     <span class="text-muted">Selecciona una o más plantillas para la campaña</span>
                 </div>
-                <div id="plantillasList" class="d-flex flex-column gap-2 section-body"></div>
+                <div id="campaniaPlantillasList" class="d-flex flex-column gap-2 section-body"></div>
             </div>
-            <div class="section-item" id="campaniaProgramacionSection">
+            <div class="section-item" id="campaniaProgramacionSection" data-step="3">
                 <div class="mb-4">
                     <div class="page-header mb-1">
                         <h6>Programar fechas</h6>
@@ -65,4 +65,9 @@
                 <div id="programacionContainer" class="d-flex flex-column gap-2 section-body"></div>
             </div>
         </div>
+        <div class="buttons-navegacion p-2 d-flex align-items-center justify-content-between gap-2 d-none">
+            <button class="btn btn-outline btn-navegacion" id="btnRegresar" disabled><?php include('../../../assets/svg/arrow-left-02.svg') ?><span>Volver</span></button>
+            <button class="btn btn-default btn-navegacion" id="btnSiguiente"><?php include('../../../assets/svg/arrow-right-02.svg') ?><span>Siguiente</span></button>
+        </div>
     </div>
+</div>

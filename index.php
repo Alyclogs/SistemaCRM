@@ -55,7 +55,6 @@ if (!file_exists($ruta)) {
                 <?php include("views/components/footer.php"); ?>
             </div>
         </div>
-        <?php include("views/components/modals.php"); ?>
     <?php else: ?>
         <?php include($ruta); ?>
     <?php endif; ?>

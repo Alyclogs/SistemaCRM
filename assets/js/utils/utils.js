@@ -17,7 +17,7 @@ export const icons = async () => {
             fetch(window.baseurl + "assets/svg/video.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/profile-2user.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/clock.svg").then(res => res.text()),
-            fetch(window.baseurl + "assets/svg/paperclip.svg").then(res => res.text())
+            fetch(window.baseurl + "assets/svg/paperclip.svg").then(res => res.text()),
         ]);
 
     return {
@@ -36,7 +36,8 @@ export const icons = async () => {
         building,
         video,
         reunion,
-        clock
+        clock,
+        paperclip
     };
 };
 
