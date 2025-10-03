@@ -11,16 +11,32 @@ select,
   font-family: "Poppins", sans-serif !important;
 }
 
+input.form-check-input {
+  border-color: var(--default-border-color) !important;
+}
+
+input.form-check-input:hover {
+  border-color: var(--default-text-color) !important;
+}
+
+input.form-check-input:checked {
+  border-color: var(--default-theme-color) !important;
+  background-color: var(--default-theme-color) !important;
+}
+
+input.form-check-input:checked:hover {
+  border-color: var(--default-theme-color-dark) !important;
+  background-color: var(--default-theme-color-dark) !important;
+}
+
 input:focus {
   box-shadow: none !important;
   background-color: var(--default-bg-color-light) !important;
 }
 
 .input-group:has(input:-internal-autofill-selected) {
-  background-color: light-dark(
-    rgb(232, 240, 254),
-    rgba(70, 90, 126, 0.4)
-  ) !important;
+  background-color: light-dark(rgb(232, 240, 254),
+      rgba(70, 90, 126, 0.4)) !important;
 }
 
 .input-group input:-internal-autofill-selected {
@@ -100,7 +116,7 @@ input:focus {
 }
     */
 
-.grupo-input:has(input:-internal-autofill-selected) > * {
+.grupo-input:has(input:-internal-autofill-selected)>* {
   background-color: transparent !important;
 }
 
@@ -136,8 +152,8 @@ input:focus {
   position: relative;
   overflow: hidden;
   border: 3px dashed var(--info-text-color);
-  border-radius: 15px;
-  padding: 20px;
+  border-radius: 1rem;
+  padding: 12px;
   text-align: center;
   background: var(--info-bg-color);
   transition: all 0.3s ease;
@@ -145,7 +161,7 @@ input:focus {
 }
 
 .file-upload-wrapper:hover {
-  transform: translateY(-5px);
+  background-color: var(--info-bg-color-hover);
 }
 
 .file-upload-wrapper.dragover {
@@ -168,7 +184,6 @@ input:focus {
   font-size: 4rem;
   color: var(--info-text-color);
   margin-bottom: 20px;
-  transition: all 0.3s ease;
 }
 
 .upload-text {
@@ -188,6 +203,7 @@ input:focus {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

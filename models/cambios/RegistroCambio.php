@@ -166,7 +166,9 @@ class RegistroCambioModel
             'empresas'   => ['tabla' => 'empresas',    'pk' => 'idempresa'],
             'proyectos'  => ['tabla' => 'proyectos',   'pk' => 'idproyecto'],
             'tareas'     => ['tabla' => 'tareas',      'pk' => 'idtarea'],
-            'campos extra' => ['tabla' => 'campos_extra', 'pk' => 'idcampo']
+            'campos extra' => ['tabla' => 'campos_extra', 'pk' => 'idcampo'],
+            'plantilla' => ['tabla' => 'plantillas', 'pk' => 'idplantilla'],
+            'plantillas' => ['tabla' => 'plantillas', 'pk' => 'idplantilla']
         ];
 
         if (!isset($mapa[$tipo])) {

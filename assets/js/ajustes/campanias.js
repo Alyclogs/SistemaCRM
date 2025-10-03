@@ -1,8 +1,12 @@
 import api from "../utils/api.js";
+import { ModalComponent } from "../utils/modal.js";
 import { abrirModal, modalAjustes } from "./index.js";
 
 let currentStep = 1;
 let totalSteps = 3;
+let plantillasCache = new Map();
+let selectedPlantillas = new Set();
+let campaniaActual = {};
 
 export function fetchCampanias() {
     api.get({
@@ -36,7 +40,17 @@ export function fetchCampanias() {
                         <td>${campania.nombre}</td>
                         <td>${campania.fecha_incio}</td>
                         <td>${campania.fecha_fin || 'N/A'}</td>
-                        <td><div class="badge bg-${estado.bg}">${estado.estado}</div></td>
+                        <td><div class="badge text-bg-${estado.bg}">${estado.estado}</div></td>
+                        <td>
+                            <div class="info-row">
+                                <button class="btn btn-icon bg-light" data-id="${campania.idcampania}" id="btnEditarCampania">
+                                    ${window.icons.edit}
+                                </button>
+                                <button class="btn btn-icon bg-light" data-id="${campania.idcampania}" id="btnEliminarCampania">
+                                    ${window.icons.trash}
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             });
@@ -45,7 +59,52 @@ export function fetchCampanias() {
     });
 }
 
-export function fetchPlantillas(containerId) {
+export function fetchEmisores(containerId, tipo) {
+    api.get({
+        source: "emisores",
+        action: "listar",
+        onSuccess: (emisores) => {
+            const emisoresContainer = document.getElementById(containerId);
+            if (tipo) emisores = emisores.filter(e => e.tipo === tipo);
+
+            if (emisores.length === 0) {
+                emisoresContainer.innerHTML = "<p class='text-muted'>No hay emisores disponibles.</p>";
+                return;
+            }
+
+            let html = "";
+            const estadosEmisor = {
+                0: { bg: "danger", estado: "inactivo" },
+                1: { bg: "success", estado: "activo" }
+            }
+
+            emisores.forEach(emisor => {
+                const estado = estadosEmisor[emisor.activo];
+                html += `
+                    <tr>
+                        <td>${emisor.nombre ?? 'Sin nombre'}</td>
+                        <td>${emisor.descripcion ?? 'Sin descripción'}</td>
+                        <td>${tipo === "correo" ? emisor.correo : emisor.telefono}</td>
+                        <td><div class="badge text-bg-${estado.bg}">${estado.estado}</div></td>
+                        <td>
+                            <div class="info-row">
+                                <button class="btn btn-icon bg-light" data-id="${emisor.idemisor}" id="btnEditarEmisorCorreo">
+                                    ${window.icons.edit}
+                                </button>
+                                <button class="btn btn-icon bg-light" data-id="${emisor.idemisor}" id="btnEliminarEmisorCorreo">
+                                    ${window.icons.trash}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            emisoresContainer.innerHTML = html;
+        }
+    });
+}
+
+export function fetchPlantillas(containerId, { selectable = false, editable = true } = {}) {
     api.get({
         source: "plantillas",
         action: "listar",
@@ -59,16 +118,24 @@ export function fetchPlantillas(containerId) {
             let html = "";
 
             plantillas.forEach(plantilla => {
+                plantillasCache.set(plantilla.idplantilla, plantilla);
                 html += `
-                    <div class="container-border d-flex gap-2">
-                        <div class="flex-grow-1">
-                            <input type="checkbock" class="form-check" value="${plantilla.idplantilla}">
+                    <div class="border rounded p-3 d-flex gap-3 align-items-center">
+                        <div class="flex-grow-1 d-flex gap-3 align-items-center">
+                            ${selectable ? `<input type="checkbox" class="form-check form-check-input" value="${plantilla.idplantilla}">` : ''}
                             <div class="d-flex flex-column gap-1">
                                 <h5>${plantilla.nombre}</h5>
-                                <span>${plantilla.descripcion}</span>
+                                <span>${plantilla.descripcion || 'Sin descripción'}</span>
                             </div>
                         </div>
-                        <button class="btn btn-icon bg-light"><i class="bi bi-eye"></i></button>
+                        <div class="info-row">
+                            <button class="btn btn-icon bg-light" id="btnPrevisualizarPlantilla" data-id="${plantilla.idplantilla}"><i class="bi bi-eye"></i></button>
+                        ${editable
+                        ? `<button class="btn btn-icon bg-light" id="btnEditarPlantillaCorreo" data-id="${plantilla.idplantilla}">${window.icons.edit}</button>
+                            <button class="btn btn-icon bg-light" id="btnEliminarPlantillaCorreo" data-id="${plantilla.idplantilla}">${window.icons.trash}</button>`
+                        : ''
+                    }
+                    </div>
                     </div>
                 `;
             });
@@ -80,8 +147,6 @@ export function fetchPlantillas(containerId) {
 export function guardarCampania() {
     const form = document.getElementById("formCampania");
     const formData = new FormData(form);
-    const campania = formData.get('nombre').replace(' ', '_').toLowerCase();
-    formData.append("campania", campania);
 
     const action = formData.get("idcampania") ? "actualizar_campania" : "crear_campania";
     api.post({
@@ -91,6 +156,38 @@ export function guardarCampania() {
         onSuccess: () => {
             modalAjustes.hide();
             fetchCampanias();
+        }
+    });
+}
+
+export function guardarPlantilla() {
+    const form = document.getElementById("formPlantilla");
+    const formData = new FormData(form);
+
+    const action = formData.get("idplantilla") ? "actualizar" : "crear";
+    api.post({
+        source: "plantillas",
+        action: action,
+        data: formData,
+        onSuccess: () => {
+            modalAjustes.hide();
+            fetchPlantillas("correosPlantillasList");
+        }
+    });
+}
+
+export function guardarEmisor() {
+    const form = document.getElementById("formEmisor");
+    const formData = new FormData(form);
+
+    const action = formData.get("idemisor") ? "actualizar" : "crear";
+    api.post({
+        source: "emisores",
+        action: action,
+        data: formData,
+        onSuccess: () => {
+            modalAjustes.hide();
+            fetchPlantillas("correoEmisoresList", "correo");
         }
     });
 }
@@ -118,6 +215,35 @@ export function updateStep() {
     form.querySelectorAll(".list-item").forEach(el => el.classList.remove("selected"));
     form.querySelector(`.section-item[data-step="${currentStep}"]`).classList.add("show");
     form.querySelector(`.list-item[data-step="${currentStep}"]`).classList.add("selected");
+}
+
+export function initPlantillaSelection() {
+    const checkboxes = document.getElementById("campaniaPlantillasList").querySelectorAll("input[type='checkbox']");
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener("change", function () {
+            if (checkbox.checked) {
+                if (!selectedPlantillas.has(checkbox.value)) {
+                    selectedPlantillas.add(checkbox.value);
+                }
+            } else {
+                selectedPlantillas.delete(checkbox.value);
+            }
+            renderPlantillasSeleccionadas();
+        });
+    });
+}
+
+function renderPlantillasSeleccionadas() {
+    if (selectedPlantillas.size() === 0) return;
+
+    html = "";
+    selectedPlantillas.forEach((idplantilla, idx) => {
+        const plantilla = plantillasCache.get(idplantilla);
+
+        html += `<div class="container-border">
+                    <div class="d-flex">
+                </div>`;
+    });
 }
 
 document.addEventListener("click", function (e) {
@@ -152,7 +278,60 @@ document.addEventListener("click", function (e) {
     }
 
     if (e.target.closest("#btnEditarPlantillaCorreo")) {
-        abrirModal("plantilla", "Editar plantilla", "xl");
+        abrirModal("plantilla", "Editar plantilla", "xl", e.target.closest("button").dataset.id);
+    }
+
+    if (e.target.closest("#btnEliminarPlantillaCorreo")) {
+        const id = e.target.closest("button").dataset.id;
+
+        if (confirm("¿Está seguro de que desea eliminar esta plantilla? Esta acción no se puede deshacer.")) {
+            const formData = new FormData();
+            formData.append("idplantilla", id);
+
+            api.post({
+                source: "plantillas",
+                action: "eliminar",
+                data: formData,
+                onSuccess: () => {
+                    fetchEmisores("correosPlantillasList");
+                }
+            });
+        }
+    }
+
+    if (e.target.closest("#btnPrevisualizarPlantilla")) {
+        const modalPrevisualizar = new ModalComponent("previsualizador", { size: "lg", height: "760px", ocultarFooter: true });
+        modalPrevisualizar.getComponent("title").style.display = "none";
+
+        fetch(window.baseurl + "views/components/ajustes/viewPlantilla.php?id=" + e.target.closest("button").dataset.id)
+            .then(res => res.text())
+            .then(html => modalPrevisualizar.show(null, html));
+    }
+
+    if (e.target.closest("#btnNuevoEmisorCorreo")) {
+        abrirModal("emisorCorreo", "Nuevo emisor de correo", "md");
+    }
+
+    if (e.target.closest("#btnEditarEmisorCorreo")) {
+        abrirModal("emisorCorreo", "Editar emisor de correo", "md", e.target.closest("button").dataset.id);
+    }
+
+    if (e.target.closest("#btnEliminarEmisorCorreo")) {
+        const id = e.target.closest("button").dataset.id;
+
+        if (confirm("¿Está seguro de que desea eliminar este emisor? Esta acción no se puede deshacer.")) {
+            const formData = new FormData();
+            formData.append("idemisor", id);
+
+            api.post({
+                source: "emisores",
+                action: "eliminar",
+                data: formData,
+                onSuccess: () => {
+                    fetchPlantillas("correoEmisoresList", "correo");
+                }
+            });
+        }
     }
 
     if (e.target.closest(".btn-navegacion")) {

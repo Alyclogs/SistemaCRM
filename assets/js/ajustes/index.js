@@ -1,6 +1,6 @@
 import api from "../utils/api.js";
 import { ModalComponent } from "../utils/modal.js";
-import { fetchCampanias, fetchPlantillas, guardarCampania } from "./campanias.js";
+import { fetchCampanias, fetchEmisores, fetchPlantillas, guardarCampania, guardarEmisor, guardarPlantilla, initPlantillaSelection } from "./campanias.js";
 import { fetchCamposExtra, guardarCampo } from "./campos.js";
 import { fetchRoles, guardarRol } from "./roles.js";
 
@@ -8,9 +8,12 @@ export const modalAjustes = new ModalComponent("ajustes", { size: "md" });
 
 function fetchAjustes() {
     fetchRoles();
-    fetchCamposExtra();
-    fetchCampanias();
-    fetchPlantillas("correosPlantillasList")
+    setTimeout(() => {
+        fetchCamposExtra();
+        fetchCampanias();
+        fetchPlantillas("correosPlantillasList");
+        fetchEmisores("correoEmisoresList", "correo");
+    }, 100);
 }
 
 export function abrirModal(type, title, size = "md", id = null, options = {}) {
@@ -18,14 +21,16 @@ export function abrirModal(type, title, size = "md", id = null, options = {}) {
         rol: window.baseurl + "views/components/ajustes/formRol.php",
         campo: window.baseurl + "views/components/ajustes/formCampos.php",
         campania: window.baseurl + "views/components/ajustes/modalCampania.php",
-        plantilla: window.baseurl + "views/components/ajustes/formPlantilla.php"
+        plantilla: window.baseurl + "views/components/ajustes/formPlantilla.php",
+        emisorCorreo: window.baseurl + "views/components/ajustes/formEmisor.php"
     }
     let url = urls[type];
     if (id) url += "?id=" + id;
 
     const actions = {
         campania: () => {
-            fetchPlantillas("campaniaPlantillasList");
+            fetchPlantillas("campaniaPlantillasList", { selectable: true, editable: false });
+            initPlantillaSelection();
         }
     }
 
@@ -77,7 +82,9 @@ document.addEventListener("click", function (e) {
         const actions = {
             rol: () => guardarRol(),
             campo: () => guardarCampo(),
-            campania: () => guardarCampania()
+            campania: () => guardarCampania(),
+            plantilla: () => guardarPlantilla(),
+            emisorCorreo: () => guardarEmisor()
         }
         actions[type]();
     }

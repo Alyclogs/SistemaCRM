@@ -84,7 +84,9 @@
                         </div>
                         <span class="text-muted">Edita la configuración de correo</span>
                     </div>
-                    <div id="correoConfiguracion" class="d-flex flex-column gap-2"></div>
+                    <div class="d-flex flex-column gap-2">
+                        <?php include("./views/components/ajustes/configCorreo.php") ?>
+                    </div>
                 </div>
                 <div id="correosPlantillasSection" class="section-item h-100">
                     <div class="mb-4">

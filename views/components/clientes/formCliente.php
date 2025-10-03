@@ -34,7 +34,7 @@ $camposExtra = $ajustesModel->obtenerCamposExtraPorTabla(null, 'clientes');
                     style="max-width: 100%; <?php echo $cliente && !empty($cliente['foto']) ? '' : 'display:none;'; ?> border-radius: 10px;" />
             </div>
 
-            <button type="button" class="btn btn-outline" onclick="document.getElementById('fileInput').click();">
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('imageFileInput').click();">
                 <span>Adjuntar Foto</span>
             </button>
 
@@ -44,7 +44,7 @@ $camposExtra = $ajustesModel->obtenerCamposExtraPorTabla(null, 'clientes');
                 <p>Peso < 200kb</p>
             </div>
 
-            <input type="file" id="fileInput" name="foto" class="input-file" accept="image/*" style="display:none">
+            <input type="file" id="imageFileInput" name="foto" class="input-file" accept="image/*" style="display:none">
         </div>
 
         <div class="col-9">

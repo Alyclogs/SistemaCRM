@@ -18,14 +18,15 @@
     </div>
     <div style="width: 75%;">
         <div class="section-list p-2">
-            <div class="section-item show" id="campaniaInfoSection" data-step="1">
-                <div class="mb-4">
-                    <div class="page-header mb-1">
-                        <h6>Información de campaña</h6>
+            <form class="section-body" id="formCampania">
+                <div class="section-item show" id="campaniaInfoSection" data-step="1">
+                    <div class="mb-4">
+                        <div class="page-header mb-1">
+                            <h6>Información de campaña</h6>
+                        </div>
+                        <span class="text-muted">Edita la información de la campaña</span>
                     </div>
-                    <span class="text-muted">Edita la información de la campaña</span>
-                </div>
-                <form class="section-body" id="formCampania">
+
                     <div class="mb-3">
                         <label for="nombreInput">Nombre de la campaña:</label>
                         <input type="text" id="nombreInput" class="form-control" value="">
@@ -44,26 +45,36 @@
                             <input type="date" id="fechaFinInput" class="form-control" value="">
                         </div>
                     </div>
-                </form>
-            </div>
-            <div class="section-item" id="campaniaPlantillasSection" data-step="2">
-                <div class="mb-4">
-                    <div class="page-header mb-1">
-                        <h6>Elegir plantillas</h6>
-                    </div>
-                    <span class="text-muted">Selecciona una o más plantillas para la campaña</span>
                 </div>
-                <div id="campaniaPlantillasList" class="d-flex flex-column gap-2 section-body"></div>
-            </div>
-            <div class="section-item" id="campaniaProgramacionSection" data-step="3">
-                <div class="mb-4">
-                    <div class="page-header mb-1">
-                        <h6>Programar fechas</h6>
+                <div class="section-item" id="campaniaPlantillasSection" data-step="2">
+                    <div class="mb-4">
+                        <div class="page-header mb-1">
+                            <h6>Elegir plantillas</h6>
+                        </div>
+                        <span class="text-muted">Selecciona una o más plantillas para la campaña</span>
                     </div>
-                    <span class="text-muted">Edita la configuración de envíos para la campaña</span>
+                    <div id="campaniaPlantillasList" class="d-flex flex-column gap-2 section-body"></div>
                 </div>
-                <div id="programacionContainer" class="d-flex flex-column gap-2 section-body"></div>
-            </div>
+                <div class="section-item" id="campaniaProgramacionSection" data-step="3">
+                    <div class="mb-4">
+                        <div class="page-header mb-1">
+                            <h6>Programar fechas</h6>
+                        </div>
+                        <span class="text-muted">Edita la configuración de envíos para la campaña</span>
+                    </div>
+                    <div class="d-flex flex-column gap-2 section-body">
+                        <div class="container-border">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="info-row">
+                                        <!-- insertar switch -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
         <div class="buttons-navegacion p-2 d-flex align-items-center justify-content-between gap-2 d-none">
             <button class="btn btn-outline btn-navegacion" id="btnRegresar" disabled><?php include('../../../assets/svg/arrow-left-02.svg') ?><span>Volver</span></button>

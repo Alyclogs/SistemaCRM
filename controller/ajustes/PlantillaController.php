@@ -26,21 +26,35 @@ try {
 
             case 'crear':
                 $data = $_POST;
-                if (empty($data['nombre']) || empty($data['contenido'])) {
+                if (isset($_FILES['contenido_html']) && $_FILES['contenido_html']['error'] === UPLOAD_ERR_OK) {
+                    $tmpName = $_FILES['contenido_html']['tmp_name'];
+                    $contenido = file_get_contents($tmpName);
+                    $data['contenido_html'] = $contenido;
+                }
+                if (empty($data['nombre']) || (empty($data['contenido_html']) && empty($data['contenido_texto']))) {
                     throw new Exception("Nombre y contenido son obligatorios");
                 }
+
                 $id = $plantillaModel->crearPlantilla($data);
+
                 $response = [
-                    "success" => true,
-                    "message" => "Plantilla creada correctamente",
+                    "success"     => true,
+                    "message"     => "Plantilla creada correctamente",
                     "idplantilla" => $id
                 ];
                 break;
 
             case 'actualizar':
                 if (!isset($_POST['idplantilla'])) throw new Exception("ID de plantilla requerido");
+
                 $data = $_POST;
-                $plantillaModel->editarPlantilla($_POST['idplantilla'], $data);
+                if (isset($_FILES['contenido_html']) && $_FILES['contenido_html']['error'] === UPLOAD_ERR_OK) {
+                    $tmpName = $_FILES['contenido_html']['tmp_name'];
+                    $contenido = file_get_contents($tmpName);
+                    $data['contenido_html'] = $contenido;
+                }
+
+                $plantillaModel->actualizarPlantilla($_POST['idplantilla'], $data);
                 $response = [
                     "success" => true,
                     "message" => "Plantilla actualizada correctamente"
