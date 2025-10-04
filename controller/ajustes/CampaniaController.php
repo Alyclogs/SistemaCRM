@@ -12,20 +12,17 @@ try {
     if (isset($_GET['action'])) {
         switch ($_GET['action']) {
 
-            // 📌 Listar campañas
             case 'listar':
                 $data = $envioModel->obtenerCampanias();
                 $response = $data;
                 break;
 
-            // 📌 Ver campaña por ID
             case 'ver':
                 if (!isset($_GET['idcampania'])) throw new Exception("ID de campaña requerido");
                 $data = $envioModel->obtenerCampania($_GET['idcampania']);
                 $response = $data;
                 break;
 
-            // 📌 Crear nueva campaña (con programaciones de envío)
             case 'crear':
                 $data = $_POST;
 
@@ -49,7 +46,6 @@ try {
                 ];
                 break;
 
-            // 📌 Actualizar campaña
             case 'actualizar':
                 if (!isset($_POST['idcampania'])) throw new Exception("ID de campaña requerido");
                 $data = $_POST;
@@ -65,7 +61,6 @@ try {
                 ];
                 break;
 
-            // 📌 Eliminar campaña
             case 'eliminar':
                 if (!isset($_POST['idcampania'])) throw new Exception("ID de campaña requerido");
                 $envioModel->eliminarCampania($_POST['idcampania']);

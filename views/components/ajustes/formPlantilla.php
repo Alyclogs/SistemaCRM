@@ -21,7 +21,8 @@ if ($id) {
 <div class="row g-4">
     <div class="col-lg-5">
         <form id="formPlantilla">
-            <input type="hidden" name="idplantilla" value="<?= $plantilla['idplantilla'] ?>">
+            <input type="hidden" name="idplantilla" value="<?= $plantilla['idplantilla'] ?? '' ?>">
+            <input type="hidden" id="plantillaTypeInput" name="tipo" value="<?= $plantilla['tipo'] ?? '' ?>">
             <div class="d-flex flex-column h-100">
                 <div class="mb-3">
                     <label for="templateName" class="form-label">Nombre de la Plantilla</label>

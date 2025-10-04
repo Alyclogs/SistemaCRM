@@ -24,13 +24,13 @@ class PlantillaModel
     {
         try {
             $sql = "INSERT INTO plantillas (tipo, nombre, asunto, descripcion, contenido_texto, contenido_html, idusuario, fecha_creacion) 
-                    VALUES (:tipo, :nombre, :descripcion, :contenido_texto, :contenido_html, :idusuario, NOW())";
+                    VALUES (:tipo, :nombre, :asunto, :descripcion, :contenido_texto, :contenido_html, :idusuario, NOW())";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 ":tipo"      => $data['tipo'] ?? 'general',
                 ":nombre"    => $data['nombre'],
-                ":descripcion" => $data['descripcion'],
                 ":asunto" => $data['asunto'],
+                ":descripcion" => $data['descripcion'],
                 ":contenido_texto" => $data['contenido_texto'],
                 ":contenido_html" => $data['contenido_html'],
                 ":idusuario" => $data['idusuario'] ?? $_SESSION['idusuario']

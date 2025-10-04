@@ -17,7 +17,7 @@ if ($id) {
 }
 ?>
 
-<div class="p-4 pt-0 h-100 d-flex flex-column">
+<div class="p-2 pt-0 h-100 d-flex flex-column">
     <div class="mb-3">
         <div class="info-row mb-3 gap-2">
             <img src="./assets/img/usuariodefault.png" class="user-icon sm" alt="Foto de simulación emisor">
@@ -34,7 +34,7 @@ if ($id) {
     <div class="h-100 container-border bg-light disable-hover" id="previewMessage">
         Aquí se visualizará la plantilla HTML.
     </div>
-    <iframe id="previewIframe" class="preview-iframe h-100 d-none" sandbox="allow-scripts allow-same-origin"></iframe>
+    <iframe id="previewIframe" class="preview-iframe h-100 d-none" sandbox="allow-same-origin"></iframe>
 </div>
 
 <?php if (!empty($plantilla['contenido_html'])): ?>

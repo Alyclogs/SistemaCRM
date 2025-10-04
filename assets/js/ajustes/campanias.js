@@ -4,9 +4,7 @@ import { abrirModal, modalAjustes } from "./index.js";
 
 let currentStep = 1;
 let totalSteps = 3;
-let plantillasCache = new Map();
-let selectedPlantillas = new Set();
-let campaniaActual = {};
+export const plantillasCache = new Map();
 
 export function fetchCampanias() {
     api.get({
@@ -104,7 +102,7 @@ export function fetchEmisores(containerId, tipo) {
     });
 }
 
-export function fetchPlantillas(containerId, { selectable = false, editable = true } = {}) {
+export function fetchPlantillas(containerId, { selectable = false, editable = true, onRender = null } = {}) {
     api.get({
         source: "plantillas",
         action: "listar",
@@ -129,10 +127,10 @@ export function fetchPlantillas(containerId, { selectable = false, editable = tr
                             </div>
                         </div>
                         <div class="info-row">
-                            <button class="btn btn-icon bg-light" id="btnPrevisualizarPlantilla" data-id="${plantilla.idplantilla}"><i class="bi bi-eye"></i></button>
+                            <button type="button" class="btn btn-icon bg-light" id="btnPrevisualizarPlantilla" data-id="${plantilla.idplantilla}"><i class="bi bi-eye"></i></button>
                         ${editable
-                        ? `<button class="btn btn-icon bg-light" id="btnEditarPlantillaCorreo" data-id="${plantilla.idplantilla}">${window.icons.edit}</button>
-                            <button class="btn btn-icon bg-light" id="btnEliminarPlantillaCorreo" data-id="${plantilla.idplantilla}">${window.icons.trash}</button>`
+                        ? `<button type="button" class="btn btn-icon bg-light" id="btnEditarPlantillaCorreo" data-id="${plantilla.idplantilla}">${window.icons.edit}</button>
+                            <button type="button" class="btn btn-icon bg-light" id="btnEliminarPlantillaCorreo" data-id="${plantilla.idplantilla}">${window.icons.trash}</button>`
                         : ''
                     }
                     </div>
@@ -140,22 +138,7 @@ export function fetchPlantillas(containerId, { selectable = false, editable = tr
                 `;
             });
             plantillasContainer.innerHTML = html;
-        }
-    });
-}
-
-export function guardarCampania() {
-    const form = document.getElementById("formCampania");
-    const formData = new FormData(form);
-
-    const action = formData.get("idcampania") ? "actualizar_campania" : "crear_campania";
-    api.post({
-        source: "ajustes",
-        action: action,
-        data: formData,
-        onSuccess: () => {
-            modalAjustes.hide();
-            fetchCampanias();
+            if (typeof onRender === "function") onRender();
         }
     });
 }
@@ -170,7 +153,7 @@ export function guardarPlantilla() {
         action: action,
         data: formData,
         onSuccess: () => {
-            modalAjustes.hide();
+            modalAjustes.destroy();
             fetchPlantillas("correosPlantillasList");
         }
     });
@@ -186,10 +169,19 @@ export function guardarEmisor() {
         action: action,
         data: formData,
         onSuccess: () => {
-            modalAjustes.hide();
+            modalAjustes.destroy();
             fetchPlantillas("correoEmisoresList", "correo");
         }
     });
+}
+
+export function previsualizarPlantilla(idplantilla) {
+    const modalPrevisualizar = new ModalComponent("previsualizador", { size: "lg", height: "760px", ocultarFooter: true });
+    modalPrevisualizar.getComponent("title").style.display = "none";
+
+    fetch(window.baseurl + "views/components/ajustes/viewPlantilla.php?id=" + idplantilla)
+        .then(res => res.text())
+        .then(html => modalPrevisualizar.show(null, html));
 }
 
 export function updateStep() {
@@ -217,42 +209,13 @@ export function updateStep() {
     form.querySelector(`.list-item[data-step="${currentStep}"]`).classList.add("selected");
 }
 
-export function initPlantillaSelection() {
-    const checkboxes = document.getElementById("campaniaPlantillasList").querySelectorAll("input[type='checkbox']");
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener("change", function () {
-            if (checkbox.checked) {
-                if (!selectedPlantillas.has(checkbox.value)) {
-                    selectedPlantillas.add(checkbox.value);
-                }
-            } else {
-                selectedPlantillas.delete(checkbox.value);
-            }
-            renderPlantillasSeleccionadas();
-        });
-    });
-}
-
-function renderPlantillasSeleccionadas() {
-    if (selectedPlantillas.size() === 0) return;
-
-    html = "";
-    selectedPlantillas.forEach((idplantilla, idx) => {
-        const plantilla = plantillasCache.get(idplantilla);
-
-        html += `<div class="container-border">
-                    <div class="d-flex">
-                </div>`;
-    });
-}
-
 document.addEventListener("click", function (e) {
     if (e.target.closest("#btnNuevaCampania")) {
-        abrirModal("campania", "Nueva campaña", "lg", null, { ocultarFooter: true });
+        abrirModal("campania", "Nueva campaña", null, { size: "lg", ocultarFooter: true });
     }
 
     if (e.target.closest("#btnEditarCampania")) {
-        abrirModal("campania", "Editar campaña", "lg", e.target.closest("button").dataset.id, { ocultarFooter: true });
+        abrirModal("campania", "Editar campaña", e.target.closest("button").dataset.id, { size: "lg", ocultarFooter: true });
     }
 
     if (e.target.closest("#btnEliminarCampania")) {
@@ -274,11 +237,11 @@ document.addEventListener("click", function (e) {
     }
 
     if (e.target.closest("#btnNuevaPlantillaCorreo")) {
-        abrirModal("plantilla", "Nueva plantilla", "xl");
+        abrirModal("plantilla", "Nueva plantilla", null, { size: "lg", onRender: () => modalAjustes.getComponent("#plantillaTypeInput").value = "correo" });
     }
 
     if (e.target.closest("#btnEditarPlantillaCorreo")) {
-        abrirModal("plantilla", "Editar plantilla", "xl", e.target.closest("button").dataset.id);
+        abrirModal("plantilla", "Editar plantilla", e.target.closest("button").dataset.id, { size: "lg", });
     }
 
     if (e.target.closest("#btnEliminarPlantillaCorreo")) {
@@ -300,20 +263,16 @@ document.addEventListener("click", function (e) {
     }
 
     if (e.target.closest("#btnPrevisualizarPlantilla")) {
-        const modalPrevisualizar = new ModalComponent("previsualizador", { size: "lg", height: "760px", ocultarFooter: true });
-        modalPrevisualizar.getComponent("title").style.display = "none";
-
-        fetch(window.baseurl + "views/components/ajustes/viewPlantilla.php?id=" + e.target.closest("button").dataset.id)
-            .then(res => res.text())
-            .then(html => modalPrevisualizar.show(null, html));
+        const idplantilla = e.target.dataset.id;
+        previsualizarPlantilla(idplantilla);
     }
 
     if (e.target.closest("#btnNuevoEmisorCorreo")) {
-        abrirModal("emisorCorreo", "Nuevo emisor de correo", "md");
+        abrirModal("emisorCorreo", "Nuevo emisor de correo");
     }
 
     if (e.target.closest("#btnEditarEmisorCorreo")) {
-        abrirModal("emisorCorreo", "Editar emisor de correo", "md", e.target.closest("button").dataset.id);
+        abrirModal("emisorCorreo", "Editar emisor de correo", e.target.closest("button").dataset.id);
     }
 
     if (e.target.closest("#btnEliminarEmisorCorreo")) {

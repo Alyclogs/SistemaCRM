@@ -235,7 +235,7 @@ class EnvioModel
                 ':descripcion' => $data['descripcion'],
                 ':fecha_inicio' => $data['fecha_inicio'],
                 ':fecha_fin' => $data['fecha_fin'],
-                ':idusuario' => $data['idusuario']
+                ':idusuario' => $data['idusuario'] ?? $_SESSION['idusuario']
             ]);
             $idcampania = $this->pdo->lastInsertId();
 
@@ -244,12 +244,12 @@ class EnvioModel
                 foreach ($data['programaciones'] as $prog) {
                     $this->programarEnvio([
                         'idemisor' => null, // asignado aleatoriamente dentro del método
-                        'idreceptor' => $prog['idreceptor'],
+                        'idreceptor' => $prog['idreceptor'] ?? null,
                         'idcampania' => $idcampania,
                         'idplantilla' => $prog['idplantilla'],
                         'fecha_envio' => $prog['fecha_envio'],
                         'idestado' => $prog['idestado'] ?? 1,
-                        'idusuario' => $data['idusuario']
+                        'idusuario' => $data['idusuario'] ?? $_SESSION['idusuario']
                     ]);
                 }
             }
@@ -351,12 +351,12 @@ class EnvioModel
                 foreach ($data['programaciones'] as $prog) {
                     $this->programarEnvio([
                         'idemisor' => null, // asignado aleatoriamente
-                        'idreceptor' => $prog['idreceptor'],
+                        'idreceptor' => $prog['idreceptor'] ?? null,
                         'idcampania' => $id,
                         'idplantilla' => $prog['idplantilla'],
                         'fecha_envio' => $prog['fecha_envio'],
                         'idestado' => $prog['idestado'] ?? 1,
-                        'idusuario' => $data['idusuario']
+                        'idusuario' => $data['idusuario'] ?? $_SESSION['idusuario']
                     ]);
                 }
             }

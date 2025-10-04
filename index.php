@@ -65,12 +65,6 @@ if (!file_exists($ruta)) {
         tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
-
-        document.querySelectorAll('.menu-button').forEach(button => {
-            button.addEventListener('click', function() {
-                button.querySelector('.menu-submenu').style.display = 'flex';
-            });
-        });
     });
 </script>
 

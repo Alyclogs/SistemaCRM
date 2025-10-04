@@ -378,3 +378,23 @@ export function generarIntervalosHoras(calendar, select) {
         current.setMinutes(current.getMinutes() + intervalo);
     }
 }
+
+export function calcularSemanas(fechaInicio, fechaFin) {
+    const semanas = [];
+    let inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+
+    while (inicio <= fin) {
+        let semanaFin = new Date(inicio);
+        semanaFin.setDate(semanaFin.getDate() + 6);
+        if (semanaFin > fin) semanaFin = fin;
+
+        semanas.push({
+            inicio: inicio.toISOString().split("T")[0],
+            fin: semanaFin.toISOString().split("T")[0]
+        });
+
+        inicio.setDate(inicio.getDate() + 7);
+    }
+    return semanas;
+}

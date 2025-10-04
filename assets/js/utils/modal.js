@@ -96,6 +96,12 @@ export class ModalComponent {
         return this;
     }
 
+    setHeight(height) {
+        this.components.body.css("height", height);
+        this.options.height = height;
+        return this;
+    }
+
     setHeader(header) {
         this.components.header.html(header);
         return this;
@@ -144,6 +150,9 @@ export class ModalComponent {
         switch (key) {
             case "size":
                 this.setSize(value);
+                break;
+            case "height":
+                this.setHeight(value);
                 break;
             case "ocultarHeader":
                 value ? this.components.header.hide() : this.components.header.show();

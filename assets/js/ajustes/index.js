@@ -1,22 +1,21 @@
 import api from "../utils/api.js";
 import { ModalComponent } from "../utils/modal.js";
-import { fetchCampanias, fetchEmisores, fetchPlantillas, guardarCampania, guardarEmisor, guardarPlantilla, initPlantillaSelection } from "./campanias.js";
+import { fetchCampanias, fetchEmisores, fetchPlantillas, guardarEmisor, guardarPlantilla } from "./campanias.js";
 import { fetchCamposExtra, guardarCampo } from "./campos.js";
+import { guardarCampania, initCampaniaConfig, initPlantillaSelection } from "./programaciones.js";
 import { fetchRoles, guardarRol } from "./roles.js";
 
 export const modalAjustes = new ModalComponent("ajustes", { size: "md" });
 
 function fetchAjustes() {
     fetchRoles();
-    setTimeout(() => {
-        fetchCamposExtra();
-        fetchCampanias();
-        fetchPlantillas("correosPlantillasList");
-        fetchEmisores("correoEmisoresList", "correo");
-    }, 100);
+    fetchCamposExtra();
+    fetchCampanias();
+    fetchPlantillas("correosPlantillasList");
+    fetchEmisores("correoEmisoresList", "correo");
 }
 
-export function abrirModal(type, title, size = "md", id = null, options = {}) {
+export function abrirModal(type, title, id = null, options = {}) {
     const urls = {
         rol: window.baseurl + "views/components/ajustes/formRol.php",
         campo: window.baseurl + "views/components/ajustes/formCampos.php",
@@ -27,10 +26,16 @@ export function abrirModal(type, title, size = "md", id = null, options = {}) {
     let url = urls[type];
     if (id) url += "?id=" + id;
 
+    const { size = "md", onRender } = options;
+
     const actions = {
         campania: () => {
-            fetchPlantillas("campaniaPlantillasList", { selectable: true, editable: false });
-            initPlantillaSelection();
+            initCampaniaConfig();
+            fetchPlantillas("campaniaPlantillasList", {
+                selectable: true,
+                editable: false,
+                onRender: () => initPlantillaSelection()
+            });
         }
     }
 
@@ -42,6 +47,7 @@ export function abrirModal(type, title, size = "md", id = null, options = {}) {
                 .setSize(size);
             modalAjustes.show(title, html);
             modalAjustes.setOption(options);
+            if (typeof onRender === "function") onRender();
             if (actions[type]) actions[type]();
         });
 }

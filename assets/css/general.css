@@ -72,6 +72,10 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
+.text-default {
+  color: var(--default-text-color) !important;
+}
+
 .bg-primary {
   background-color: var(--primary-theme-color) !important;
   color: #fff;
@@ -103,37 +107,37 @@ svg path {
 }
 
 .bg-white:not(.disable-hover):hover,
-.bg-white:not(.disable-hover).clickable.selected {
+.bg-white:not(.disable-hover).selected {
   background-color: var(--default-bg-color-light) !important;
   color: var(--default-text-color);
 }
 
 .bg-default:not(.disable-hover):hover,
-.bg-default:not(.disable-hover).clickable.selected {
+.bg-default:not(.disable-hover).selected {
   background-color: var(--default-theme-color-dark) !important;
   color: #fff;
 }
 
 .bg-primary:not(.disable-hover):hover,
-.bg-primary:not(.disable-hover).clickable.selected {
+.bg-primary:not(.disable-hover).selected {
   background-color: var(--primary-theme-color-accent) !important;
   color: #fff;
 }
 
 .bg-secondary:not(.disable-hover):hover,
-.bg-secondary:not(.disable-hover).clickable.selected {
+.bg-secondary:not(.disable-hover).selected {
   background-color: var(--secondary-theme-color-dark) !important;
   color: #fff;
 }
 
 .bg-accent:not(.disable-hover):hover,
-.bg-acent:not(.disable-hover).clickable.selected {
+.bg-acent:not(.disable-hover).selected {
   background-color: var(--default-theme-color-dark) !important;
   color: #fff;
 }
 
 .bg-light:not(.disable-hover):hover,
-.bg-light:not(.disable-hover).clickable.selected {
+.bg-light:not(.disable-hover).selected {
   background-color: #e6e6e6 !important;
   color: var(--default-text-color);
 }
@@ -144,7 +148,7 @@ svg path {
 }
 
 .bg-success:not(.disable-hover):hover,
-.bg-success:not(.disable-hover).clickable.selected {
+.bg-success:not(.disable-hover).selected {
   background-color: var(--success-bg-color-hover) !important;
 }
 
@@ -162,7 +166,7 @@ svg path {
 }
 
 .bg-warning:not(.disable-hover):hover,
-.bg-warning:not(.disable-hover).clickable.selected {
+.bg-warning:not(.disable-hover).selected {
   background-color: var(--warning-bg-color-hover) !important;
 }
 
@@ -179,9 +183,21 @@ svg path {
   transition: background-color 0.2s ease-in-out;
 }
 
+.bg-text-info {
+  background-color: #fff !important;
+  color: var(--info-text-color) !important;
+  transition: background-color 0.2s ease-in-out;
+}
+
 .bg-info:not(.disable-hover):hover,
-.bg-info:not(.disable-hover).clickable.selected {
+.bg-info:not(.disable-hover).selected {
   background-color: var(--info-bg-color-hover) !important;
+}
+
+.bg-text-info:not(.disable-hover):hover,
+.bg-text-info:not(.disable-hover).selected {
+  background-color: var(--info-text-color) !important;
+  color: #fff !important;
 }
 
 .border-info {
@@ -198,7 +214,7 @@ svg path {
 }
 
 .bg-danger:not(.disable-hover):hover,
-.bg-danger:not(.disable-hover).clickable.selected {
+.bg-danger:not(.disable-hover).selected {
   background-color: var(--danger-bg-color-hover) !important;
 }
 
@@ -209,7 +225,7 @@ svg path {
 }
 
 .bg-text-danger:not(.disable-hover):hover,
-.bg-text-danger:not(.disable-hover).clickable.selected {
+.bg-text-danger:not(.disable-hover).selected {
   background-color: #cc2e3b !important;
 }
 
@@ -354,7 +370,9 @@ svg path {
   cursor: pointer;
   display: flex;
   gap: 2rem;
-  align-items: end;
+  align-items: center;
+  height: 24px;
+  width: 24px;
 }
 
 .menu-submenu {
@@ -379,6 +397,8 @@ svg path {
   flex-direction: column;
   gap: .5rem;
   padding: 1rem;
+  width: 25%;
+  border-right: 1px solid var(--default-border-color);
 }
 
 .list-view .list-item {
@@ -467,6 +487,14 @@ svg path {
   display: flex;
   gap: 0.5rem;
   cursor: pointer;
+}
+
+.list-view .list-sections {
+  height: 100%;
+  width: 75%;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
 }
 
 .list-view .section-item {
@@ -656,6 +684,22 @@ svg path {
   border-radius: 1rem;
 }
 
+.container-border.bg-info {
+  border-color: var(--info-text-color) !important;
+}
+
+.container-border.bg-success {
+  border-color: var(--success-text-color) !important;
+}
+
+.container-border.bg-warning {
+  border-color: var(--warning-text-color) !important;
+}
+
+.container-border.bg-danger {
+  border-color: var(--danger-text-color) !important;
+}
+
 .container-backdrop {
   padding: 1rem;
   border: 1px solid #ffffff40;
@@ -708,6 +752,11 @@ svg path {
   color: var(--info-text-color);
 }
 
+.chip.chip-light {
+  background-color: var(--default-bg-color-light);
+  color: var(--default-border-color);
+}
+
 .chip.chip-success.chip-outline {
   background: transparent;
   border: 1px solid var(--success-text-color);
@@ -730,6 +779,12 @@ svg path {
   background: transparent;
   border: 1px solid var(--danger-text-color);
   color: var(--danger-text-color);
+}
+
+.chip.chip-light.chip-outline {
+  background: transparent;
+  border: 1px solid var(--default-border-color);
+  color: var(--default-text-color);
 }
 
 .icon {
