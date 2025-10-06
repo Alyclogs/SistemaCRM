@@ -14,7 +14,7 @@ export function initCampaniaConfig() {
     const buttonsModalidad = modalAjustes.getComponents(".btn-modalidad");
     const stepItems = modalAjustes.getComponents(".list-item");
 
-    if (!campaniaActual) window.campaniaActual = {};
+    if (!campaniaActual) campaniaActual = {};
     if (!campaniaActual.plantillas) campaniaActual.plantillas = [];
     if (!campaniaActual.modalidadProgramacion) campaniaActual.modalidadProgramacion = "dias_especificos";
 
@@ -49,20 +49,24 @@ export function initCampaniaConfig() {
             }
         });
     });
-
     renderPlantillasSeleccionadas();
 }
 
 export function initPlantillaSelection() {
+    if (!campaniaActual) campaniaActual = {};
+    if (!campaniaActual.plantillas) campaniaActual.plantillas = [];
+    if (!campaniaActual.modalidadProgramacion) campaniaActual.modalidadProgramacion = "dias_especificos";
+
     const checkboxes = modalAjustes.getComponent("#campaniaPlantillasList").querySelectorAll("input[type='checkbox']");
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener("change", function () {
-            const id = Number(checkbox.value);
+            const id = checkbox.value;
 
             if (checkbox.checked) {
-                if (campaniaActual.plantillas.findIndex(p => p.idplantilla == id) === -1) {
+                if (campaniaActual.plantillas.findIndex(p => p && p.idplantilla == id) === -1) {
                     const plantilla = plantillasCache.get(id);
                     campaniaActual.plantillas.push(plantilla);
+                    console.log(Array.from(plantillasCache));
                 }
             } else {
                 campaniaActual.plantillas = campaniaActual.plantillas.filter(p => p.idplantilla != id);
@@ -144,6 +148,13 @@ function renderPlantillasSeleccionadas() {
 
     let html = "";
     const modalidad = campaniaActual.modalidadProgramacion || "dias_especificos";
+    const startDate = new Date(campaniaActual.fecha_inicio);
+    const startDay = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1;
+    const semanaInicioCampania = semanas.find(s => {
+        const sInicio = new Date(s.inicio);
+        const sFin = new Date(s.fin);
+        return startDate >= sInicio && startDate <= sFin;
+    }) || semanas[0];
 
     campaniaActual.plantillas.forEach((plantilla, idx) => {
         if (!plantilla.fecha_envio) plantilla.fecha_envio = campaniaActual.fecha_inicio;
@@ -170,29 +181,37 @@ function renderPlantillasSeleccionadas() {
                     <input type="number" id="pDaysAfter_${idplantilla}" 
                            class="form-control"
                            value="${plantilla.dias_despues || 0}"
-                           onchange="updateFechaEnvioPlantillas(this)">
+                           oninput="updateFechaEnvioPlantillas(this)">
                 </div>`;
             }
         }
 
-        if (modalidad === "dias_semana" && idx > 0) {
+        if (modalidad === "dias_semana") {
             const semanas = calcularSemanas(campaniaActual.fecha_inicio, campaniaActual.fecha_fin);
+            if (plantilla.dia_semana === undefined) plantilla.dia_semana = startDay;
+            if (!plantilla.semana_inicio) {
+                plantilla.semana_inicio = semanaInicioCampania.inicio;
+                plantilla.semana_label = `Semana 1 (${semanaInicioCampania.inicio} - ${semanaInicioCampania.fin})`;
+            }
 
-            html += `
-        <div class="row">
+            html += `<div class="row">`;
+
+            if (idx > 0) {
+                html += `
             <div class="col-6 mb-3">
                 <label for="pSemana_${idplantilla}" class="form-label">Semana</label>
                 <div class="busqueda-grupo disable-auto">
                     <input type="text" 
-                           class="form-control" 
-                           id="pSemana_${idplantilla}" 
-                           placeholder="Seleccione semana"
-                           value="${plantilla.semana_label || ""}"
-                           onfocus="showSemanas(this, '${idplantilla}')">
-                    <input type="hidden" id="pSemanaHidden_${idplantilla}" value="${plantilla.semana_inicio || ""}">
+                        class="form-control" 
+                        id="pSemana_${idplantilla}" 
+                        placeholder="Seleccione semana"
+                        value="${plantilla.semana_label || ''}"
+                        onfocus="showSemanas(this, '${idplantilla}')">
+                    <input type="hidden" id="pSemanaHidden_${idplantilla}" value="${plantilla.semana_inicio || ''}">
                     <div class="resultados-busqueda" data-parent="pSemana_${idplantilla}" style="top: 2.5rem;">
                         ${semanas.map((s, i) => `
-                            <div class="resultado-item" onclick="selectSemana('${idplantilla}', '${s.inicio}', '${s.fin}', 'Semana ${i + 1} (${s.inicio} - ${s.fin})')">
+                            <div class="resultado-item" 
+                                onclick="selectSemana('${idplantilla}', '${s.inicio}', '${s.fin}', 'Semana ${i + 1} (${s.inicio} - ${s.fin})')">
                                 Semana ${i + 1} (${s.inicio} - ${s.fin})
                             </div>`).join("")}
                     </div>
@@ -200,15 +219,16 @@ function renderPlantillasSeleccionadas() {
             </div>
             <div class="col-6 mb-3">
                 <label class="form-label">Día</label>
-                <div class="d-flex gap-1 flex-wrap">
+                <div class="d-flex gap-1 flex-wrap" id="diasSemana_${idplantilla}">
                     ${["L", "M", "X", "J", "V", "S", "D"].map((d, i) => `
-                        <button type="button" 
-                                class="btn btn-icon ${plantilla.dia_semana === i ? "bg-primary" : "bg-light"}"
+                        <button type="button"
+                                class="btn btn-icon ${plantilla.dia_semana === i ? "selected bg-primary" : "bg-light"}"
                                 onclick="selectDiaSemana(${idplantilla}, ${i})">${d}</button>`).join("")}
                 </div>
             </div>
         </div>
         <div class="row">`;
+            }
         }
 
         html += `
@@ -250,8 +270,21 @@ window.selectSemana = function (idplantilla, inicio, fin, label) {
 window.selectDiaSemana = function (idplantilla, dia) {
     const plantilla = campaniaActual.plantillas.find(p => p.idplantilla == idplantilla);
     if (!plantilla) return;
+
     plantilla.dia_semana = dia;
 
+    const container = modalAjustes.getComponent(`#diasSemana_${idplantilla}`);
+    if (container) {
+        container.querySelectorAll("button").forEach((btn, i) => {
+            if (i === dia) {
+                btn.classList.add("selected", "bg-primary", "text-white");
+                btn.classList.remove("bg-light");
+            } else {
+                btn.classList.remove("selected", "bg-primary", "text-white");
+                btn.classList.add("bg-light");
+            }
+        });
+    }
     updateFechaEnvioPlantillas();
 };
 
@@ -265,6 +298,7 @@ window.updateFechaEnvioPlantillas = function (input) {
             if (idx === 0) {
                 plantilla.fecha_envio = campaniaActual.fecha_inicio;
             } else {
+                plantilla.dias_despues = input.value;
                 const dias = parseInt(plantilla.dias_despues || 0, 10);
                 fechaBase.setDate(fechaBase.getDate() + dias);
                 if (fechaBase > fechaFin) fechaBase = fechaFin;

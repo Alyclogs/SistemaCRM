@@ -116,7 +116,7 @@ export function fetchPlantillas(containerId, { selectable = false, editable = tr
             let html = "";
 
             plantillas.forEach(plantilla => {
-                plantillasCache.set(plantilla.idplantilla, plantilla);
+                plantillasCache.set(`${plantilla.idplantilla}`, plantilla);
                 html += `
                     <div class="border rounded p-3 d-flex gap-3 align-items-center">
                         <div class="flex-grow-1 d-flex gap-3 align-items-center">
