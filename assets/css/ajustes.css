@@ -12,3 +12,29 @@
   border-radius: 0.5rem;
   background-color: #fff;
 }
+
+.programaciones-collapse {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.2s ease, padding 0.2s ease;
+  background: #fafafa;
+}
+
+.programaciones-collapse.open {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.campania-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.campania-row:hover {
+  background-color: #f9f9f9;
+}
+
+.campania-row.expanded {
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #ddd;
+}

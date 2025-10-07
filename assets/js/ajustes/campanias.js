@@ -1,6 +1,8 @@
 import api from "../utils/api.js";
+import { formatearDateTimeFull } from "../utils/date.js";
 import { ModalComponent } from "../utils/modal.js";
 import { abrirModal, modalAjustes } from "./index.js";
+import { cargarCampaniaExistente } from "./programaciones.js";
 
 let currentStep = 1;
 let totalSteps = 3;
@@ -17,27 +19,28 @@ export function fetchCampanias() {
                 campaniasContainer.innerHTML = "<p class='text-muted'>No hay campañas disponibles.</p>";
                 return;
             }
-            let html = "";
+
             const estadoCampania = (fecha_inicio, fecha_fin) => {
                 const hoy = new Date();
                 const inicio = new Date(fecha_inicio);
                 const fin = new Date(fecha_fin);
+                if (hoy < inicio) return { bg: "info", estado: "PRÓXIMA" };
+                if (hoy >= inicio && hoy <= fin) return { bg: "success", estado: "ACTIVA" };
+                return { bg: "danger", estado: "FINALIZADA" };
+            };
 
-                if (hoy < inicio) {
-                    return { bg: "info", estado: "PRÓXIMA" };
-                } else if (hoy >= inicio && hoy <= fin) {
-                    return { bg: "success", estado: "ACTIVA" };
-                } else {
-                    return { bg: "danger", estado: "FINALIZADA" };
-                }
-            }
+            let html = "";
             campanias.forEach(campania => {
-                const estado = estadoCampania(campania.fecha_incio, campania.fecha_fin);
+                const estado = estadoCampania(campania.fecha_inicio, campania.fecha_fin);
+                const id = `campania-${campania.idcampania}`;
+
                 html += `
-                    <tr>
-                        <td>${campania.nombre}</td>
-                        <td>${campania.fecha_incio}</td>
-                        <td>${campania.fecha_fin || 'N/A'}</td>
+                <tbody class="campania-row-group">
+                    <tr class="campania-row" data-id="${campania.idcampania}" data-target="#${id}">
+                        <td class="fw-bold">${campania.nombre}</td>
+                        <td class="text-break" style="max-width: 220px;">${campania.descripcion || "Sin descripción"}</td>
+                        <td>${campania.fecha_inicio}</td>
+                        <td>${campania.fecha_fin || "N/A"}</td>
                         <td><div class="badge text-bg-${estado.bg}">${estado.estado}</div></td>
                         <td>
                             <div class="info-row">
@@ -50,11 +53,93 @@ export function fetchCampanias() {
                             </div>
                         </td>
                     </tr>
+                    <tr class="programaciones-row">
+                        <td colspan="6" style="padding:0;">
+                            <div id="${id}" class="programaciones-collapse">
+                                ${renderProgramacionesTable(campania.programaciones)}
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
                 `;
             });
             campaniasContainer.innerHTML = html;
+
+            document.querySelectorAll(".campania-row").forEach(row => {
+                row.addEventListener("click", function (e) {
+                    if (e.target.closest("button")) return;
+
+                    const target = document.querySelector(this.dataset.target);
+                    if (!target) return;
+
+                    if (target.classList.contains("open")) {
+                        target.style.maxHeight = target.scrollHeight + "px";
+                        requestAnimationFrame(() => (target.style.maxHeight = "0"));
+                        target.classList.remove("open");
+                        this.classList.remove("expanded");
+                    } else {
+                        target.classList.add("open");
+                        target.style.maxHeight = target.scrollHeight + "px";
+                        this.classList.add("expanded");
+
+                        target.addEventListener("transitionend", () => {
+                            if (target.classList.contains("open")) {
+                                target.style.maxHeight = "none";
+                            }
+                        }, { once: true });
+                    }
+                });
+            });
         }
     });
+}
+
+function renderProgramacionesTable(programaciones = []) {
+    if (!programaciones || programaciones.length === 0) {
+        return `<div class="p-3 text-center text-muted">
+                    No hay programaciones registradas.
+                </div>`;
+    }
+
+    function getEstadoColor(estado) {
+        if (!estado) return "secondary";
+        const e = estado.toLowerCase();
+        if (e.includes("programado")) return "warning";
+        if (e.includes("enviado")) return "success";
+        return "secondary";
+    }
+
+    let html = `
+        <div class="p-3 bg-light-subtle">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Plantilla</th>
+                        <th>Receptor</th>
+                        <th>Fecha de envío</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    programaciones.forEach((p, i) => {
+        html += `
+            <tr>
+                <td>${i + 1}</td>
+                <td>${p.plantilla_nombre || "—"}</td>
+                <td>${p.receptor || "—"}</td>
+                <td>${formatearDateTimeFull(p.fecha_envio)}</td>
+                <td>
+                    <div class="badge text-bg-${getEstadoColor(p.estado.toLowerCase())}">${p.estado || "PROGRAMADO"}</div>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table></div>`;
+    return html;
 }
 
 export function fetchEmisores(containerId, tipo) {
@@ -81,7 +166,7 @@ export function fetchEmisores(containerId, tipo) {
                 html += `
                     <tr>
                         <td>${emisor.nombre ?? 'Sin nombre'}</td>
-                        <td>${emisor.descripcion ?? 'Sin descripción'}</td>
+                        <td class="text-break" style="max-width: 220px;">${emisor.descripcion ?? 'Sin descripción'}</td>
                         <td>${tipo === "correo" ? emisor.correo : emisor.telefono}</td>
                         <td><div class="badge text-bg-${estado.bg}">${estado.estado}</div></td>
                         <td>
@@ -120,7 +205,7 @@ export function fetchPlantillas(containerId, { selectable = false, editable = tr
                 html += `
                     <div class="border rounded p-3 d-flex gap-3 align-items-center">
                         <div class="flex-grow-1 d-flex gap-3 align-items-center">
-                            ${selectable ? `<input type="checkbox" class="form-check form-check-input" value="${plantilla.idplantilla}">` : ''}
+                            ${selectable ? `<input type="checkbox" class="plantilla-checkbox form-check form-check-input" value="${plantilla.idplantilla}">` : ''}
                             <div class="d-flex flex-column gap-1">
                                 <h5>${plantilla.nombre}</h5>
                                 <span>${plantilla.descripcion || 'Sin descripción'}</span>
@@ -237,11 +322,11 @@ document.addEventListener("click", function (e) {
     }
 
     if (e.target.closest("#btnNuevaPlantillaCorreo")) {
-        abrirModal("plantilla", "Nueva plantilla", null, { size: "lg", onRender: () => modalAjustes.getComponent("#plantillaTypeInput").value = "correo" });
+        abrirModal("plantilla", "Nueva plantilla", null, { size: "xl", onRender: () => modalAjustes.getComponent("#plantillaTypeInput").value = "correo" });
     }
 
     if (e.target.closest("#btnEditarPlantillaCorreo")) {
-        abrirModal("plantilla", "Editar plantilla", e.target.closest("button").dataset.id, { size: "lg", });
+        abrirModal("plantilla", "Editar plantilla", e.target.closest("button").dataset.id, { size: "xl", });
     }
 
     if (e.target.closest("#btnEliminarPlantillaCorreo")) {
@@ -263,7 +348,7 @@ document.addEventListener("click", function (e) {
     }
 
     if (e.target.closest("#btnPrevisualizarPlantilla")) {
-        const idplantilla = e.target.dataset.id;
+        const idplantilla = e.target.closest('button').dataset.id;
         previsualizarPlantilla(idplantilla);
     }
 

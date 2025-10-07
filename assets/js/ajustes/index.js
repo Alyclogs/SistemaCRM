@@ -2,7 +2,7 @@ import api from "../utils/api.js";
 import { ModalComponent } from "../utils/modal.js";
 import { fetchCampanias, fetchEmisores, fetchPlantillas, guardarEmisor, guardarPlantilla } from "./campanias.js";
 import { fetchCamposExtra, guardarCampo } from "./campos.js";
-import { guardarCampania, initCampaniaConfig, initPlantillaSelection } from "./programaciones.js";
+import { cargarCampaniaExistente, guardarCampania, initCampaniaConfig, initPlantillaSelection } from "./programaciones.js";
 import { fetchRoles, guardarRol } from "./roles.js";
 
 export const modalAjustes = new ModalComponent("ajustes", { size: "md" });
@@ -30,11 +30,14 @@ export function abrirModal(type, title, id = null, options = {}) {
 
     const actions = {
         campania: () => {
-            initCampaniaConfig();
             fetchPlantillas("campaniaPlantillasList", {
                 selectable: true,
                 editable: false,
-                onRender: () => initPlantillaSelection()
+                onRender: () => {
+                    if (id) cargarCampaniaExistente(id);
+                    initCampaniaConfig();
+                    initPlantillaSelection();
+                }
             });
         }
     }

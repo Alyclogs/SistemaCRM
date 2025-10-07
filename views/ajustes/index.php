@@ -105,7 +105,19 @@
                     </div>
                     <span class="text-muted">Crea o edita programaciones de campañas</span>
                 </div>
-                <div id="campaniasList" class="d-flex flex-column gap-2 section-body"></div>
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Fecha inicio</th>
+                            <th>Fecha fin</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="campaniasList" class="section-body"></tbody>
+                </table>
             </div>
         </div>
     </div>

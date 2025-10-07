@@ -1,6 +1,4 @@
 <?php
-require_once __DIR__ . '/../models/usuarios/UsuarioModel.php';
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -32,25 +30,27 @@ $error = isset($_GET['error']) ? boolval($_GET['error']) : false;
             <?php endif; ?>
             <div class="mb-4">
                 <form method="POST" action="http://localhost/SistemaCRM/controller/Usuarios/procesarLogin.php">
-                    <div class="mb-3">
-                        <label class="form-label">Usuario</label>
-                        <div class="grupo-input">
-                            <div class="px-1">
-                                <?php include('./assets/svg/user.svg') ?>
+                    <div class="d-flex flex-column">
+                        <div class="mb-3">
+                            <label class="form-label">Usuario</label>
+                            <div class="grupo-input">
+                                <div class="px-1">
+                                    <?php include('./assets/svg/user.svg') ?>
+                                </div>
+                                <input type="text" class="form-control" name="usuario" placeholder="Nombre de usuario" required>
                             </div>
-                            <input type="text" class="form-control" name="usuario" placeholder="Nombre de usuario" required>
                         </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">Contraseña</label>
-                        <div class="grupo-input mb-4">
-                            <div class="px-1">
-                                <?php include('./assets/svg/lock.svg') ?>
+                        <div class="mb-4">
+                            <label class="form-label">Contraseña</label>
+                            <div class="grupo-input mb-4">
+                                <div class="px-1">
+                                    <?php include('./assets/svg/lock.svg') ?>
+                                </div>
+                                <input type="password" class="form-control" name="password" placeholder="Contraseña" required>
                             </div>
-                            <input type="password" class="form-control" name="password" placeholder="Contraseña" required>
                         </div>
+                        <button type="submit" class="btn btn-default w-100">Ingresar</button>
                     </div>
-                    <button type="submit" class="btn btn-default w-100">Ingresar</button>
                 </form>
             </div>
         </div>

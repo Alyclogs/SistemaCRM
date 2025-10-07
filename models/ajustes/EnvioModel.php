@@ -285,7 +285,15 @@ class EnvioModel
                 FROM campanias c
                 INNER JOIN usuarios u ON u.idusuario = c.idusuario
                 ORDER BY c.fecha_creacion DESC";
-        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+        $campanias = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($campanias as &$campania) {
+            $id = $campania['idcampania'];
+            $campania['programaciones'] = $this->obtenerEnviosPorCampania($id);
+            $campania['notas'] = $this->notaModel->obtenerNotas($id, 'campania');
+        }
+        return $campanias;
     }
 
     public function obtenerCampania($id)
@@ -395,7 +403,7 @@ class EnvioModel
             $campaniaAntes = $this->obtenerCampania($id);
 
             // Eliminar notas asociadas
-            $stmtNotas = $this->pdo->prepare("DELETE FROM notas WHERE entidad = 'campania' AND identidad = ?");
+            $stmtNotas = $this->pdo->prepare("DELETE FROM notas WHERE tipo = 'campania' AND idreferencia = ?");
             $stmtNotas->execute([$id]);
 
             // Eliminar programaciones asociadas
@@ -413,7 +421,7 @@ class EnvioModel
                     $id,
                     'campania',
                     'eliminacion',
-                    $campaniaAntes,
+                    $campaniaAntes['nombre'],
                     null,
                     null,
                     "Campaña eliminada: " . ($campaniaAntes['nombre'] ?? '')
@@ -468,12 +476,16 @@ class EnvioModel
     public function obtenerEnviosPorCampania($idcampania)
     {
         $sql = "SELECT pe.*, e.nombre AS emisor, est.estado, c.nombre AS campania,
-                       CONCAT(u.nombres, ' ', u.apellidos) AS usuario
+                       CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
+                       CONCAT(r.nombres, ' ', r.apellidos) AS receptor,
+                       p.nombre AS plantilla_nombre
                 FROM programacion_envios pe
                 INNER JOIN emisores e ON e.idemisor = pe.idemisor
                 INNER JOIN estados_envios est ON est.idestado = pe.idestado
                 INNER JOIN usuarios u ON u.idusuario = pe.idusuario
                 LEFT JOIN campanias c ON c.idcampania = pe.idcampania
+                LEFT JOIN plantillas p ON p.idplantilla = pe.idplantilla
+                LEFT JOIN clientes r ON r.idcliente = pe.idreceptor
                 WHERE pe.idcampania = ?
                 ORDER BY pe.fecha_envio ASC";
         $stmt = $this->pdo->prepare($sql);

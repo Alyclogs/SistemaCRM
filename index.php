@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/models/usuarios/UsuarioModel.php';
+$usuarioModel = new UsuarioModel(Database::getConnection());
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -8,6 +11,15 @@ $pagina = isset($_GET['p']) ? $_GET['p'] : 'home';
 if (!isset($_SESSION['usuario']) || !isset($_SESSION['rol'])) {
     if ($pagina !== "login") {
         header("Location: index.php?p=login");
+        exit;
+    }
+} else {
+    if (!$usuarioModel->obtenerUsuarioPorId($_SESSION['idusuario'])) {
+        session_destroy();
+        header("Location: index.php?p=login");
+        exit;
+    } elseif ($pagina === "login") {
+        header("Location: index.php?p=home");
         exit;
     }
 }

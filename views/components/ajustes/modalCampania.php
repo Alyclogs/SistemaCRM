@@ -74,11 +74,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="chip chip-info chip-outline bg-info disable-hover text-default p-3 mb-3">
-                        <p class="fw-bold">Modalidad de programación de fechas</p>
-                        <div class="d-flex w-100 gap-3 align-items-center">
-                            <button type="button" class="btn btn-modalidad bg-text-info w-100 selected" data-modalidad="dias_especificos">Por días específicos</button>
-                            <button type="button" class="btn btn-modalidad bg-text-info w-100" data-modalidad="dias_semana">Por días de semana</button>
+                    <div class="chip chip-info chip-outline bg-info disable-hover text-default p-3 mb-3 w-100 row g-0 gap-0">
+                        <div class="col-6">
+                            <p class="fw-bold">Modalidad de programación de fechas</p>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex w-100 gap-3 align-items-center">
+                                <button type="button" class="btn btn-modalidad bg-text-info w-100 selected" data-modalidad="dias_especificos">Por días específicos</button>
+                                <button type="button" class="btn btn-modalidad bg-text-info w-100" data-modalidad="dias_semana">Por días de semana</button>
+                            </div>
                         </div>
                     </div>
                     <div id="campaniaProgramacionPlantillas" class="d-flex flex-column gap-3 py-2 pe-2" style="overflow-y: auto; max-height: 280px;"></div>

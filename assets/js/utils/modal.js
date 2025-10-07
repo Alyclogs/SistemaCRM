@@ -118,7 +118,7 @@ export class ModalComponent {
     }
 
     setAttribute(component, attribute, value) {
-        component.attr(attribute, value);
+        this.#$modal.find(component).attr(attribute, value);
         return this;
     }
 

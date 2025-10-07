@@ -291,7 +291,7 @@ export function formatearDateTime(datetime) {
         .replace(/^\w/, c => c.toUpperCase()); // Capitalizar primera letra
 
     // Día del mes
-    const diaMes = date.getDate();
+    const diaMes = date.getDate().toString().padStart(2, "0");
 
     // Formato de hora con minutos y AM/PM
     const hora = new Intl.DateTimeFormat("es-ES", {
@@ -301,6 +301,32 @@ export function formatearDateTime(datetime) {
     }).format(date);
 
     return `${diaSemana} ${diaMes}, ${hora}`;
+}
+
+export function formatearDateTimeFull(datetime) {
+    if (!datetime) return "Fecha inválida";
+
+    const date = new Date(datetime.replace(" ", "T"));
+    const diaSemana = new Intl.DateTimeFormat("es-ES", { weekday: "long" })
+        .format(date)
+        .replace(/^\w/, c => c.toUpperCase());
+    const diaMes = date.getDate().toString().padStart(2, "0");
+    const mes = new Intl.DateTimeFormat("es-ES", { month: "long" })
+        .format(date)
+        .replace(/^\w/, c => c.toUpperCase());
+
+    let hora = new Intl.DateTimeFormat("es-ES", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+    }).format(date);
+
+    hora = hora
+        .replace(/\s*a\.?\s*m\.?/i, "a.m.")
+        .replace(/\s*p\.?\s*m\.?/i, "p.m.")
+        .replace(/\s/g, "");
+
+    return `${diaSemana} ${diaMes} de ${mes}, ${hora}`;
 }
 
 export function formatEventDate(start, end) {
@@ -384,17 +410,65 @@ export function calcularSemanas(fechaInicio, fechaFin) {
     let inicio = new Date(fechaInicio);
     const fin = new Date(fechaFin);
 
+    const meses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
     while (inicio <= fin) {
         let semanaFin = new Date(inicio);
         semanaFin.setDate(semanaFin.getDate() + 6);
-        if (semanaFin > fin) semanaFin = fin;
+        if (semanaFin > fin) semanaFin = new Date(fin);
+
+        const inicioDia = String(inicio.getDate()).padStart(2, "0");
+        const inicioMes = meses[inicio.getMonth()];
+        const inicioMesNum = String(inicio.getMonth() + 1).padStart(2, "0");
+
+        const finDia = String(semanaFin.getDate()).padStart(2, "0");
+        const finMes = meses[semanaFin.getMonth()];
+        const finMesNum = String(semanaFin.getMonth() + 1).padStart(2, "0");
 
         semanas.push({
             inicio: inicio.toISOString().split("T")[0],
-            fin: semanaFin.toISOString().split("T")[0]
+            fin: semanaFin.toISOString().split("T")[0],
+            label: `${inicioMes} ${inicioDia}/${inicioMesNum} - ${finMes} ${finDia}/${finMesNum}`
         });
 
         inicio.setDate(inicio.getDate() + 7);
     }
+
     return semanas;
+}
+
+const pad = n => n.toString().padStart(2, "0");
+
+export function parseDateString(value) {
+    if (!value) return null;
+    if (value instanceof Date) return new Date(value);
+
+    const s = value.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const [y, m, d] = s.split("-").map(Number);
+        return new Date(y, m - 1, d, 0, 0, 0);
+    }
+
+    const normalized = s.replace("T", " ").split(" ");
+    const datePart = normalized[0];
+    const timePart = normalized[1] || "00:00:00";
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return null;
+    const [y, m, d] = datePart.split("-").map(Number);
+
+    const [hh = "0", mm = "0", ss = "0"] = (timePart || "00:00:00").split(":");
+    return new Date(y, m - 1, d, Number(hh), Number(mm), Number(ss));
+}
+
+export function formatearFechaVisual(value) {
+    const dt = parseDateString(value);
+    if (!dt || isNaN(dt.getTime())) return "";
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+}
+
+export function formatearHoraVisual(value) {
+    const dt = parseDateString(value);
+    if (!dt || isNaN(dt.getTime())) return;
+    return `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
 }
