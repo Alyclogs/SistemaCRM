@@ -4,9 +4,6 @@ import { mostrarToast } from "../utils/utils.js";
 import { fetchCampanias, plantillasCache } from "./campanias.js";
 import { modalAjustes } from "./index.js";
 
-/* ---------------------------------
- * 🧠 Estado global
- * --------------------------------- */
 let campaniaActual = {
     idcampania: null,
     nombre: "",
@@ -19,9 +16,6 @@ let campaniaActual = {
     plantillas: []
 };
 
-/* ---------------------------------
- * 🔧 Helpers de fecha
- * --------------------------------- */
 const pad = n => n.toString().padStart(2, "0");
 const parseDate = str => {
     if (!str) return null;
@@ -32,9 +26,6 @@ const formatMySQL = date =>
     `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
 const getInput = sel => modalAjustes.getComponent(sel);
 
-/* ---------------------------------
- * 🧩 Inicialización
- * --------------------------------- */
 export function initCampaniaConfig() {
     const inputs = {
         nombre: getInput("#nombreInput"),
@@ -119,6 +110,7 @@ export function cargarCampaniaExistente(idcampania) {
         params: [{ name: "idcampania", value: idcampania }],
         onSuccess: campania => {
             if (!campania) return;
+
             campaniaActual = {
                 idcampania: +campania.idcampania,
                 nombre: campania.nombre || "",
@@ -138,6 +130,32 @@ export function cargarCampaniaExistente(idcampania) {
                     idestado: +p.idestado || 1
                 }))
             };
+            campaniaActual.plantillas.sort((a, b) => new Date(a.fecha_envio) - new Date(b.fecha_envio));
+
+            const fechaInicio = new Date(campaniaActual.fecha_inicio);
+            const semanas = calcularSemanas(
+                campaniaActual.fecha_inicio.split(" ")[0],
+                campaniaActual.fecha_fin.split(" ")[0]
+            );
+
+            campaniaActual.plantillas.forEach(p => {
+                const fecha = new Date(p.fecha_envio);
+                const diffMs = fecha - fechaInicio;
+                const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                p.dias_despues = diffDias >= 0 ? diffDias : 0;
+
+                for (let s of semanas) {
+                    const inicio = new Date(s.inicio);
+                    const fin = new Date(s.fin);
+                    if (fecha >= inicio && fecha <= fin) {
+                        p.semana_inicio = s.inicio;
+                        p.semana_label = s.label;
+                        const diffDiaSemana = Math.floor((fecha - inicio) / (1000 * 60 * 60 * 24));
+                        p.dia_semana = diffDiaSemana;
+                        break;
+                    }
+                }
+            });
 
             getInput("#nombreInput").value = campaniaActual.nombre;
             getInput("#descripcionInput").value = campaniaActual.descripcion;
@@ -151,30 +169,21 @@ export function cargarCampaniaExistente(idcampania) {
                 const checkbox = modalAjustes.getComponent(`.plantilla-checkbox[value="${p.idplantilla}"]`);
                 if (checkbox) checkbox.checked = true;
             });
-            const horas = campaniaActual.plantillas.map(p => {
-                const [, hora] = p.fecha_envio.split("T"); return hora?.slice(0, 5);
-            });
+
+            const horas = campaniaActual.plantillas.map(p => p.fecha_envio.split("T")[1]?.slice(0, 5));
             const todasIguales = horas.every(h => h === horas[0]);
             if (todasIguales && horas[0]) {
                 campaniaActual.globalTime = horas[0];
                 campaniaActual.globalTimeSet = true;
                 globalTimeInput.disabled = false;
                 globalTimeSwitch.checked = true;
-
-                if (globalTimeInput) globalTimeInput.value = horas[0];
-                if (globalTimeSwitch) globalTimeSwitch.checked = true;
+                globalTimeInput.value = horas[0];
             } else {
                 campaniaActual.globalTimeSet = false;
                 globalTimeSwitch.checked = false;
                 globalTimeInput.disabled = true;
             }
-
             renderPlantillasSeleccionadas();
-
-            mostrarToast({
-                title: `Campaña "${campaniaActual.nombre}" cargada`,
-                type: "info"
-            });
         }
     });
 }
@@ -484,15 +493,16 @@ export function guardarCampania() {
             }))
         )
     );
+    if (campaniaActual.idcampania) formData.append("idcampania", campaniaActual.idcampania);
 
     api.post({
         source: "campanias",
-        action: "crear",
+        action: campaniaActual.idcampania ? "actualizar" : "crear",
         data: formData,
         onSuccess: () => {
             campaniaActual = { plantillas: [] };
             fetchCampanias();
-            modalAjustes.destroy();
+            modalAjustes.hide();
         }
     });
 }

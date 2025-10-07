@@ -45,9 +45,8 @@ export function abrirModal(type, title, id = null, options = {}) {
     fetch(url)
         .then(response => response.text())
         .then(html => {
-            modalAjustes
-                .setAttribute(modalAjustes.components.buttons.guardar, "data-type", type)
-                .setSize(size);
+            modalAjustes.components.buttons.guardar.attr("data-type", type);
+            modalAjustes.setSize(size);
             modalAjustes.show(title, html);
             modalAjustes.setOption(options);
             if (typeof onRender === "function") onRender();

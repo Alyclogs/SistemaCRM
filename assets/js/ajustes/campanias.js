@@ -116,7 +116,7 @@ function renderProgramacionesTable(programaciones = []) {
                     <tr>
                         <th>#</th>
                         <th>Plantilla</th>
-                        <th>Receptor</th>
+                        <th>Emisor</th>
                         <th>Fecha de envío</th>
                         <th>Estado</th>
                     </tr>
@@ -129,7 +129,7 @@ function renderProgramacionesTable(programaciones = []) {
             <tr>
                 <td>${i + 1}</td>
                 <td>${p.plantilla_nombre || "—"}</td>
-                <td>${p.receptor || "—"}</td>
+                <td>${p.emisor || "—"}</td>
                 <td>${formatearDateTimeFull(p.fecha_envio)}</td>
                 <td>
                     <div class="badge text-bg-${getEstadoColor(p.estado.toLowerCase())}">${p.estado || "PROGRAMADO"}</div>
@@ -193,6 +193,7 @@ export function fetchPlantillas(containerId, { selectable = false, editable = tr
         action: "listar",
         onSuccess: (plantillas) => {
             const plantillasContainer = document.getElementById(containerId);
+            console.log(plantillasContainer);
 
             if (plantillas.length === 0) {
                 plantillasContainer.innerHTML = "<p class='text-muted'>No hay plantillas disponibles.</p>";
@@ -238,7 +239,7 @@ export function guardarPlantilla() {
         action: action,
         data: formData,
         onSuccess: () => {
-            modalAjustes.destroy();
+            modalAjustes.hide();
             fetchPlantillas("correosPlantillasList");
         }
     });
@@ -254,7 +255,7 @@ export function guardarEmisor() {
         action: action,
         data: formData,
         onSuccess: () => {
-            modalAjustes.destroy();
+            modalAjustes.hide();
             fetchPlantillas("correoEmisoresList", "correo");
         }
     });
@@ -266,7 +267,7 @@ export function previsualizarPlantilla(idplantilla) {
 
     fetch(window.baseurl + "views/components/ajustes/viewPlantilla.php?id=" + idplantilla)
         .then(res => res.text())
-        .then(html => modalPrevisualizar.show(null, html));
+        .then(html => modalPrevisualizar.show("Previsualizar plantilla", html));
 }
 
 export function updateStep() {
@@ -341,7 +342,7 @@ document.addEventListener("click", function (e) {
                 action: "eliminar",
                 data: formData,
                 onSuccess: () => {
-                    fetchEmisores("correosPlantillasList");
+                    fetchPlantillas("correosPlantillasList");
                 }
             });
         }
