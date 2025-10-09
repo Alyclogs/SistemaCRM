@@ -31,16 +31,6 @@
                     <label for="descripcionInput" class="form-label">Descripción de la campaña:</label>
                     <textarea id="descripcionInput" class="form-control" rows="2" placeholder="Campaña de prueba"></textarea>
                 </div>
-                <div class="row mb-3">
-                    <div class="col">
-                        <label for="fechaInicioInput" class="form-label">Fecha de inicio:</label>
-                        <input type="date" id="fechaInicioInput" class="form-control" value="">
-                    </div>
-                    <div class="col">
-                        <label for="fechaFinInput" class="form-label">Fecha de finalización:</label>
-                        <input type="date" id="fechaFinInput" class="form-control" value="">
-                    </div>
-                </div>
             </div>
             <div class="section-item" id="campaniaPlantillasSection" data-step="2">
                 <div class="mb-4">
