@@ -1,6 +1,7 @@
 export const icons = async () => {
     const [add, edit, trash, menu, user, telefono, correo, document, error,
-        success, warning, info, building, video, reunion, clock, paperclip] = await Promise.all([
+        success, warning, info, building, video, reunion, clock, paperclip,
+        arrowLeft, arrowRight, arrowUp, arrowDown] = await Promise.all([
             fetch(window.baseurl + "assets/svg/add.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/edit.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/trash.svg").then(res => res.text()),
@@ -18,6 +19,10 @@ export const icons = async () => {
             fetch(window.baseurl + "assets/svg/profile-2user.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/clock.svg").then(res => res.text()),
             fetch(window.baseurl + "assets/svg/paperclip.svg").then(res => res.text()),
+            fetch(window.baseurl + "assets/svg/arrow-left-02.svg").then(res => res.text()),
+            fetch(window.baseurl + "assets/svg/arrow-right-02.svg").then(res => res.text()),
+            fetch(window.baseurl + "assets/svg/arrow-up-02.svg").then(res => res.text()),
+            fetch(window.baseurl + "assets/svg/arrow-down-02.svg").then(res => res.text()),
         ]);
 
     return {
@@ -37,7 +42,11 @@ export const icons = async () => {
         video,
         reunion,
         clock,
-        paperclip
+        paperclip,
+        arrowLeft,
+        arrowRight,
+        arrowUp,
+        arrowDown
     };
 };
 

@@ -222,19 +222,58 @@ class EnvioModel
     /* ==========================
      * CAMPAÑAS
      * ========================== */
+    public function obtenerCampanias()
+    {
+        $sql = "SELECT c.*, CONCAT(u.nombres, ' ', u.apellidos) AS usuario
+            FROM campanias c
+            INNER JOIN usuarios u ON u.idusuario = c.idusuario
+            ORDER BY c.fecha_creacion DESC";
+
+        $campanias = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($campanias as &$campania) {
+            $id = $campania['idcampania'];
+            $campania['programaciones'] = $this->obtenerEnviosPorCampania($id);
+            $campania['notas'] = $this->notaModel->obtenerNotas($id, 'campania');
+        }
+
+        return $campanias;
+    }
+
+    public function obtenerCampania($id)
+    {
+        $sql = "SELECT c.*, CONCAT(u.nombres, ' ', u.apellidos) AS usuario
+            FROM campanias c
+            INNER JOIN usuarios u ON u.idusuario = c.idusuario
+            WHERE idcampania = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$id]);
+        $campania = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($campania) {
+            $campania['programaciones'] = $this->obtenerEnviosPorCampania($id);
+            $campania['notas'] = $this->notaModel->obtenerNotas($id, 'campania');
+        }
+
+        return $campania;
+    }
+
     public function crearCampania($data)
     {
         try {
             $this->pdo->beginTransaction();
+            $modalidad = $data['modalidadProgramacion'];
 
-            $sql = "INSERT INTO campanias (nombre, descripcion, fecha_inicio, fecha_fin, idusuario, fecha_creacion) 
-                    VALUES (:nombre, :descripcion, :fecha_inicio, :fecha_fin, :idusuario, NOW())";
+            $sql = "INSERT INTO campanias (nombre, descripcion, fecha_inicio, fecha_fin, modalidad_envio, estado, idusuario, fecha_creacion) 
+                VALUES (:nombre, :descripcion, :fecha_inicio, :fecha_fin, :modalidad_envio, :estado, :idusuario, NOW())";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 ':nombre' => $data['nombre'],
-                ':descripcion' => $data['descripcion'],
-                ':fecha_inicio' => $data['fecha_inicio'],
-                ':fecha_fin' => $data['fecha_fin'],
+                ':descripcion' => $data['descripcion'] ?? null,
+                ':fecha_inicio' => $data['fecha_inicio'] ?? null,
+                ':fecha_fin' => $data['fecha_fin'] ?? null,
+                ':modalidad_envio' => $modalidad ?? "dias_despues",
+                ':estado' => $data['estado'] ?? "creada",
                 ':idusuario' => $data['idusuario'] ?? $_SESSION['idusuario']
             ]);
             $idcampania = $this->pdo->lastInsertId();
@@ -242,15 +281,21 @@ class EnvioModel
             // Programaciones de envío
             if (!empty($data['programaciones']) && is_array($data['programaciones'])) {
                 foreach ($data['programaciones'] as $prog) {
-                    $this->programarEnvio([
-                        'idemisor' => null, // asignado aleatoriamente dentro del método
-                        'idreceptor' => $prog['idreceptor'] ?? null,
+                    $idenvio = $this->programarEnvio([
+                        'idemisor' => null, // asignado aleatoriamente
                         'idcampania' => $idcampania,
                         'idplantilla' => $prog['idplantilla'],
-                        'fecha_envio' => $prog['fecha_envio'],
-                        'idestado' => $prog['idestado'] ?? 1,
+                        'hora_envio' => $prog['hora_envio'] ?? '08:00:00',
+                        'dias_despues' => $modalidad === "dias_despues" ? $prog['dias_despues'] ?? null : null,
+                        'dia_semana' => $modalidad === "dias_semana" ? $prog['dia_semana'] ?? null : null,
+                        'estado' => $prog['estado'] ?? "creada",
                         'idusuario' => $data['idusuario'] ?? $_SESSION['idusuario']
                     ]);
+
+                    // Asociar receptores (clientes)
+                    if (!empty($prog['receptores']) && is_array($prog['receptores'])) {
+                        $this->actualizarRelacionesEnvioClientes($idenvio, $prog['receptores']);
+                    }
                 }
             }
 
@@ -259,7 +304,7 @@ class EnvioModel
                 $this->notaModel->guardarNota($idcampania, 'campania', $data['idusuario'], $data['nota']);
             }
 
-            // Registrar cambio
+            // Registro de cambio
             $this->registroCambioModel->registrarCambio(
                 $data['idusuario'] ?? $_SESSION['idusuario'],
                 $idcampania,
@@ -279,63 +324,22 @@ class EnvioModel
         }
     }
 
-    public function obtenerCampanias()
-    {
-        $sql = "SELECT c.*, CONCAT(u.nombres, ' ', u.apellidos) AS usuario
-                FROM campanias c
-                INNER JOIN usuarios u ON u.idusuario = c.idusuario
-                ORDER BY c.fecha_creacion DESC";
-
-        $campanias = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($campanias as &$campania) {
-            $id = $campania['idcampania'];
-            $campania['programaciones'] = $this->obtenerEnviosPorCampania($id);
-            $campania['notas'] = $this->notaModel->obtenerNotas($id, 'campania');
-        }
-        return $campanias;
-    }
-
-    public function obtenerCampania($id)
-    {
-        $sql = "SELECT c.*, CONCAT(u.nombres, ' ', u.apellidos) AS usuario
-                FROM campanias c
-                INNER JOIN usuarios u ON u.idusuario = c.idusuario
-                WHERE idcampania = ?";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$id]);
-        $campania = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($campania) {
-            $campania['programaciones'] = $this->obtenerEnviosPorCampania($id);
-            $campania['notas'] = $this->notaModel->obtenerNotas($id, 'campania');
-        }
-
-        return $campania;
-    }
-
     public function actualizarCampania($id, $data)
     {
         try {
             $this->pdo->beginTransaction();
 
-            // --- 1) Obtener campaña antes (para auditoría)
+            // Obtener campaña antes (para auditoría)
             $campaniaAntes = $this->obtenerCampania($id);
 
-            // --- 2) Armar actualización dinámica
+            // Actualizar datos básicos
             $campos = [];
             $params = [];
             $dataValidos = [];
-
             $camposTabla = $this->registroCambioModel->obtenerCamposTabla("campanias");
 
             foreach ($data as $campo => $valor) {
-                if (!in_array($campo, $camposTabla, true)) {
-                    continue; // ignorar campos inexistentes
-                }
-                if ($campo === "idcampania") {
-                    continue; // excluir PK
-                }
+                if (!in_array($campo, $camposTabla, true) || $campo === "idcampania") continue;
 
                 $campos[] = "$campo = :$campo";
                 $params[":$campo"] = is_array($valor) ? json_encode($valor) : $valor;
@@ -349,7 +353,7 @@ class EnvioModel
                 $stmt->execute($params);
             }
 
-            // --- 3) Reemplazar programaciones de envío (si se pasan)
+            // Reemplazar programaciones de envío
             if (isset($data['programaciones']) && is_array($data['programaciones'])) {
                 // Eliminar programaciones previas
                 $stmtDel = $this->pdo->prepare("DELETE FROM programacion_envios WHERE idcampania = ?");
@@ -357,27 +361,32 @@ class EnvioModel
 
                 // Insertar nuevas
                 foreach ($data['programaciones'] as $prog) {
-                    $this->programarEnvio([
-                        'idemisor' => null, // asignado aleatoriamente
-                        'idreceptor' => $prog['idreceptor'] ?? null,
+                    $idenvio = $this->programarEnvio([
+                        'idemisor' => null,
                         'idcampania' => $id,
                         'idplantilla' => $prog['idplantilla'],
-                        'fecha_envio' => $prog['fecha_envio'],
-                        'idestado' => $prog['idestado'] ?? 1,
+                        'hora_envio' => $prog['hora_envio'] ?? '08:00:00',
+                        'dias_despues' => $prog['dias_despues'] ?? null,
+                        'dia_semana' => $prog['dia_semana'] ?? null,
+                        'estado' => $prog['estado'] ?? "creada",
                         'idusuario' => $data['idusuario'] ?? $_SESSION['idusuario']
                     ]);
+
+                    if (!empty($prog['receptores']) && is_array($prog['receptores'])) {
+                        $this->actualizarRelacionesEnvioClientes($idenvio, $prog['receptores']);
+                    }
                 }
             }
 
-            // --- 4) Nota asociada
-            if (isset($data['nota']) && !empty($data['nota'])) {
+            // Nota asociada
+            if (!empty($data['nota'])) {
                 $this->notaModel->guardarNota($id, 'campania', $data['idusuario'], $data['nota']);
             }
 
-            // --- 5) Registrar cambios
+            // Registrar auditoría
             if (!empty($_SESSION['idusuario']) && !empty($dataValidos)) {
                 $this->registroCambioModel->registrarCambiosAutomaticos(
-                    $_SESSION['idusuario'] ?? $_SESSION['idusuario'],
+                    $_SESSION['idusuario'],
                     $id,
                     'campania',
                     'actualizacion',
@@ -436,29 +445,156 @@ class EnvioModel
         }
     }
 
+    public function iniciarCampania($idcampania, $idusuario = null)
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            $campaniaAntes = $this->obtenerCampania($idcampania);
+            if (!$campaniaAntes) {
+                throw new Exception("La campaña no existe.");
+            }
+
+            $sql = "UPDATE campanias
+                SET estado = 'activa',
+                    fecha_inicio = NOW()
+                WHERE idcampania = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$idcampania]);
+
+            $usuario = $idusuario ?? ($_SESSION['idusuario'] ?? null);
+            if ($usuario) {
+                $this->registroCambioModel->registrarCambio(
+                    $usuario,
+                    $idcampania,
+                    'campania',
+                    'actualizacion',
+                    'estado',
+                    $campaniaAntes['estado'] ?? null,
+                    'activa',
+                    'Campaña iniciada: ' . $campaniaAntes['nombre']
+                );
+            }
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw new Exception("Error al iniciar campaña: " . $e->getMessage());
+        }
+    }
+
+    public function finalizarCampania($idcampania, $idusuario = null)
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            $campaniaAntes = $this->obtenerCampania($idcampania);
+            if (!$campaniaAntes) {
+                throw new Exception("La campaña no existe.");
+            }
+
+            $sql = "UPDATE campanias
+                SET estado = 'finalizada',
+                    fecha_fin = NOW()
+                WHERE idcampania = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$idcampania]);
+
+            $usuario = $idusuario ?? ($_SESSION['idusuario'] ?? null);
+            if ($usuario) {
+                $this->registroCambioModel->registrarCambio(
+                    $usuario,
+                    $idcampania,
+                    'campania',
+                    'actualizacion',
+                    'estado',
+                    $campaniaAntes['estado'] ?? null,
+                    'finalizada',
+                    "Campaña finalizada: " . $campaniaAntes['nombre']
+                );
+            }
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw new Exception("Error al finalizar campaña: " . $e->getMessage());
+        }
+    }
+
+    public function obtenerEnviosPorCampania($idcampania)
+    {
+        $sql = "SELECT pe.*, p.nombre AS plantilla_nombre, p.descripcion AS plantilla_descripcion
+            FROM programacion_envios pe
+            INNER JOIN plantillas p ON p.idplantilla = pe.idplantilla
+            WHERE pe.idcampania = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$idcampania]);
+        $programaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($programaciones as &$prog) {
+            $prog['receptores'] = $this->obtenerReceptoresPorEnvio($prog['idenvio']);
+        }
+
+        return $programaciones;
+    }
+
+    public function obtenerReceptoresPorEnvio($idenvio)
+    {
+        $sql = "SELECT c.*
+            FROM envios_receptores ec
+            INNER JOIN clientes c ON c.idcliente = ec.idreceptor
+            WHERE ec.idenvio = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$idenvio]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /* ==========================
-     * PROGRAMACIÓN DE ENVÍOS
-     * ========================== */
+ * PROGRAMACIÓN DE ENVÍOS
+ * ========================== */
+    public function obtenerProgramacionesPendientes()
+    {
+        $sql = "SELECT 
+                pe.idenvio,
+                pe.idcampania,
+                pe.idplantilla,
+                pe.hora_envio,
+                c.fecha_inicio,
+                c.estado,
+                c.nombre AS nombre_campania
+            FROM programacion_envios pe
+            INNER JOIN campanias c ON c.idcampania = pe.idcampania
+            WHERE c.estado = 'activa'
+              AND pe.idestado != 'enviada'";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function programarEnvio($data)
     {
         $idemisor = $data['idemisor'] ?? $this->obtenerEmisorAleatorio();
 
-        $sql = "INSERT INTO programacion_envios (idemisor, idreceptor, idcampania, idplantilla, fecha_envio, idestado, idusuario) 
-                VALUES (:idemisor, :idreceptor, :idcampania, :idplantilla, :fecha_envio, :idestado, :idusuario)";
+        $sql = "INSERT INTO programacion_envios (idemisor, idcampania, idplantilla, hora_envio, dias_despues, dia_semana, estado, idusuario) 
+            VALUES (:idemisor, :idcampania, :idplantilla, :hora_envio, :dias_despues, :dia_semana, :estado, :idusuario)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             ':idemisor' => $idemisor,
-            ':idreceptor' => $data['idreceptor'],
             ':idcampania' => $data['idcampania'] ?? null,
             ':idplantilla' => $data['idplantilla'],
-            ':fecha_envio' => $data['fecha_envio'],
-            ':idestado' => $data['idestado'],
+            ':hora_envio' => $data['hora_envio'],
+            ':dias_despues' => $data['dias_despues'],
+            ':dia_semana' => $data['dia_semana'],
+            ':estado' => $data['estado'],
             ':idusuario' => $data['idusuario']
         ]);
 
         $idenvio = $this->pdo->lastInsertId();
 
-        // Registrar auditoría
+        // Auditoría
         $this->registroCambioModel->registrarCambio(
             $data['idusuario'] ?? $_SESSION['idusuario'],
             $idenvio,
@@ -467,30 +603,10 @@ class EnvioModel
             null,
             null,
             null,
-            "Programación de envío creada (receptor {$data['idreceptor']})"
+            "Programación de envío creada"
         );
 
         return $idenvio;
-    }
-
-    public function obtenerEnviosPorCampania($idcampania)
-    {
-        $sql = "SELECT pe.*, e.nombre AS emisor, est.estado, c.nombre AS campania,
-                       CONCAT(u.nombres, ' ', u.apellidos) AS usuario,
-                       CONCAT(r.nombres, ' ', r.apellidos) AS receptor,
-                       p.nombre AS plantilla_nombre
-                FROM programacion_envios pe
-                INNER JOIN emisores e ON e.idemisor = pe.idemisor
-                INNER JOIN estados_envios est ON est.idestado = pe.idestado
-                INNER JOIN usuarios u ON u.idusuario = pe.idusuario
-                LEFT JOIN campanias c ON c.idcampania = pe.idcampania
-                LEFT JOIN plantillas p ON p.idplantilla = pe.idplantilla
-                LEFT JOIN clientes r ON r.idcliente = pe.idreceptor
-                WHERE pe.idcampania = ?
-                ORDER BY pe.fecha_envio ASC";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$idcampania]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function actualizarEstadoEnvio($idenvio, $nuevoEstado)
@@ -516,6 +632,22 @@ class EnvioModel
         }
 
         return $resultado;
+    }
+
+    public function actualizarRelacionesEnvioClientes($idenvio, $clientes = [])
+    {
+        $stmtDel = $this->pdo->prepare("DELETE FROM envios_receptores WHERE idenvio = ?");
+        $stmtDel->execute([$idenvio]);
+
+        if (!empty($clientes)) {
+            $stmtIns = $this->pdo->prepare("INSERT INTO envios_receptores (idenvio, idreceptor) VALUES (:idenvio, :idreceptor)");
+            foreach ($clientes as $idreceptor) {
+                $stmtIns->execute([
+                    ':idenvio' => $idenvio,
+                    ':idreceptor' => $idreceptor
+                ]);
+            }
+        }
     }
 
     /* ==========================

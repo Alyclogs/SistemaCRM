@@ -13,8 +13,14 @@ function getController(source) {
             return 'controller/proyectos/ProyectoController.php?';
         case "tareas":
             return 'controller/tareas/TareaController.php?';
-        case "ajustes":
-            return 'controller/ajustes/AjustesController.php?';
+        case "diccionario":
+            return 'controller/ajustes/DiccionarioController.php?'
+        case "campos":
+            return 'controller/ajustes/CamposExtraController.php?';
+        case "disponibilidad":
+            return 'controller/ajustes/DisponibilidadController.php?';
+        case "tablas":
+            return 'controller/ajustes/TablaController.php?';
         case "campanias":
             return 'controller/ajustes/CampaniaController.php?';
         case "emisores":

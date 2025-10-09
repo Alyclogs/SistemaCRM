@@ -44,7 +44,6 @@ export function initCampaniaConfig() {
     stepItems.forEach(step => {
         step.addEventListener("click", () => {
             modalAjustes.setOption("ocultarFooter", step.dataset.step != 3);
-            modalAjustes.setOption("size", step.dataset.step != 3 ? "lg" : "xl");
         });
     });
 
@@ -239,10 +238,7 @@ function renderPlantillasSeleccionadas() {
             html += `
                 <div class="col mb-3">
                     <label for="pTime_${id}" class="form-label">Hora</label>
-                    <div class="input-group">
-                        <input type="time" id="pTime_${id}" class="form-control" value="${hora}" onchange="onChangeHora(${id}, this.value)" ${campaniaActual.globalTimeSet ? 'disabled' : ''}>
-                        <button class="btn btn-outline-secondary" type="button" title="Aplicar hora a todas" onclick="aplicarHoraATodas('${hora}')"><i class="bi bi-clock-history"></i></button>
-                    </div>
+                    <input type="time" id="pTime_${id}" class="form-control" value="${hora}" onchange="onChangeHora(${id}, this.value)" ${campaniaActual.globalTimeSet ? 'disabled' : ''}>
                 </div>
             </div>`;
         }
@@ -265,10 +261,7 @@ function renderPlantillasSeleccionadas() {
             <div class="row">
                 <div class="col mb-3">
                     <label for="pTime_${id}" class="form-label">Hora</label>
-                    <div class="input-group">
-                        <input type="time" id="pTime_${id}" class="form-control" value="${hora}" onchange="onChangeHora(${id}, this.value)" ${campaniaActual.globalTimeSet ? 'disabled' : ''}>
-                        <button class="btn btn-outline-secondary" type="button" title="Aplicar hora a todas" onclick="aplicarHoraATodas('${hora}')"><i class="bi bi-clock-history"></i></button>
-                    </div>
+                    <input type="time" id="pTime_${id}" class="form-control" value="${hora}" onchange="onChangeHora(${id}, this.value)" ${campaniaActual.globalTimeSet ? 'disabled' : ''}>
                 </div>
             </div>`;
         }
@@ -296,16 +289,6 @@ window.selectDiaSemana = function (idplantilla, dia) {
             }
         });
     }
-};
-
-window.aplicarHoraATodas = function (hora) {
-    if (!hora) return;
-    campaniaActual.plantillas.forEach(p => p.hora_envio = hora);
-    campaniaActual.plantillas.forEach(p => {
-        const inputHora = document.querySelector(`#pTime_${p.idplantilla}`);
-        if (inputHora) inputHora.value = p.hora_envio;
-    });
-    mostrarToast({ title: "Hora aplicada a todas las plantillas", type: "success" });
 };
 
 window.onChangeHora = function (idplantilla, nuevaHora) {
@@ -358,12 +341,11 @@ export function guardarCampania() {
         const base = {
             idplantilla: p.idplantilla,
             hora: p.hora_envio || (campaniaActual.globalTimeSet ? campaniaActual.globalTime : "08:00"),
-            idestado: p.idestado || 1
+            estado: p.estado || "creada"
         };
         if (campaniaActual.modalidadProgramacion === "dias_especificos") {
             base.dias_despues = p.dias_despues ?? 0;
         } else {
-            base.semana_index = p.semana_index ?? 1;
             base.dia_semana = p.dia_semana ?? 0;
         }
         return base;

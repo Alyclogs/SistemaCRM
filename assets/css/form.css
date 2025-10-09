@@ -9,6 +9,7 @@ select,
   background-color: var(--default-bg-color-light) !important;
   color: var(--default-text-color) !important;
   font-family: "Poppins", sans-serif !important;
+  height: 35px;
 }
 
 input.form-check-input {

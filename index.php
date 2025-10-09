@@ -47,6 +47,7 @@ if (!file_exists($ruta)) {
     <link rel="stylesheet" href="./assets/css/general.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     <script type="module" src="./assets/js/app.min.js"></script>
     <title>Sistema CRM</title>
 </head>

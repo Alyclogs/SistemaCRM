@@ -1,5 +1,5 @@
 import api from "../utils/api.js";
-import { formatearDateTimeFull } from "../utils/date.js";
+import { formatearDateTimeFull, formatearHora12h } from "../utils/date.js";
 import { ModalComponent } from "../utils/modal.js";
 import { abrirModal, modalAjustes } from "./index.js";
 import { cargarCampaniaExistente } from "./programaciones.js";
@@ -15,23 +15,20 @@ export function fetchCampanias() {
         onSuccess: (campanias) => {
             const campaniasContainer = document.getElementById("campaniasList");
             campaniasContainer.innerHTML = "";
+
             if (campanias.length === 0) {
                 campaniasContainer.innerHTML = "<p class='text-muted'>No hay campañas disponibles.</p>";
                 return;
             }
 
-            const estadoCampania = (fecha_inicio, fecha_fin) => {
-                const hoy = new Date();
-                const inicio = new Date(fecha_inicio);
-                const fin = new Date(fecha_fin);
-                if (hoy < inicio) return { bg: "info", estado: "PRÓXIMA" };
-                if (hoy >= inicio && hoy <= fin) return { bg: "success", estado: "ACTIVA" };
-                return { bg: "danger", estado: "FINALIZADA" };
-            };
+            const estadosCampania = {
+                creada: "info",
+                activa: "success",
+                finalizada: "secondary"
+            }
 
             let html = "";
             campanias.forEach(campania => {
-                const estado = estadoCampania(campania.fecha_inicio, campania.fecha_fin);
                 const id = `campania-${campania.idcampania}`;
 
                 html += `
@@ -39,9 +36,9 @@ export function fetchCampanias() {
                     <tr class="campania-row" data-id="${campania.idcampania}" data-target="#${id}">
                         <td class="fw-bold">${campania.nombre}</td>
                         <td class="text-break" style="max-width: 220px;">${campania.descripcion || "Sin descripción"}</td>
-                        <td>${campania.fecha_inicio}</td>
+                        <td>${campania.fecha_inicio || "N/A"}</td>
                         <td>${campania.fecha_fin || "N/A"}</td>
-                        <td><div class="badge text-bg-${estado.bg}">${estado.estado}</div></td>
+                        <td><div class="badge text-bg-${estadosCampania[campania.estado]}">${campania.estado}</div></td>
                         <td>
                             <div class="info-row">
                                 <button class="btn btn-icon bg-light" data-id="${campania.idcampania}" id="btnEditarCampania">
@@ -117,7 +114,7 @@ function renderProgramacionesTable(programaciones = []) {
                         <th>#</th>
                         <th>Plantilla</th>
                         <th>Emisor</th>
-                        <th>Fecha de envío</th>
+                        <th>Hora de envío</th>
                         <th>Estado</th>
                     </tr>
                 </thead>
@@ -130,9 +127,9 @@ function renderProgramacionesTable(programaciones = []) {
                 <td>${i + 1}</td>
                 <td>${p.plantilla_nombre || "—"}</td>
                 <td>${p.emisor || "—"}</td>
-                <td>${formatearDateTimeFull(p.fecha_envio)}</td>
+                <td>${formatearHora12h(p.hora_envio)}</td>
                 <td>
-                    <div class="badge text-bg-${getEstadoColor(p.estado.toLowerCase())}">${p.estado || "PROGRAMADO"}</div>
+                    <div class="badge text-bg-${getEstadoColor(p.estado.toLowerCase())}">${p.estado || "programado"}</div>
                 </td>
             </tr>
         `;

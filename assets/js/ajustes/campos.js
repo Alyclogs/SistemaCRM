@@ -48,7 +48,7 @@ export function guardarCampo() {
 
     const action = formData.get("idcampo") ? "actualizar_campo" : "crear_campo";
     api.post({
-        source: "ajustes",
+        source: "campos",
         action: action,
         data: formData,
         onSuccess: () => {
@@ -75,7 +75,7 @@ document.addEventListener("click", function (e) {
             formData.append("idcampo", id);
 
             api.post({
-                source: "ajustes",
+                source: "campos",
                 action: "eliminar_campo",
                 data: formData,
                 onSuccess: () => {

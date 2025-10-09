@@ -17,6 +17,14 @@ $estados = $clienteModel->obtenerEstadosClientes();
         </div>
         <div class="d-flex gap-3 align-items-center">
             <button class="btn btn-icon border" id="btnRefresh"><?php include('./assets/svg/refresh-arrow-01.svg') ?></button>
+            <div class="grupo-input">
+                <?php include('assets/svg/search.svg') ?>
+                <input type="text" id="inputBuscarClientes" placeholder="Buscar clientes...">
+            </div>
+            <div class="info-row">
+                <label for="registrosPaginaInput">Registros por página</label>
+                <input type="number" class="form-control w-auto" id="registrosPaginaInput" value="25" maxlength="2" max="50" min="1">
+            </div>
             <div class="busqueda-grupo" data-type="Tipo">
                 <button class="btn btn-outline boton-filtro selected" id="tiposClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="tiposClientes" id="tipoCliente">Clientes</span></button>
                 <div class="resultados-busqueda" data-parent="tiposClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
@@ -40,15 +48,7 @@ $estados = $clienteModel->obtenerEstadosClientes();
     <div class="page-content">
         <div class="d-flex flex-column gap-3">
             <table class="animate__animated animate__fadeInUp table align-middle" id="tablaClientes" style="display: none;">
-                <thead id="tablaClientesHead">
-                    <th id="td-cliente">Cliente</th>
-                    <th id="td-organizacion">Organización</th>
-                    <th id="td-dni">DNI</th>
-                    <th id="td-telefono">Teléfono</th>
-                    <th id="td-correo">Correo</th>
-                    <th id="td-estado">Estado</th>
-                    <th></th>
-                </thead>
+                <thead id="tablaClientesHead"></thead>
                 <tbody id="tablaClientesBody"></tbody>
             </table>
 
@@ -61,6 +61,8 @@ $estados = $clienteModel->obtenerEstadosClientes();
                 </thead>
                 <tbody id="tablaOrganizacionesBody"></tbody>
             </table>
+
+            <div id="clientesPager" class="table-pager"></div>
         </div>
     </div>
 </div>

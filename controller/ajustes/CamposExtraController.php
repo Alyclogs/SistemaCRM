@@ -66,43 +66,6 @@ try {
                     "message" => "Campo extra eliminado"
                 ];
                 break;
-
-
-            /* =======================
-             * DISPONIBILIDAD GENERAL
-             * ======================= */
-            case 'listar_disponibilidad':
-                if (!isset($_POST['iddisponibilidad'])) throw new Exception("ID requerido");
-                $data = $ajustesModel->obtenerDisponibilidad($_POST['iddisponibilidad']);
-                $response = $data;
-                break;
-
-            case 'crear_disponibilidad':
-                $id = $ajustesModel->crearDisponibilidad($_POST, $_POST['idusuario'] ?? null);
-                $response = [
-                    "success" => true,
-                    "message" => "Disponibilidad creada",
-                    "id" => $id
-                ];
-                break;
-
-            case 'actualizar_disponibilidad':
-                if (!isset($_POST['iddisponibilidad'])) throw new Exception("ID requerido");
-                $ajustesModel->actualizarDisponibilidad($_POST['iddisponibilidad'], $_POST, $_POST['idusuario'] ?? null);
-                $response = [
-                    "success" => true,
-                    "message" => "Disponibilidad actualizada"
-                ];
-                break;
-
-            case 'eliminar_disponibilidad':
-                if (!isset($_POST['iddisponibilidad'])) throw new Exception("ID requerido");
-                $ajustesModel->eliminarDisponibilidad($_POST['iddisponibilidad'], $_POST['idusuario'] ?? null);
-                $response = [
-                    "success" => true,
-                    "message" => "Disponibilidad eliminada"
-                ];
-                break;
         }
     }
 } catch (Exception $e) {

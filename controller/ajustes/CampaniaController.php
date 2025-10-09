@@ -69,6 +69,32 @@ try {
                     "message" => "Campaña eliminada"
                 ];
                 break;
+
+            case 'obtenerProgramacionesPendientes':
+                $data = $envioModel->obtenerProgramacionesPendientes();
+                $response = $data;
+                break;
+
+            case 'actualizarEstadoEnvio':
+                $idenvio = $_POST['idenvio'] ?? null;
+                $nuevoEstado = $_POST['nuevoEstado'] ?? null;
+                if (!$idenvio || !$nuevoEstado) throw new Exception("Faltan datos necesarios para la solicitud");
+                $envioModel->actualizarEstadoEnvio($idenvio, $nuevoEstado);
+                $response = [
+                    "success" => true,
+                    "message" => "Estado de envío actualizado"
+                ];
+                break;
+
+            case 'finalizarCampania':
+                $idcampania = $_POST['idcampania'] ?? null;
+                if (!$idcampania) throw new Exception("ID de campaña requerido");
+                $envioModel->finalizarCampania($idcampania);
+                $response = [
+                    "success" => true,
+                    "message" => "Campaña finalizada"
+                ];
+                break;
         }
     }
 } catch (Exception $e) {
