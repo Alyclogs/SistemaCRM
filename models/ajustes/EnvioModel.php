@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../notas/NotaModel.php";
 require_once __DIR__ . "/../cambios/RegistroCambio.php";
+require_once __DIR__ . '/PlantillaModel.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -11,12 +12,14 @@ class EnvioModel
     private $pdo;
     private $notaModel;
     private $registroCambioModel;
+    private $plantillaModel;
 
     public function __construct($pdo, $registroCambioModel = null)
     {
         try {
             $this->pdo = $pdo;
             $this->notaModel = new NotaModel($this->pdo);
+            $this->plantillaModel = new PlantillaModel($this->pdo);
             $this->registroCambioModel = $registroCambioModel ?: new RegistroCambioModel($this->pdo);
         } catch (PDOException $e) {
             throw new Exception("Error al conectar en EnvioModel: " . $e->getMessage());
@@ -445,16 +448,18 @@ class EnvioModel
         }
     }
 
-    public function iniciarCampania($idcampania, $idusuario = null)
+    public function iniciarCampania($idcampania, $idusuario = null, $programaciones = [])
     {
         try {
             $this->pdo->beginTransaction();
 
+            // 1️⃣ Verificar campaña existente
             $campaniaAntes = $this->obtenerCampania($idcampania);
             if (!$campaniaAntes) {
                 throw new Exception("La campaña no existe.");
             }
 
+            // 2️⃣ Activar campaña
             $sql = "UPDATE campanias
                 SET estado = 'activa',
                     fecha_inicio = NOW()
@@ -462,8 +467,41 @@ class EnvioModel
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$idcampania]);
 
+            // 3️⃣ Actualizar programaciones con fecha_envio y activar estado
+            if (!empty($programaciones) && is_array($programaciones)) {
+                $sqlProg = "UPDATE programacion_envios
+                        SET estado = 'activa',
+                            fecha_envio = :fecha_envio,
+                            hora_envio = :hora_envio
+                        WHERE idenvio = :idenvio AND idcampania = :idcampania";
+                $stmtProg = $this->pdo->prepare($sqlProg);
+
+                foreach ($programaciones as $p) {
+                    if (empty($p['idenvio']) || empty($p['fecha_envio'])) {
+                        // Si faltan datos esenciales, omitir esa programación
+                        continue;
+                    }
+
+                    $stmtProg->execute([
+                        ':fecha_envio' => $p['fecha_envio'],
+                        ':hora_envio' => $p['hora_envio'] ?? null,
+                        ':idenvio' => $p['idenvio'],
+                        ':idcampania' => $idcampania
+                    ]);
+                }
+            } else {
+                // Si no se enviaron programaciones desde el frontend, activar todas sin modificar fechas
+                $sqlProg = "UPDATE programacion_envios
+                        SET estado = 'activa'
+                        WHERE idcampania = ?";
+                $stmtProg = $this->pdo->prepare($sqlProg);
+                $stmtProg->execute([$idcampania]);
+            }
+
+            // 4️⃣ Registrar cambios
             $usuario = $idusuario ?? ($_SESSION['idusuario'] ?? null);
             if ($usuario) {
+                // Cambio de estado de la campaña
                 $this->registroCambioModel->registrarCambio(
                     $usuario,
                     $idcampania,
@@ -473,6 +511,18 @@ class EnvioModel
                     $campaniaAntes['estado'] ?? null,
                     'activa',
                     'Campaña iniciada: ' . $campaniaAntes['nombre']
+                );
+
+                // Cambio de estado de las programaciones
+                $this->registroCambioModel->registrarCambio(
+                    $usuario,
+                    $idcampania,
+                    'programacion_envios',
+                    'actualizacion',
+                    'estado',
+                    'creada',
+                    'activa',
+                    "Programaciones de campaña '{$campaniaAntes['nombre']}' activadas con fechas asignadas"
                 );
             }
 
@@ -494,6 +544,7 @@ class EnvioModel
                 throw new Exception("La campaña no existe.");
             }
 
+            // 1️⃣ Finalizar campaña
             $sql = "UPDATE campanias
                 SET estado = 'finalizada',
                     fecha_fin = NOW()
@@ -501,6 +552,14 @@ class EnvioModel
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$idcampania]);
 
+            // 2️⃣ Desactivar todas las programaciones relacionadas
+            $sqlProg = "UPDATE programacion_envios
+                    SET estado = 'inactiva'
+                    WHERE idcampania = ?";
+            $stmtProg = $this->pdo->prepare($sqlProg);
+            $stmtProg->execute([$idcampania]);
+
+            // 3️⃣ Registrar cambio
             $usuario = $idusuario ?? ($_SESSION['idusuario'] ?? null);
             if ($usuario) {
                 $this->registroCambioModel->registrarCambio(
@@ -512,6 +571,17 @@ class EnvioModel
                     $campaniaAntes['estado'] ?? null,
                     'finalizada',
                     "Campaña finalizada: " . $campaniaAntes['nombre']
+                );
+
+                $this->registroCambioModel->registrarCambio(
+                    $usuario,
+                    $idcampania,
+                    'programacion_envios',
+                    'actualizacion',
+                    'estado',
+                    'activa',
+                    'inactiva',
+                    "Programaciones de campaña " . $campaniaAntes['nombre'] . " desactivadas"
                 );
             }
 
@@ -535,6 +605,7 @@ class EnvioModel
 
         foreach ($programaciones as &$prog) {
             $prog['receptores'] = $this->obtenerReceptoresPorEnvio($prog['idenvio']);
+            $prog['plantilla'] = $this->plantillaModel->obtenerPlantilla($prog['idplantilla']);
         }
 
         return $programaciones;
@@ -567,11 +638,41 @@ class EnvioModel
             FROM programacion_envios pe
             INNER JOIN campanias c ON c.idcampania = pe.idcampania
             WHERE c.estado = 'activa'
-              AND pe.idestado != 'enviada'";
+              AND pe.estado != 'enviada'";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $programaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($programaciones as &$prog) {
+            $prog['receptores'] = $this->obtenerReceptoresPorEnvio($prog['idenvio']);
+            $prog['plantilla'] = $this->plantillaModel->obtenerPlantilla($prog['idplantilla']);
+        }
+        return $programaciones;
+    }
+
+    public function obtenerProgramacion($id)
+    {
+        $sql = "SELECT 
+                pe.idenvio,
+                pe.idcampania,
+                pe.idplantilla,
+                pe.hora_envio,
+                c.fecha_inicio,
+                c.estado,
+                c.nombre AS nombre_campania
+            FROM programacion_envios pe
+            INNER JOIN campanias c ON c.idcampania = pe.idcampania
+            WHERE c.estado = 'activa'
+              AND pe.estado != 'enviada'
+              AND pe.idenvio = ?";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$id]);
+        $prog = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        $prog['receptores'] = $this->obtenerReceptoresPorEnvio($prog['idenvio']);
+        $prog['plantilla'] = $this->plantillaModel->obtenerPlantilla($prog['idplantilla']);
+
+        return $prog;
     }
 
     public function programarEnvio($data)
@@ -647,6 +748,87 @@ class EnvioModel
                     ':idreceptor' => $idreceptor
                 ]);
             }
+        }
+    }
+
+    public function marcarProgramacionEnviada($idenvio, $idusuario = null)
+    {
+        $sql = "UPDATE programacion_envios SET estado = 'enviada', fecha_envio_real = NOW() WHERE idenvio = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $res = $stmt->execute([$idenvio]);
+
+        if ($res && isset($_SESSION['idusuario'])) {
+            $this->registroCambioModel->registrarCambio(
+                $idusuario ?? $_SESSION['idusuario'],
+                $idenvio,
+                'programacion_envios',
+                'actualizacion',
+                'estado',
+                null,
+                'enviada',
+                "Programación marcada como enviada (idenvio: $idenvio)"
+            );
+        }
+        return $res;
+    }
+
+    public function marcarProgramacionError($idenvio, $info = null, $idusuario = null)
+    {
+        $sql = "UPDATE programacion_envios SET estado = 'error' WHERE idenvio = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $res = $stmt->execute([$idenvio]);
+
+        if ($res && isset($_SESSION['idusuario'])) {
+            $this->registroCambioModel->registrarCambio(
+                $idusuario ?? $_SESSION['idusuario'],
+                $idenvio,
+                'programacion_envios',
+                'error',
+                null,
+                null,
+                null,
+                "Error enviando programación (idenvio: $idenvio) - " . json_encode($info)
+            );
+        }
+        return $res;
+    }
+
+    public function actualizarEnvioPorReceptor($idenvio, $idreceptor, $nuevoEstado)
+    {
+        try {
+            if (empty($idenvio) || empty($idreceptor) || empty($nuevoEstado)) {
+                throw new Exception("Parámetros insuficientes para actualizar el estado del envío");
+            }
+
+            $sql = "UPDATE envios_receptores
+                SET estado = :estado,
+                    fecha_envio = NOW()
+                WHERE idenvio = :idenvio AND idreceptor = :idreceptor";
+
+            $stmt = $this->pdo->prepare($sql);
+            $res = $stmt->execute([
+                ':estado' => $nuevoEstado,
+                ':idenvio' => $idenvio,
+                ':idreceptor' => $idreceptor
+            ]);
+
+            // Si hay registro de cambios habilitado
+            if ($res && $this->registroCambioModel && isset($_SESSION['idusuario'])) {
+                $this->registroCambioModel->registrarCambio(
+                    $_SESSION['idusuario'],
+                    $idenvio,
+                    'envios_receptores',
+                    'actualizacion',
+                    'estado',
+                    null,
+                    $nuevoEstado,
+                    "Estado actualizado a '{$nuevoEstado}' para receptor {$idreceptor} en envío {$idenvio}"
+                );
+            }
+
+            return $res;
+        } catch (Exception $e) {
+            throw new Exception("Error al actualizar estado del envío: " . $e->getMessage());
         }
     }
 

@@ -62,7 +62,7 @@ async function verificarEnvios() {
 
                         await api.post({
                             source: "campanias",
-                            action: "actualizarEstadoEnvio",
+                            action: "enviar",
                             data: formEnvio,
                             onSuccess: () => console.log(`✅ Envío #${prog.idenvio} marcado como 'enviada'`),
                             onError: (err) => console.error(`❌ Error al actualizar envío #${prog.idenvio}`, err)

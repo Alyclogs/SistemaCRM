@@ -35,6 +35,14 @@ try {
             exit;
             break;
 
+        case 'ver':
+            $idusuario = $_GET['idusuario'] ?? null;
+            if (!$idusuario) throw new Exception('Error: ID inválido.');
+            $usuario = $modelo->obtenerUsuarioPorId($idusuario);
+            echo json_encode($usuario);
+            exit;
+            break;
+
         case 'usuarioTienePermiso':
             $codigo = $_GET['codigo'] ?? '';
             $result = $modelo->usuarioTienePermisoSesion($codigo);

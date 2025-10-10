@@ -1,4 +1,4 @@
-<div class="page-body">
+<div class="page-body p-4 mx-2">
     <div class="animate__animated animate__fadeInUp page-header">
         <div class="d-flex gap-3 align-items-center">
             <h5 class="page-title">Usuarios</h5>

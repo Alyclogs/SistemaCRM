@@ -15,12 +15,12 @@ try {
             case 'listar':
                 if (!isset($_GET['tipo']) || empty($_GET['tipo'])) throw new Exception("Tipo requerido");
                 if ($_GET['tipo'] == '1') {
-                    $data = $clienteModel->obtenerClientes(!empty($_GET['idestado']) ? $_GET['idestado'] : '');
+                    $data = $clienteModel->obtenerClientes(!empty($_GET['idusuario']) ? $_GET['idusuario'] : '');
                     echo json_encode($data);
                     exit;
                 }
                 if ($_GET['tipo'] == '2') {
-                    $data = $clienteModel->obtenerOrganizaciones();
+                    $data = $clienteModel->obtenerOrganizaciones(!empty($_GET['idusuario']) ? $_GET['idusuario'] : '');
                     echo json_encode($data);
                     exit;
                 }
@@ -39,7 +39,7 @@ try {
 
                 if (isset($_GET['tipo'])) {
                     if ($_GET['tipo'] == '1') {
-                        $data = $clienteModel->buscarClientes($_GET['filtro'], !empty($_GET['idestado']) ? $_GET['idestado'] : '');
+                        $data = $clienteModel->buscarClientes($_GET['filtro']);
                         echo json_encode($data);
                         exit;
                     }
@@ -49,7 +49,7 @@ try {
                         exit;
                     }
                 } else {
-                    $data = $clienteModel->buscarClientesYOrganizaciones($_GET['filtro'], !empty($_GET['idestado']) ? $_GET['idestado'] : '');
+                    $data = $clienteModel->buscarClientesYOrganizaciones($_GET['filtro']);
                     echo json_encode($data);
                     exit;
                 }
@@ -129,6 +129,7 @@ try {
 
             case 'actualizar':
                 if (!isset($_POST['id'])) throw new Exception("ID requerido");
+                $_POST['idcliente'] = $_POST['id'];
 
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                     $archivoFoto = $_FILES['foto'];
@@ -174,7 +175,7 @@ try {
                     $_POST['foto'] = null;
                 }
 
-                $clienteModel->editarCliente($_POST['id'], $_POST);
+                $clienteModel->actualizarCliente($_POST['id'], $_POST);
                 $response = ["success" => true, "message" => "Cliente actualizado"];
                 break;
 
@@ -235,6 +236,7 @@ try {
 
             case 'actualizarOrganizacion':
                 if (!isset($_POST['id'])) throw new Exception("ID requerido");
+                $_POST['idempresa'] = $_POST['id'];
 
                 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
                     $archivoFoto = $_FILES['foto'];

@@ -1,4 +1,4 @@
-<div class="container-fluid w-100 p-3 row align-items-center">
+<div class="header-global container-fluid w-100 p-3 row g-0 align-items-center">
     <div class="col d-flex justify-content-start">
         <div class="text-large" id="pageTitle"></div>
     </div>

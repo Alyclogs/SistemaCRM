@@ -1,24 +1,27 @@
 <?php
 require_once __DIR__ . '/../../models/clientes/ClienteModel.php';
+require_once __DIR__ . '/../../models/Usuarios/UsuarioModel.php';
 
 $pdo = Database::getConnection();
 $clienteModel = new ClienteModel($pdo);
+$usuarioModel = new UsuarioModel($pdo);
 $estados = $clienteModel->obtenerEstadosClientes();
+$usuarios = $usuarioModel->obtenerUsuarios();
 ?>
 
 <div class="page-body">
     <div class="list-view">
-        <div class="list-items">
+        <div class="list-items p-4" style="width: 18%;">
             <div class="list-item list-item-default selected" data-target="clientesBody" data-tipo="1">
                 <?php include('assets/svg/profile-2user.svg') ?>
-                <h5>Clientes</h5>
+                <h6>Clientes</h6>
             </div>
             <div class="list-item list-item-default" data-target="organizacionesBody" data-tipo="2">
                 <?php include('assets/svg/building.svg') ?>
-                <h5>Organizaciones</h5>
+                <h6>Organizaciones</h6>
             </div>
         </div>
-        <div class="list-sections" style="width: 100%;">
+        <div class="list-sections p-4" style="width: 100%;">
             <div class="section-item show" id="clientesBody">
                 <div class="section-body">
                     <div class="animate__animated animate__fadeInUp page-header">
@@ -39,21 +42,20 @@ $estados = $clienteModel->obtenerEstadosClientes();
                                 <label for="registrosPaginaInput">Registros por página</label>
                                 <input type="number" class="form-control w-auto" id="registrosPaginaInput" value="25" maxlength="2" max="50" min="1">
                             </div>
-                            <div class="busqueda-grupo" data-type="Tipo">
-                                <button class="btn btn-outline boton-filtro selected" id="tiposClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="tiposClientes" id="tipoCliente">Clientes</span></button>
-                                <div class="resultados-busqueda" data-parent="tiposClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
-                                    <div class="resultado-item filtro-item selected" data-id="1" data-value="Personas"><?php include('./assets/svg/profile.svg') ?><span>Personas</span></div>
-                                    <div class="resultado-item filtro-item" data-id="2" data-value="Organizaciones"><?php include('./assets/svg/building.svg') ?><span>Organizaciones</span></div>
+                            <div class="busqueda-grupo clickable">
+                                <div class="info-row gap-3 py-1 px-2" id="usuarioActual">
+                                    <div class="info-row">
+                                        <img id="usuarioActualFoto" class="user-icon sm" src="<?= $_SESSION['foto'] ?>" alt="Foto de <?= $_SESSION['nombre'] ?>">
+                                        <span id="usuarioActualNombre"><?= $_SESSION['nombre'] ?></span>
+                                    </div>
+                                    <button class="btn btn-icon sm">
+                                        <?php include('./assets/svg/arrow-down-02.svg') ?>
+                                    </button>
                                 </div>
-                            </div>
-                            <div class="busqueda-grupo" data-type="Estado">
-                                <button class="btn btn-outline boton-filtro" id="estadosClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="estadosClientes" id="estadoCliente">Estado</span></button>
-                                <div class="resultados-busqueda" data-parent="estadosClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
-                                    <?php if (!empty($estados)): ?>
-                                        <?php foreach ($estados as $estado): ?>
-                                            <div class="resultado-item filtro-item" data-id="<?= $estado['idestado'] ?>" data-value="<?= $estado['estado'] ?>"><?= $estado['estado'] ?></div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
+                                <div class="resultados-busqueda" data-parent="usuarioActual" style="top: 3rem;">
+                                    <?php foreach ($usuarios as $usuario): ?>
+                                        <div class="resultado-item usuario-item <?= $_SESSION['idusuario'] === $usuario['idusuario'] ? 'selected' : '' ?>" data-id="<?= $usuario['idusuario'] ?>" data-value="<?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?>"><?= $usuario['nombres'] . ' ' . $usuario['apellidos'] ?></div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
                         </div>
@@ -89,23 +91,6 @@ $estados = $clienteModel->obtenerEstadosClientes();
                                 <label for="registrosPaginaInput">Registros por página</label>
                                 <input type="number" class="form-control w-auto" id="registrosPaginaInput" value="25" maxlength="2" max="50" min="1">
                             </div>
-                            <div class="busqueda-grupo" data-type="Tipo">
-                                <button class="btn btn-outline boton-filtro selected" id="tiposClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="tiposClientes" id="tipoCliente">Clientes</span></button>
-                                <div class="resultados-busqueda" data-parent="tiposClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
-                                    <div class="resultado-item filtro-item selected" data-id="1" data-value="Personas"><?php include('./assets/svg/profile.svg') ?><span>Personas</span></div>
-                                    <div class="resultado-item filtro-item" data-id="2" data-value="Organizaciones"><?php include('./assets/svg/building.svg') ?><span>Organizaciones</span></div>
-                                </div>
-                            </div>
-                            <div class="busqueda-grupo" data-type="Estado">
-                                <button class="btn btn-outline boton-filtro" id="estadosClientes"><?php include('./assets/svg/filter.svg') ?><span class="selected-filtro" data-parent="estadosClientes" id="estadoCliente">Estado</span></button>
-                                <div class="resultados-busqueda" data-parent="estadosClientes" style="min-width: 180px; right: 0px; top: 2.5rem;">
-                                    <?php if (!empty($estados)): ?>
-                                        <?php foreach ($estados as $estado): ?>
-                                            <div class="resultado-item filtro-item" data-id="<?= $estado['idestado'] ?>" data-value="<?= $estado['estado'] ?>"><?= $estado['estado'] ?></div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -118,6 +103,14 @@ $estados = $clienteModel->obtenerEstadosClientes();
                 </div>
             </div>
             <div id="clientesPager" class="table-pager"></div>
+        </div>
+    </div>
+    <div class="floating-container bottom-right">
+        <div class="floating-content" id="floatingButton">
+            <button class="btn btn-lg btn-default shadow-lg" id="btnCrearCampania">
+                <?php include('assets/svg/add.svg') ?>
+                <span>Crear campaña</span>
+            </button>
         </div>
     </div>
 </div>

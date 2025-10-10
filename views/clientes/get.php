@@ -178,7 +178,7 @@ $camposExtra = $ajustesModel->obtenerCamposExtraPorTabla(null, "clientes");
                         </div>
                         <div class="info-container">
                             <h6 class="fw-bold mb-2">Asesor:</h6>
-                            <div class="busqueda-grupo">
+                            <div class="busqueda-grupo clickable">
                                 <div class="info-row gap-3 py-1 px-2" id="usuarioActual">
                                     <div class="info-row">
                                         <img id="usuarioActualFoto" class="user-icon sm" src="<?= $cliente['usuario_foto'] ?>" alt="Foto de <?= $cliente['usuario'] ?>">

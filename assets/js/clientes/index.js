@@ -1,13 +1,15 @@
 // clientes-table.js
 import api from "../utils/api.js";
+import { ModalComponent } from "../utils/modal.js";
 import { abrirModal, eliminarRegistro, guardarRegistro } from "./utils.js";
 
 let filtroBuscado = '';
-let selectedEstado = '';
 let selectedTipo = '1';
 let clientesCache = [];        // todos los clientes traídos del backend
 let columnsConfig = [];        // configuración cargada desde diccionario_campos
 let currentPage = 1;
+let selectedUsuario = document.getElementById('idUsuario').value;
+export let modalCampania = null;
 
 const defaultColumns = [
     { campo: "foto", nombre: "Foto", visible: 1, orden: 0 },
@@ -70,14 +72,14 @@ async function loadTableSettings() {
     });
 }
 
-function fetchClientes(filtro = "", idestado = "", tipo = "1") {
+function fetchClientes(filtro = "", tipo = "1", idusuario) {
     filtroBuscado = filtro ?? filtroBuscado;
-    selectedEstado = idestado ?? selectedEstado;
     selectedTipo = tipo ?? selectedTipo;
+    selectedUsuario = idusuario ?? selectedUsuario;
 
     const params = [{ name: 'tipo', value: tipo }];
     if (filtroBuscado) params.push({ name: 'filtro', value: filtroBuscado });
-    if (selectedEstado) params.push({ name: 'idestado', value: selectedEstado });
+    if (selectedUsuario) params.push({ name: 'idusuario', value: selectedUsuario });
 
     // Indicador
     const container = (tipo == '1') ? document.getElementById('tablaClientesBody') : document.getElementById('tablaOrganizacionesBody');
@@ -253,14 +255,15 @@ function renderRowCell(cliente, col) {
 
         if (!displayName) return '-';
 
-        // Si hay nombre y foto → mostrar imagen + nombre
         if (fotoUrl) {
             return `
                 <div class="d-flex align-items-center">
                     <img src="${escapeHtml(fotoUrl)}"
                          alt="${escapeHtml(displayName)}"
-                         class="user-icon sm clickable me-2">
-                    <span class="fw-semibold">${escapeHtml(displayName)}</span>
+                         class="user-icon sm clickable me-2"
+                         data-id="${cliente.idcliente}" data-type="cliente">
+                    <span class="fw-semibold user-link clickable"
+                    data-id="${cliente.idcliente}" data-type="cliente">${escapeHtml(displayName)}</span>
                 </div>
             `;
         }
@@ -307,10 +310,7 @@ async function renderTablePage(page = 1) {
         thSelect.innerHTML = `<input type="checkbox" id="selectAllClients" />`;
         tr.appendChild(thSelect);
 
-        // Si columnsConfig ya cargado, usamos él para crear ths iniciales
-        // pero respetamos meta ya presente en columnsConfig (y si el user previamente guardó, traerá meta)
         const initialVisible = buildVisibleColumns(columnsConfig, clientes);
-
         initialVisible.forEach(col => {
             const metaStr = col.meta ? JSON.stringify(col.meta) : '{}';
             const th = document.createElement('th');
@@ -329,9 +329,6 @@ async function renderTablePage(page = 1) {
         thead.innerHTML = '';
         thead.appendChild(tr);
 
-        // A partir del DOM construimos visibleCols (así usamos exactamente data-meta)
-        let visibleCols = getColsFromThead(tr);
-
         // Inicializar SortableJS en encabezado para reordenar y preservar meta
         if (window.Sortable) {
             if (thead._sortable) { try { thead._sortable.destroy(); } catch (e) { } }
@@ -340,12 +337,9 @@ async function renderTablePage(page = 1) {
                 handle: '.col-label',
                 onEnd: function (evt) {
                     syncColumnsConfigFromThead(tr);
-
-                    // Persistir cambios
                     guardarColumnConfig();
 
                     // Re-renderizar la página actual para que cuerpo coincida con nuevo orden
-                    // Usamos setTimeout 0 para dejar que Sortable termine su DOM work
                     setTimeout(() => {
                         renderTablePage(currentPage);
                     }, 0);
@@ -364,7 +358,7 @@ async function renderTablePage(page = 1) {
             html += `<tr data-id="${id}">`;
 
             // checkbox
-            html += `<td><input type="checkbox" class="client-checkbox" value="${cliente.idcliente || ''}"></td>`;
+            html += `<td><input type="checkbox" class="client-checkbox" value="${id || ''}" data-type="${selectedTipo}"></td>`;
 
             // columnas según visibleCols
             visibleCols.forEach(col => {
@@ -374,8 +368,8 @@ async function renderTablePage(page = 1) {
             // acciones
             html += `<td>
                         <div class="icons-row">
-                            <button class="btn btn-icon bg-light btn-edit-client" data-id="${cliente.idcliente}">${window.icons.edit}</button>
-                            <button class="btn btn-icon bg-light btn-delete-client" data-id="${cliente.idcliente}">${window.icons.trash}</button>
+                            <button class="btn btn-icon bg-light btn-edit-client" data-id="${id}" data-type="${selectedTipo}">${window.icons.edit}</button>
+                            <button class="btn btn-icon bg-light btn-delete-client" data-id="${id}" data-type="${selectedTipo}">${window.icons.trash}</button>
                         </div>
                     </td>`;
 
@@ -513,7 +507,14 @@ function openColumnSettings() {
 }
 
 function getSelectedClients() {
-    return Array.from(document.querySelectorAll('.client-checkbox:checked')).map(cb => cb.value);
+    return Array.from(document.querySelectorAll('.client-checkbox:checked')).map(cb => ({ id: cb.value, tipo: cb.dataset.type }));
+}
+
+// Vincular evento a todos los checkboxes
+function initClientCheckboxListeners() {
+    document.querySelectorAll('.client-checkbox').forEach(cb => {
+        cb.addEventListener('change', toggleFloatingButton);
+    });
 }
 
 document.addEventListener('click', function (e) {
@@ -539,17 +540,18 @@ document.addEventListener('click', function (e) {
     // editar / eliminar
     if (e.target.closest('.btn-edit-client')) {
         const id = e.target.closest('.btn-edit-client').dataset.id;
-        abrirModal({ tipo: 1, id });
+        const tipo = e.target.closest('.btn-edit-client').dataset.type;
+        abrirModal({ tipo, id });
     }
     if (e.target.closest('.btn-delete-client')) {
         const id = e.target.closest('.btn-delete-client').dataset.id;
-        eliminarRegistro(selectedTipo, id, () => fetchClientes('', '', selectedTipo));
+        const tipo = e.target.closest('.btn-delete-client').dataset.type;
+        eliminarRegistro(tipo, id, () => fetchClientes('', selectedTipo));
     }
 
     // handlers previos adaptados
     if (e.target.closest('#btnRefresh')) {
         fetchClientes();
-        selectedEstado = '';
         selectedTipo = '1';
         document.querySelectorAll('.selected-filtro').forEach(el => {
             const grupo = el.closest('.busqueda-grupo');
@@ -575,9 +577,11 @@ document.addEventListener('click', function (e) {
 
     if (e.target.closest('.list-item')) {
         const tab = e.target.closest('.list-item');
+        if (!tab.dataset.tipo) return;
+
         selectedTipo = tab.dataset.tipo || '1';
         loadTableSettings();
-        fetchClientes(filtroBuscado, selectedEstado, selectedTipo);
+        fetchClientes(filtroBuscado, selectedTipo, selectedUsuario);
     }
 
     if (e.target.closest('#btnNuevoRegistro')) {
@@ -604,7 +608,7 @@ document.addEventListener('click', function (e) {
 
     if (e.target.closest('#btnGuardarCliente')) {
         guardarRegistro(selectedTipo, () => {
-            fetchClientes('', '', selectedTipo);
+            fetchClientes('', selectedTipo, selectedUsuario);
         });
     }
 
@@ -630,6 +634,19 @@ document.addEventListener('click', function (e) {
         }
     }
 
+    if (e.target.closest("#btnCrearCampania")) {
+        const seleccionados = getSelectedClients();
+        if (seleccionados.length === 0) return;
+        modalCampania = new ModalComponent("clienteCampania", { size: "lg" });
+
+        fetch(window.baseurl + "views/components/clientes/crearCampania.php")
+            .then((res) => res.text())
+            .then((html) => {
+                modalCampania.show("Crear campaña", html);
+                modalCampania.setOption("ocultarFooter", true);
+            });
+    }
+
     if (e.target.closest(".org-item")) {
         const target = e.target.closest(".org-item");
 
@@ -642,6 +659,38 @@ document.addEventListener('click', function (e) {
         if (resultados) {
             resultados.innerHTML = "";
             resultados.style.display = "none";
+        }
+    }
+
+    if (e.target.closest(".usuario-item")) {
+        const target = e.target.closest(".usuario-item");
+        selectedUsuario = target.dataset.id;
+        api.get({
+            source: "usuarios",
+            action: "ver",
+            params: [{ name: "idusuario", value: selectedUsuario }],
+            onSuccess: (usuario) => {
+                document.getElementById("usuarioActualNombre").textContent = `${usuario.nombres} ${usuario.apellidos}`;
+                document.getElementById("usuarioActualFoto").src = usuario.foto;
+                target.closest(".resultados-busqueda").querySelectorAll(".usuario-item").forEach(el => el.classList.remove("selected"));
+                target.classList.add("selected");
+                fetchClientes(filtroBuscado, selectedTipo, selectedUsuario);
+                target.closest(".resultados-busqueda").style.display = "none";
+            }
+        });
+    }
+});
+
+document.addEventListener('change', function (e) {
+    if (e.target.closest('.client-checkbox') || e.target.closest("#selectAllClients")) {
+        const seleccionados = getSelectedClients();
+        const btnCampania = document.getElementById("floatingButton");
+        if (seleccionados.length > 0) {
+            btnCampania.classList.add("show");
+            btnCampania.classList.remove("hide");
+        } else {
+            btnCampania.classList.remove("show");
+            btnCampania.classList.add("hide");
         }
     }
 });
@@ -700,7 +749,7 @@ document.addEventListener('input', function (e) {
     if (e.target.closest('#inputBuscarClientes')) {
         const input = e.target.closest('#inputBuscarClientes');
         filtroBuscado = input.value.trim();
-        fetchClientes(filtroBuscado, selectedEstado, selectedTipo);
+        fetchClientes(filtroBuscado, selectedTipo);
     }
 
     // cambio de registros por página
@@ -712,5 +761,6 @@ document.addEventListener('input', function (e) {
 
 document.addEventListener('DOMContentLoaded', async function () {
     await loadTableSettings();
+    initClientCheckboxListeners();
     fetchClientes();
 });

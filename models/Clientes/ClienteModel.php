@@ -18,7 +18,7 @@ class ClienteModel
         $this->registroCambioModel = $registroCambioModel  ?: new RegistroCambioModel($this->pdo);
     }
 
-    public function obtenerClientes($idestado = null)
+    public function obtenerClientes($idusuario = null)
     {
         try {
             $sql = '';
@@ -39,9 +39,9 @@ class ClienteModel
 
             $params = [];
 
-            if (!empty($idestado)) {
-                $sql .= " WHERE c.idestado = ?";
-                $params[] = $idestado;
+            if (!empty($idusuario)) {
+                $sql .= " WHERE c.idusuario = ?";
+                $params[] = $idusuario;
             }
 
             $stmt = $this->pdo->prepare($sql);
@@ -61,7 +61,7 @@ class ClienteModel
         }
     }
 
-    public function buscarClientes($filtro, $idestado = null)
+    public function buscarClientes($filtro, $idusuario = null)
     {
         try {
             $sql = "SELECT c.*,
@@ -81,9 +81,9 @@ class ClienteModel
 
             $params = ["%$filtro%", "%$filtro%", "%$filtro%"];
 
-            if (!empty($idestado)) {
-                $sql .= " AND c.idestado = ?";
-                $params[] = $idestado;
+            if (!empty($idusuario)) {
+                $sql .= " AND c.idusuario = ?";
+                $params[] = $idusuario;
             }
 
             $stmt = $this->pdo->prepare($sql);
@@ -237,10 +237,10 @@ class ClienteModel
         }
     }
 
-    public function buscarClientesYOrganizaciones($filtro, $idestado = null)
+    public function buscarClientesYOrganizaciones($filtro, $idusuario = null)
     {
         try {
-            $clientes = $this->buscarClientes($filtro, $idestado);
+            $clientes = $this->buscarClientes($filtro, $idusuario);
             $organizaciones = $this->buscarOrganizaciones($filtro);
             $resultados = array_merge($clientes, $organizaciones);
 
@@ -681,61 +681,6 @@ class ClienteModel
         try {
             $this->pdo->beginTransaction();
 
-            // --- 1) Obtener la foto actual
-            $stmtFoto = $this->pdo->prepare("SELECT foto FROM clientes WHERE idcliente = :id");
-            $stmtFoto->execute(['id' => $id]);
-            $fotoActual = $stmtFoto->fetchColumn();
-
-            $clienteAntes = $this->obtenerCliente($id);
-
-            // --- 2) Actualizar datos del cliente
-            $sql = "UPDATE clientes 
-                SET nombres=?, apellidos=?, num_doc=?, telefono=?, correo=?, idusuario=?, idestado=?, foto=?, extra=?
-                WHERE idcliente=?";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([
-                $data['nombres'],
-                $data['apellidos'],
-                $data['num_doc'] ?? null,
-                $data['telefono'] ?? null,
-                $data['correo'] ?? null,
-                $data['idusuario'] ?? null,
-                $data['idestado'] ?? null,
-                $data['foto'] ?? $fotoActual ?? "assets/img/usuariodefault.png",
-                $data['extra'] ?? null,
-                $id
-            ]);
-
-            // --- 3) Si viene una empresa en los datos, actualizar la relación
-            if (!empty($data['idempresa'])) {
-                $this->asignarEmpresaACliente($id, $data['idempresa']);
-            }
-
-            // --- 4) Registrar cambios automáticos
-            if (!empty($_SESSION['idusuario'])) {
-                $this->registroCambioModel->registrarCambiosAutomaticos(
-                    $_SESSION['idusuario'],
-                    $id,
-                    'cliente',
-                    'actualizacion',
-                    $clienteAntes,
-                    $data
-                );
-            }
-
-            $this->pdo->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-            throw new Exception("Error al actualizar cliente: " . $e->getMessage());
-        }
-    }
-
-    public function editarCliente($id, $data)
-    {
-        try {
-            $this->pdo->beginTransaction();
-
             // --- 1) Obtener cliente antes (para auditoría)
             $clienteAntes = $this->obtenerCliente($id);
 
@@ -755,14 +700,13 @@ class ClienteModel
                     continue;
                 }
 
-                // control especial para foto
                 if ($campo === "foto") {
                     $campos[] = "foto = :foto";
                     $params[':foto'] = $valor ?? $clienteAntes['foto'] ?? "assets/img/usuariodefault.png";
                     $dataValidos[$campo] = $params[':foto'];
-                } elseif (!in_array($campo, ["id", "idempresa", "idcliente"])) {
-                    $campos[] = "$campo = :$campo";
-                    $params[":$campo"] = $valor;
+                } elseif (!in_array($campo, ["id", "idempresa", "idcliente", "empresa"])) {
+                    $campos[] = "$campo = :{$campo}";
+                    $params[":{$campo}"] = $valor;
                     $dataValidos[$campo] = $valor;
                 }
             }

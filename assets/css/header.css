@@ -1,3 +1,7 @@
+.header-global {
+  border-bottom: 1px solid var(--default-border-color);
+}
+
 .buscador-global {
   border-radius: 2.5rem !important;
   width: 380px !important;

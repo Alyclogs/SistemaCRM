@@ -3,7 +3,7 @@ import { abrirModal, modalAjustes } from "./index.js";
 
 export function fetchCamposExtra() {
     api.get({
-        source: "ajustes",
+        source: "campos",
         action: "listar_campos_extra",
         onSuccess: (campos) => {
             const camposContainer = document.getElementById("camposList");

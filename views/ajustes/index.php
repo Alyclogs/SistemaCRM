@@ -1,9 +1,11 @@
 <link rel="stylesheet" href="./assets/css/ajustes.css">
 
-<div class="h-100 d-flex flex-column p-4">
-    <h5 class="page-title p-4 pb-0 ms-3">Ajustes</h5>
+<div class="page-body">
     <div class="list-view" data-source="ajustes">
-        <div class="p-4 list-items" data-source="ajustes">
+        <div class="list-items" data-source="ajustes" style="width: 15%;">
+            <div class="page-header mb-3">
+                <h5 class="page-title">Ajustes</h5>
+            </div>
             <div class="list-item list-item-default selected" data-target="rolesSection">
                 <?php include('./assets/svg/profile-2user.svg'); ?>
                 <h6>Roles y permisos</h6>
@@ -34,7 +36,7 @@
                 </div>
             </div>
         </div>
-        <div class="h-100 p-4 pt-0 list-sections">
+        <div class="h-100 list-sections" style="width: 85%;">
             <div id="rolesSection" class="section-item show h-100">
                 <div class="mb-4">
                     <div class="page-header mb-1">

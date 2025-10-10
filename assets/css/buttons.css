@@ -63,6 +63,20 @@ button.btn-symmetrical-sm {
   color: var(--default-text-color);
 }
 
+.btn svg {
+  height: 18px;
+  display: inline-flex;
+}
+
+.btn.btn-lg span {
+  font-size: 18px;
+}
+
+.btn.btn-lg svg {
+  width: 24px;
+  height: 24px;
+}
+
 .btn.btn-disabled {
   opacity: 0.8;
 }
@@ -86,12 +100,9 @@ button.btn-symmetrical-sm {
   color: #fff !important;
 }
 
-.btn-default svg,
 .btn-default path {
   stroke: #fff;
   color: #fff;
-  max-height: 18px;
-  display: inline-flex;
 }
 
 .btn-secondary {
@@ -106,12 +117,9 @@ button.btn-symmetrical-sm {
   color: #fff !important;
 }
 
-.btn-secondary svg,
 .btn-secondary path {
   stroke: #fff;
   color: #fff;
-  max-height: 18px;
-  display: inline-flex;
 }
 
 .btn-secondary.border {
@@ -130,12 +138,9 @@ button.btn-symmetrical-sm {
   color: #fff !important;
 }
 
-.btn-cancelar svg,
 .btn-cancelar path {
   stroke: #fff;
   color: #fff;
-  max-height: 18px;
-  display: inline-flex;
 }
 
 .btn-outline {
@@ -155,8 +160,6 @@ button.btn-symmetrical-sm {
 .btn-outline svg path {
   stroke: var(--default-text-color);
   color: var(--default-text-color);
-  max-height: 18px;
-  display: inline-flex;
 }
 
 .btn-default span,

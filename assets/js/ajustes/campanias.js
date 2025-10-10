@@ -264,7 +264,10 @@ export function previsualizarPlantilla(idplantilla) {
 
     fetch(window.baseurl + "views/components/ajustes/viewPlantilla.php?id=" + idplantilla)
         .then(res => res.text())
-        .then(html => modalPrevisualizar.show("Previsualizar plantilla", html));
+        .then(html => {
+            modalPrevisualizar.show("Previsualizar plantilla", html);
+            modalCampania.setOption("ocultarFooter", true);
+        });
 }
 
 export function updateStep() {

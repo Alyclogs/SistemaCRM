@@ -6,7 +6,7 @@ $usuarioModel = new UsuarioModel($pdo);
 $usuarios = $usuarioModel->obtenerUsuarios();
 ?>
 
-<div class="page-body">
+<div class="page-body p-4 mx-2">
     <div class="animate__animated animate__fadeInUp page-header">
         <div class="d-flex align-items-center gap-3">
             <h5 class="page-title">Calendario</h5>
