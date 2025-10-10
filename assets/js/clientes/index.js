@@ -25,7 +25,7 @@ async function loadTableSettings() {
         api.get({
             source: "diccionario",
             action: "listar",
-            params: [{ name: "tabla", value: "clientes" }],
+            params: [{ name: "tabla", value: selectedTipo == 1 ? "clientes" : "empresas" }],
             onSuccess: (cols) => {
                 if (Array.isArray(cols) && cols.length) {
                     columnsConfig = cols.map(c => ({
@@ -402,7 +402,7 @@ function guardarColumnConfig() {
         meta: c.meta || null
     }));
     const form = new FormData();
-    form.append('tabla', 'clientes');
+    form.append('tabla', selectedTipo == 1 ? 'clientes' : 'empresas');
     form.append('columnas', JSON.stringify(payload));
 
     api.post({
@@ -573,28 +573,10 @@ document.addEventListener('click', function (e) {
         if (tiposClientes) tiposClientes.classList.add('selected');
     }
 
-    if (e.target.closest('.filtro-item')) {
-        const tab = e.target.closest('.filtro-item');
-        const grupoBusqueda = tab.closest('.busqueda-grupo');
-        const btnFiltro = grupoBusqueda.querySelector('.boton-filtro');
-        const selectedFiltro = btnFiltro ? btnFiltro.querySelector('.selected-filtro') : null;
-
-        grupoBusqueda.querySelectorAll('.filtro-item').forEach(el => el.classList.remove('selected'));
-        tab.classList.add('selected');
-
-        if (grupoBusqueda.dataset.type === "Estado") {
-            selectedEstado = tab.dataset.id || '';
-            updateSelectedTipo('1');
-        }
-        if (grupoBusqueda.dataset.type === "Tipo") {
-            updateSelectedTipo(tab.dataset.id || '1');
-        }
-        if (selectedFiltro) selectedFiltro.textContent = tab.dataset?.value || grupoBusqueda.dataset.tipo;
-        if (btnFiltro) btnFiltro.classList.add('selected');
-
-        const resultados = grupoBusqueda.querySelector('.resultados-busqueda');
-        if (resultados) resultados.style.display = "none";
-
+    if (e.target.closest('.list-item')) {
+        const tab = e.target.closest('.list-item');
+        selectedTipo = tab.dataset.tipo || '1';
+        loadTableSettings();
         fetchClientes(filtroBuscado, selectedEstado, selectedTipo);
     }
 
