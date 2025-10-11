@@ -43,24 +43,21 @@ try {
                 break;
 
             case 'actualizar':
-                $idd = $_POST['iddiccionario'] ?? null;
-                if (!$idd) throw new Exception("iddiccionario requerido");
+                $idd = $_POST['idcampo'] ?? null;
+                if (!$idd) throw new Exception("ID de campo requerido");
 
                 $data = $_POST;
                 unset($data['action']);
-                $res = $dicModel->actualizar($idd, $data);
+                $res = $dicModel->actualizarCampo($idd, $data);
                 $response = ["success" => (bool)$res, "message" => $res ? "Actualizado" : "No se actualizó"];
                 break;
 
             case 'eliminar':
-                if (!empty($_POST['iddiccionario'])) {
-                    $res = $dicModel->eliminarPorId($_POST['iddiccionario']);
-                    $response = ["success" => (bool)$res, "message" => $res ? "Eliminado" : "No eliminado"];
-                } elseif (!empty($_POST['tabla'])) {
-                    $res = $dicModel->eliminarPorTabla($_POST['tabla']);
+                if (!empty($_POST['tabla']) && !empty($_POST['campo'])) {
+                    $res = $dicModel->eliminarPorTabla($_POST['tabla'], $_POST['campo'], $_POST['origen'] ?? null);
                     $response = ["success" => (bool)$res, "message" => $res ? "Configuraciones eliminadas" : "No eliminado"];
                 } else {
-                    throw new Exception("iddiccionario o tabla requerido para eliminar");
+                    throw new Exception("tabla y campo requeridos para eliminar");
                 }
                 break;
 

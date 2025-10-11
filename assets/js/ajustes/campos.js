@@ -60,11 +60,11 @@ export function guardarCampo() {
 
 document.addEventListener("click", function (e) {
     if (e.target.closest("#btnNuevoCampo")) {
-        abrirModal("campo", "Nuevo campo personalizado", "md");
+        abrirModal("campo", "Nuevo campo personalizado", null);
     }
 
     if (e.target.closest("#btnEditarCampo")) {
-        abrirModal("campo", "Editar campo personalizado", "md", e.target.closest("button").dataset.id);
+        abrirModal("campo", "Editar campo personalizado", e.target.closest("button").dataset.id);
     }
 
     if (e.target.closest("#btnEliminarCampo")) {

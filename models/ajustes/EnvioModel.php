@@ -61,9 +61,7 @@ class EnvioModel
                     continue; // ignorar campos inexistentes
                 }
 
-                if ($campo === "idemisor") {
-                    continue; // excluir PK
-                }
+                if ($campo === "idemisor") continue; // excluir PK
 
                 // Normalizar valores opcionales
                 if (in_array($campo, ["descripcion", "correo", "telefono"])) {
@@ -84,9 +82,9 @@ class EnvioModel
 
             $idemisor = $this->pdo->lastInsertId();
 
-            // --- Auditoría
+            // 🧾 Registrar cambio
             $this->registroCambioModel->registrarCambio(
-                $data['idusuario'] ?? $_SESSION['idusuario'],
+                $data['idusuario'] ?? $_SESSION['idusuario'] ?? null,
                 $idemisor,
                 'emisor',
                 'creacion',
@@ -461,33 +459,57 @@ class EnvioModel
 
             // 2️⃣ Activar campaña
             $sql = "UPDATE campanias
-                SET estado = 'activa',
-                    fecha_inicio = NOW()
-                WHERE idcampania = ?";
+            SET estado = 'activa',
+                fecha_inicio = NOW()
+            WHERE idcampania = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$idcampania]);
 
-            // 3️⃣ Actualizar programaciones con fecha_envio y activar estado
+            // 3️⃣ Preparar sentencia para actualizar programaciones
+            $sqlProg = "UPDATE programacion_envios
+                    SET estado = 'activa',
+                        fecha_envio = :fecha_envio,
+                        hora_envio = :hora_envio
+                    WHERE idenvio = :idenvio AND idcampania = :idcampania";
+            $stmtProg = $this->pdo->prepare($sqlProg);
+
+            // 4️⃣ Preparar sentencia para insertar receptores
+            $sqlInsertReceptor = "INSERT INTO envios_receptores (idenvio, idreceptor, estado)
+                              VALUES (:idenvio, :idreceptor, 'activa')";
+            $stmtInsertReceptor = $this->pdo->prepare($sqlInsertReceptor);
+
+            // 5️⃣ Recorremos programaciones
             if (!empty($programaciones) && is_array($programaciones)) {
-                $sqlProg = "UPDATE programacion_envios
-                        SET estado = 'activa',
-                            fecha_envio = :fecha_envio,
-                            hora_envio = :hora_envio
-                        WHERE idenvio = :idenvio AND idcampania = :idcampania";
-                $stmtProg = $this->pdo->prepare($sqlProg);
-
                 foreach ($programaciones as $p) {
-                    if (empty($p['idenvio']) || empty($p['fecha_envio'])) {
-                        // Si faltan datos esenciales, omitir esa programación
-                        continue;
-                    }
+                    if (empty($p['idenvio']) || empty($p['fecha_envio'])) continue;
 
+                    // Actualizar programación
                     $stmtProg->execute([
                         ':fecha_envio' => $p['fecha_envio'],
-                        ':hora_envio' => $p['hora_envio'] ?? null,
-                        ':idenvio' => $p['idenvio'],
-                        ':idcampania' => $idcampania
+                        ':hora_envio'  => $p['hora_envio'] ?? null,
+                        ':idenvio'     => $p['idenvio'],
+                        ':idcampania'  => $idcampania
                     ]);
+
+                    // Registrar clientes (si existen)
+                    if (!empty($p['clientes']) && is_array($p['clientes'])) {
+                        foreach ($p['clientes'] as $idCliente) {
+                            if (empty($idCliente)) continue;
+
+                            // Verificar si ya existe relación
+                            $checkSql = "SELECT COUNT(*) FROM envios_receptores WHERE idenvio = ? AND idreceptor = ?";
+                            $stmtCheck = $this->pdo->prepare($checkSql);
+                            $stmtCheck->execute([$p['idenvio'], $idCliente]);
+                            $existe = $stmtCheck->fetchColumn();
+
+                            if (!$existe) {
+                                $stmtInsertReceptor->execute([
+                                    ':idenvio'    => $p['idenvio'],
+                                    ':idreceptor' => $idCliente
+                                ]);
+                            }
+                        }
+                    }
                 }
             } else {
                 // Si no se enviaron programaciones desde el frontend, activar todas sin modificar fechas
@@ -498,7 +520,7 @@ class EnvioModel
                 $stmtProg->execute([$idcampania]);
             }
 
-            // 4️⃣ Registrar cambios
+            // 6️⃣ Registrar cambios
             $usuario = $idusuario ?? ($_SESSION['idusuario'] ?? null);
             if ($usuario) {
                 // Cambio de estado de la campaña
@@ -522,7 +544,7 @@ class EnvioModel
                     'estado',
                     'creada',
                     'activa',
-                    "Programaciones de campaña '{$campaniaAntes['nombre']}' activadas con fechas asignadas"
+                    "Programaciones de campaña '{$campaniaAntes['nombre']}' activadas"
                 );
             }
 
@@ -628,10 +650,7 @@ class EnvioModel
     public function obtenerProgramacionesPendientes()
     {
         $sql = "SELECT 
-                pe.idenvio,
-                pe.idcampania,
-                pe.idplantilla,
-                pe.hora_envio,
+                pe.*,
                 c.fecha_inicio,
                 c.estado,
                 c.nombre AS nombre_campania
@@ -653,10 +672,7 @@ class EnvioModel
     public function obtenerProgramacion($id)
     {
         $sql = "SELECT 
-                pe.idenvio,
-                pe.idcampania,
-                pe.idplantilla,
-                pe.hora_envio,
+                pe.*,
                 c.fecha_inicio,
                 c.estado,
                 c.nombre AS nombre_campania
@@ -753,7 +769,7 @@ class EnvioModel
 
     public function marcarProgramacionEnviada($idenvio, $idusuario = null)
     {
-        $sql = "UPDATE programacion_envios SET estado = 'enviada', fecha_envio_real = NOW() WHERE idenvio = ?";
+        $sql = "UPDATE programacion_envios SET estado = 'enviada', fecha_envio = NOW() WHERE idenvio = ?";
         $stmt = $this->pdo->prepare($sql);
         $res = $stmt->execute([$idenvio]);
 
@@ -774,7 +790,7 @@ class EnvioModel
 
     public function marcarProgramacionError($idenvio, $info = null, $idusuario = null)
     {
-        $sql = "UPDATE programacion_envios SET estado = 'error' WHERE idenvio = ?";
+        $sql = "UPDATE programacion_envios SET estado = 'error', fecha_envio = NOW() WHERE idenvio = ?";
         $stmt = $this->pdo->prepare($sql);
         $res = $stmt->execute([$idenvio]);
 

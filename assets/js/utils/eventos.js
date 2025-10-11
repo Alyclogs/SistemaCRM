@@ -23,34 +23,11 @@ async function verificarEnvios() {
 
             // Procesar campañas activas
             for (const [idcampania, programacionesCampania] of Object.entries(campanias)) {
-                const campania = programacionesCampania[0];
-                const fechaInicioCamp = new Date(campania.fecha_inicio);
-                const modalidad = campania.modalidad_envio || "dias_especificos";
-
-                // día de semana base (0=lunes ... 6=domingo)
-                const diaSemanaInicio = (fechaInicioCamp.getDay() + 6) % 7;
-
                 programacionesCampania.sort((a, b) => a.idenvio - b.idenvio);
 
                 for (let i = 0; i < programacionesCampania.length; i++) {
                     const prog = programacionesCampania[i];
-
-                    let fechaEnvio = new Date(fechaInicioCamp);
-
-                    if (i > 0) {
-                        if (modalidad === "dias_especificos") {
-                            const dias = parseInt(prog.dias_despues || 0, 10);
-                            fechaEnvio.setDate(fechaInicioCamp.getDate() + dias);
-                        } else if (modalidad === "dias_semana") {
-                            const diaSemanaProg = parseInt(prog.dia_semana ?? diaSemanaInicio, 10);
-                            const diferenciaDias = (diaSemanaProg - diaSemanaInicio + 7) % 7;
-                            fechaEnvio.setDate(fechaInicioCamp.getDate() + diferenciaDias);
-                        }
-                    }
-
-                    // Agregar hora
-                    const [hora, minuto, segundo] = (prog.hora_envio || "08:00:00").split(":");
-                    fechaEnvio.setHours(+hora, +minuto, +segundo || 0);
+                    let fechaEnvio = new Date(`${prog.fecha_envio}T${prog.hora_envio}`);
 
                     // Si ya debería haberse enviado
                     if (fechaEnvio <= ahora) {
@@ -62,7 +39,7 @@ async function verificarEnvios() {
 
                         await api.post({
                             source: "campanias",
-                            action: "enviar",
+                            action: "enviarProgramacion",
                             data: formEnvio,
                             onSuccess: () => console.log(`✅ Envío #${prog.idenvio} marcado como 'enviada'`),
                             onError: (err) => console.error(`❌ Error al actualizar envío #${prog.idenvio}`, err)

@@ -52,7 +52,7 @@ async function apiFetch(url, options = {}, responseType = "json") {
     } catch (err) {
         console.error("Error en fetch:", err.message, options?.body);
         mostrarToast({
-            message: "Ocurrió un error en la solicitud. Inténtalo de nuevo",
+            message: err.message ?? "Ocurrió un error en la solicitud. Inténtalo de nuevo",
             type: "danger"
         });
         throw err;

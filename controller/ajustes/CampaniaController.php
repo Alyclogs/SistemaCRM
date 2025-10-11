@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . "/../../models/ajustes/EnvioModel.php";
+require_once __DIR__ . '/../../lib/PHPMailer-master/src/Exception.php';
+require_once __DIR__ . '/../../lib/PHPMailer-master/src/PHPMailer.php';
+require_once __DIR__ . '/../../lib/PHPMailer-master/src/SMTP.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -113,10 +116,6 @@ try {
 
             case 'enviarProgramacion':
                 try {
-                    require_once __DIR__ . '/../../lib/PHPMailer/src/Exception.php';
-                    require_once __DIR__ . '/../../lib/PHPMailer/src/PHPMailer.php';
-                    require_once __DIR__ . '/../../lib/PHPMailer/src/SMTP.php';
-
                     $idenvio = $_POST['idenvio'] ?? null;
                     if (!$idenvio) throw new Exception("ID de envío requerido");
 
@@ -134,7 +133,7 @@ try {
                     $emisor = $envioModel->obtenerEmisor($prog['idemisor']);
 
                     // Si no hay datos de emisor suficientes, saltar (o usar método de envío por defecto)
-                    if (!$emisor || empty($emisor['email'])) {
+                    if (!$emisor || empty($emisor['correo'])) {
                         $itemResult['fallos'][] = "Emisor no disponible o sin email para idenvio {$idenvio}";
                         $summary[] = $itemResult;
                     } else {
@@ -142,22 +141,18 @@ try {
                         $mail = new PHPMailer(true);
                         try {
                             // Configuración SMTP si existe
-                            if (!empty($emisor['smtp_host'])) {
+                            if (!empty($emisor['smtp_host']) && !empty($emisor['smtp_pass'])) {
                                 $mail->isSMTP();
                                 $mail->Host = $emisor['smtp_host'];
-                                $mail->SMTPAuth = !empty($emisor['smtp_user']);
-                                if (!empty($emisor['smtp_user'])) {
-                                    $mail->Username = $emisor['smtp_user'];
-                                    $mail->Password = $emisor['smtp_pass'] ?? '';
-                                }
+                                $mail->SMTPAuth = true;
+                                $mail->Username = $emisor['smtp_user'];
+                                $mail->Password = $emisor['smtp_pass'];
+
                                 // puerto y secure
-                                $mail->Port = !empty($emisor['smtp_port']) ? (int)$emisor['smtp_port'] : 587;
-                                $secure = $emisor['smtp_secure'] ?? null;
-                                if ($secure === 'ssl') {
-                                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-                                } elseif ($secure === 'tls' || $secure === 'STARTTLS') {
-                                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                                }
+                                $mail->Port = 465;
+                                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                            } else {
+                                throw new Exception("Emisor no tiene usuario o contraseña configurados.");
                             }
 
                             // From
@@ -218,14 +213,14 @@ try {
                                         'nombre' => $nombreTo
                                     ];
 
-                                    $envioModel->actualizarEnvioPorReceptor($idenvio, $idreceptor, "enviado");
+                                    $envioModel->actualizarEnvioPorReceptor($idenvio, $r['idcliente'], "enviado");
                                 } catch (Exception $eReceptor) {
                                     $itemResult['fallos'][] = [
                                         'receptor' => $emailTo,
-                                        'error' => $mail->ErrorInfo ?: $eReceptor->getMessage()
+                                        'error' => $mail->ErrorInfo . " Emisor: " . json_encode($emisor) ?: $eReceptor->getMessage()
                                     ];
 
-                                    $envioModel->actualizarEnvioPorReceptor($idenvio, $idreceptor, "error");
+                                    $envioModel->actualizarEnvioPorReceptor($idenvio, $r['idcliente'], "error");
                                 }
                             }
 

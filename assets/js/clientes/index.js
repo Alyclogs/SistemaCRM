@@ -12,14 +12,14 @@ let selectedUsuario = document.getElementById('idUsuario').value;
 export let modalCampania = null;
 
 const defaultColumns = [
-    { campo: "foto", nombre: "Foto", visible: 1, orden: 0 },
-    { campo: "nombres", nombre: "Nombres", visible: 1, orden: 1 },
-    { campo: "apellidos", nombre: "Apellidos", visible: 1, orden: 2 },
-    { campo: "empresa_nombre", nombre: "Empresa", visible: 1, orden: 3 },
-    { campo: "num_doc", nombre: "N° Documento", visible: 1, orden: 4 },
-    { campo: "telefono", nombre: "Teléfono", visible: 1, orden: 5 },
-    { campo: "correo", nombre: "Correo electrónico", visible: 1, orden: 6 },
-    { campo: "idestado", nombre: "Estado", visible: 1, orden: 7 }
+    { campo: "foto", nombre: "Foto", visible: 1, orden: 0, origen: "normal" },
+    { campo: "nombres", nombre: "Nombres", visible: 1, orden: 1, origen: "normal" },
+    { campo: "apellidos", nombre: "Apellidos", visible: 1, orden: 2, origen: "normal" },
+    { campo: "empresa_nombre", nombre: "Empresa", visible: 1, orden: 3, origen: "normal" },
+    { campo: "num_doc", nombre: "N° Documento", visible: 1, orden: 4, origen: "normal" },
+    { campo: "telefono", nombre: "Teléfono", visible: 1, orden: 5, origen: "normal" },
+    { campo: "correo", nombre: "Correo electrónico", visible: 1, orden: 6, origen: "normal" },
+    { campo: "idestado", nombre: "Estado", visible: 1, orden: 7, origen: "normal" }
 ];
 
 async function loadTableSettings() {
@@ -29,15 +29,18 @@ async function loadTableSettings() {
             action: "listar",
             params: [{ name: "tabla", value: selectedTipo == 1 ? "clientes" : "empresas" }],
             onSuccess: (cols) => {
+                console.log("Columnas obtenidas: ", cols);
+
                 if (Array.isArray(cols) && cols.length) {
                     columnsConfig = cols.map(c => ({
                         campo: c.campo,
-                        nombre: c.nombre || c.label || c.campo,
+                        nombre: c.nombre || c.campo,
                         descripcion: c.descripcion || '',
                         tipo_dato: c.tipo_dato || 'texto',
                         visible: (c.visible == 1 || c.visible === true) ? 1 : 0,
                         orden: parseInt(c.orden ?? 0, 10),
                         contexto: c.contexto || 'general',
+                        origen: c.origen,
                         meta: c.meta ? (typeof c.meta === 'string' ? JSON.parse(c.meta) : c.meta) : null
                     })).sort((a, b) => a.orden - b.orden);
                 } else {
@@ -49,6 +52,7 @@ async function loadTableSettings() {
                         visible: c.visible,
                         orden: c.orden,
                         contexto: 'general',
+                        origen: "normal",
                         meta: null
                     }));
                 }
@@ -64,6 +68,7 @@ async function loadTableSettings() {
                     visible: c.visible,
                     orden: c.orden,
                     contexto: 'general',
+                    origen: "normal",
                     meta: null
                 }));
                 resolve();
@@ -173,6 +178,7 @@ function getColsFromThead(tr) {
     const ths = Array.from(tr.children).slice(1, -1); // ignorar checkbox y acciones
     return ths.map((th, idx) => {
         const campo = th.dataset.campo;
+        const origen = th.dataset.origen;
         const labelEl = th.querySelector('.col-label');
         const nombre = labelEl ? labelEl.textContent.trim() : (th.textContent || campo).trim();
         let meta = {};
@@ -184,7 +190,7 @@ function getColsFromThead(tr) {
         } catch (e) {
             meta = {};
         }
-        return { campo, nombre, meta, orden: idx };
+        return { campo, nombre, meta, orden: idx, origen };
     });
 }
 
@@ -300,52 +306,49 @@ async function renderTablePage(page = 1) {
 
     // Cabecera: armar <thead>
     const thead = table.querySelector('thead');
-    if (!thead) {
-        console.warn("La tabla debe tener <thead> en el HTML");
-    } else {
-        const tr = document.createElement('tr');
+    const tr = document.createElement('tr');
 
-        // checkbox seleccionar todo
-        const thSelect = document.createElement('th');
-        thSelect.innerHTML = `<input type="checkbox" id="selectAllClients" />`;
-        tr.appendChild(thSelect);
+    // checkbox seleccionar todo
+    const thSelect = document.createElement('th');
+    thSelect.innerHTML = `<input type="checkbox" id="selectAllClients" />`;
+    tr.appendChild(thSelect);
 
-        const initialVisible = buildVisibleColumns(columnsConfig, clientes);
-        initialVisible.forEach(col => {
-            const metaStr = col.meta ? JSON.stringify(col.meta) : '{}';
-            const th = document.createElement('th');
-            th.dataset.campo = col.campo;
-            th.dataset.meta = metaStr;
-            th.style.cursor = 'move';
-            th.innerHTML = `<span class="col-label">${col.nombre || col.campo}</span>`;
-            tr.appendChild(th);
+    const initialVisible = buildVisibleColumns(columnsConfig, clientes);
+    initialVisible.forEach(col => {
+        const metaStr = col.meta ? JSON.stringify(col.meta) : '{}';
+        const th = document.createElement('th');
+        th.dataset.campo = col.campo;
+        th.dataset.origen = col.origen;
+        th.dataset.meta = metaStr;
+        th.style.cursor = 'move';
+        th.innerHTML = `<span class="col-label">${col.nombre || col.campo}</span>`;
+        tr.appendChild(th);
+    });
+
+    // columna acciones
+    const thAcc = document.createElement('th');
+    thAcc.textContent = "Acciones";
+    tr.appendChild(thAcc);
+
+    thead.innerHTML = '';
+    thead.appendChild(tr);
+
+    // Inicializar SortableJS en encabezado para reordenar y preservar meta
+    if (window.Sortable) {
+        if (thead._sortable) { try { thead._sortable.destroy(); } catch (e) { } }
+        thead._sortable = Sortable.create(tr, {
+            animation: 150,
+            handle: '.col-label',
+            onEnd: function (evt) {
+                syncColumnsConfigFromThead(tr);
+                guardarColumnConfig();
+
+                // Re-renderizar la página actual para que cuerpo coincida con nuevo orden
+                setTimeout(() => {
+                    renderTablePage(currentPage);
+                }, 0);
+            }
         });
-
-        // columna acciones
-        const thAcc = document.createElement('th');
-        thAcc.textContent = "Acciones";
-        tr.appendChild(thAcc);
-
-        thead.innerHTML = '';
-        thead.appendChild(tr);
-
-        // Inicializar SortableJS en encabezado para reordenar y preservar meta
-        if (window.Sortable) {
-            if (thead._sortable) { try { thead._sortable.destroy(); } catch (e) { } }
-            thead._sortable = Sortable.create(tr, {
-                animation: 150,
-                handle: '.col-label',
-                onEnd: function (evt) {
-                    syncColumnsConfigFromThead(tr);
-                    guardarColumnConfig();
-
-                    // Re-renderizar la página actual para que cuerpo coincida con nuevo orden
-                    setTimeout(() => {
-                        renderTablePage(currentPage);
-                    }, 0);
-                }
-            });
-        }
     }
 
     // Filas
@@ -393,6 +396,7 @@ function guardarColumnConfig() {
         visible: c.visible ? 1 : 0,
         orden: c.orden ?? 0,
         contexto: c.contexto || 'general',
+        origen: c.origen || 'normal',
         meta: c.meta || null
     }));
     const form = new FormData();
@@ -506,7 +510,7 @@ function openColumnSettings() {
     };
 }
 
-function getSelectedClients() {
+export function getSelectedClients() {
     return Array.from(document.querySelectorAll('.client-checkbox:checked')).map(cb => ({ id: cb.value, tipo: cb.dataset.type }));
 }
 
@@ -517,7 +521,7 @@ function initClientCheckboxListeners() {
     });
 }
 
-document.addEventListener('click', function (e) {
+document.addEventListener('click', async function (e) {
     // abrir modal de ajustes de columnas
     if (e.target.closest('#btnTableSettings')) {
         openColumnSettings();
@@ -580,7 +584,7 @@ document.addEventListener('click', function (e) {
         if (!tab.dataset.tipo) return;
 
         selectedTipo = tab.dataset.tipo || '1';
-        loadTableSettings();
+        await loadTableSettings();
         fetchClientes(filtroBuscado, selectedTipo, selectedUsuario);
     }
 

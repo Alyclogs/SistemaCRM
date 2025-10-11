@@ -1,5 +1,5 @@
 import api from "../utils/api.js";
-import { modalCampania } from "./index.js";
+import { getSelectedClients, modalCampania } from "./index.js";
 
 (() => {
     const API_SOURCE = "campanias";
@@ -270,7 +270,8 @@ import { modalCampania } from "./index.js";
                 idenvio: p.idenvio,
                 idplantilla: p.idplantilla,
                 fecha_envio: formatDateLocal(p.fecha_envio) + (p.hora_envio ? ' ' + formatTime(p.hora_envio) + ':00' : ' 00:00:00'),
-                hora_envio: p.hora_envio
+                hora_envio: p.hora_envio,
+                clientes: getSelectedClients().map(c => c.id)
             })),
             fecha_inicio: startVal
         };

@@ -328,6 +328,11 @@ class AjustesModel
 
             // 1. Verificar en metadata
             $existente = $this->obtenerCampoExtraPorTabla($tabla, $columna);
+            $columnasExistentes = $this->registroCambioModel->obtenerCamposTabla($tabla);
+
+            if (in_array($columna, $columnasExistentes)) {
+                throw new Exception("El campo ya existe en la tabla " . $tabla);
+            }
 
             if (empty($existente)) {
                 // Insertar metadata
@@ -363,15 +368,9 @@ class AjustesModel
                 $idcampo = $campo['idcampo'];
             }
 
-            // 2. Verificar en tabla física
-            $columnasExistentes = $this->registroCambioModel->obtenerCamposTabla($tabla);
-
-            // 3. Alter table si no existe físicamente
-            if (!in_array($columna, $columnasExistentes)) {
-                $tipoSQL = $this->mapearTipoDato($data['tipo_dato'], $data['longitud']);
-                $sqlAlter = "ALTER TABLE `{$tabla}` ADD COLUMN `{$columna}` {$tipoSQL}";
-                $this->pdo->exec($sqlAlter);
-            }
+            $tipoSQL = $this->mapearTipoDato($data['tipo_dato'], $data['longitud']);
+            $sqlAlter = "ALTER TABLE `{$tabla}` ADD COLUMN `{$columna}` {$tipoSQL}";
+            $this->pdo->exec($sqlAlter);
 
             return $idcampo ?? null;
         } catch (Exception $e) {
@@ -392,30 +391,25 @@ class AjustesModel
                 throw new Exception("Campo extra no encontrado en metadata");
             }
 
-            // 2. Resolver contexto de la tabla
-            $contexto = $this->registroCambioModel->resolverContextoEntidad($data['tabla']);
-            $tablaDestino = $contexto['tabla'];
-
-            // 3. Actualizar metadata
-            $sql = "UPDATE campos_extra 
-                SET idreferencia=?, tabla=?, campo=?, nombre=?, valor_inicial=?, tipo_dato=?, longitud=? 
-                WHERE idcampo=?";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([
-                !empty($data['idreferencia']) ? $data['idreferencia'] : null,
-                $data['tabla'],
-                $data['campo'],
-                $data['nombre'],
-                $data['valor_inicial'] ?? null,
-                $data['tipo_dato'] ?? 'texto',
-                !empty($data['longitud']) ? $data['longitud'] : null,
-                $id
-            ]);
-
-            // 4. Verificar si la columna existe físicamente
+            $tablaDestino = $data['tabla'];
             $columnasExistentes = $this->registroCambioModel->obtenerCamposTabla($tablaDestino);
 
             if (in_array($campoAnterior['campo'], $columnasExistentes)) {
+                $sql = "UPDATE campos_extra 
+                SET idreferencia=?, tabla=?, campo=?, nombre=?, valor_inicial=?, tipo_dato=?, longitud=? 
+                WHERE idcampo=?";
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute([
+                    !empty($data['idreferencia']) ? $data['idreferencia'] : null,
+                    $data['tabla'],
+                    $data['campo'],
+                    $data['nombre'],
+                    $data['valor_inicial'] ?? null,
+                    $data['tipo_dato'] ?? 'texto',
+                    !empty($data['longitud']) ? $data['longitud'] : null,
+                    $id
+                ]);
+
                 // Alterar si cambió el nombre o tipo
                 if ($campoAnterior['campo'] !== $data['campo'] || $campoAnterior['tipo_dato'] !== $data['tipo_dato']) {
                     $tipoSQL = $this->mapearTipoDato($data['tipo_dato'], $data['longitud']);

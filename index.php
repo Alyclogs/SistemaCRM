@@ -46,9 +46,9 @@ if (!file_exists($ruta)) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="./assets/css/general.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="module" src="./assets/js/app.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
-    <script type="module" src="./assets/js/app.min.js"></script>
     <title>Sistema CRM</title>
 </head>
 
@@ -73,12 +73,12 @@ if (!file_exists($ruta)) {
     <?php endif; ?>
 </body>
 <script>
-    document.addEventListener('DOMContentLoaded', async function() {
+    (() => {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
-    });
+    })();
 </script>
 
 </html>

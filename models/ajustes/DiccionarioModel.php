@@ -12,10 +12,9 @@ class DiccionarioModel
 
     public function listar($tabla = null, $contexto = null)
     {
-        $sql = "SELECT * FROM diccionario_campos";
         $params = [];
-
         $wheres = [];
+
         if ($tabla) {
             $wheres[] = "tabla = :tabla";
             $params[':tabla'] = $tabla;
@@ -25,18 +24,29 @@ class DiccionarioModel
             $params[':contexto'] = $contexto;
         }
 
-        if (!empty($wheres)) {
-            $sql .= " WHERE " . implode(" AND ", $wheres);
-        }
+        // WHERE dinámico para cada SELECT
+        $whereSql = !empty($wheres) ? (" WHERE " . implode(" AND ", $wheres)) : "";
+        $cols = "campo, contexto, descripcion, fecha_creacion, idcampo, longitud, meta, nombre, orden, requerido, tabla, tipo_dato, valor_inicial, visible";
 
-        $sql .= " ORDER BY COALESCE(`orden`, 9999) ASC, campo ASC";
+        // UNION con origen diferenciado
+        $sql = "
+        SELECT {$cols}, 'normal' AS origen
+        FROM diccionario_campos
+        {$whereSql}
+        UNION ALL
+        SELECT {$cols}, 'extra' AS origen
+        FROM campos_extra
+        {$whereSql}
+        ORDER BY COALESCE(`orden`, 9999) ASC, campo ASC
+    ";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Decodificar meta si está en formato JSON
         foreach ($data as &$row) {
-            if (isset($row['meta']) && $row['meta'] !== null && $row['meta'] !== '') {
+            if (!empty($row['meta'])) {
                 $decoded = json_decode($row['meta'], true);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     $row['meta'] = $decoded;
@@ -49,15 +59,22 @@ class DiccionarioModel
         return $data;
     }
 
-    /**
-     * Obtener un registro por id
-     */
-    public function obtenerPorId($iddiccionario)
+    public function obtenerPorId($idcampo)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM diccionario_campos WHERE iddiccionario = ?");
-        $stmt->execute([$iddiccionario]);
+        $cols = "campo, contexto, descripcion, fecha_creacion, idcampo, longitud, meta, nombre, orden, requerido, tabla, tipo_dato, valor_inicial, visible";
+        $sql = "
+        SELECT {$cols}, 'normal' AS origen FROM diccionario_campos WHERE idcampo = :id
+        UNION ALL
+        SELECT {$cols}, 'extra' AS origen FROM campos_extra WHERE idcampo = :id
+        LIMIT 1
+    ";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':id' => $idcampo]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (isset($row['meta']) && $row['meta'] !== null && $row['meta'] !== '') {
+
+        if (!$row) return null;
+
+        if (!empty($row['meta'])) {
             $decoded = json_decode($row['meta'], true);
             if (json_last_error() === JSON_ERROR_NONE) {
                 $row['meta'] = $decoded;
@@ -65,49 +82,68 @@ class DiccionarioModel
         } else {
             $row['meta'] = null;
         }
+
+        return $row;
     }
 
     /**
-     * Guardar (reemplazar) configuraciones para una tabla.
-     * $tabla: string
-     * $columnas: array de arrays con keys: campo, nombre, descripcion, tipo_dato, longitud, requerido, valor_inicial, contexto, visible, orden
+     * Guarda la configuración de columnas en la tabla correspondiente (diccionario_campos o campos_extra)
      */
     public function guardarPorTabla($tabla, array $columnas)
     {
         try {
             $this->pdo->beginTransaction();
 
-            // Borrar registros previos de esa tabla
-            $stmtDel = $this->pdo->prepare("DELETE FROM diccionario_campos WHERE tabla = :tabla");
-            $stmtDel->execute([':tabla' => $tabla]);
+            // Agrupar por origen: normal o extra
+            $agrupados = [
+                'normal' => [],
+                'extra'  => []
+            ];
 
-            // Nueva versión del INSERT con campo meta
-            $sql = "INSERT INTO diccionario_campos
-            (tabla, campo, nombre, descripcion, tipo_dato, longitud, requerido, valor_inicial, contexto, meta, visible, `orden`, fecha_creacion)
-            VALUES (:tabla, :campo, :nombre, :descripcion, :tipo_dato, :longitud, :requerido, :valor_inicial, :contexto, :meta, :visible, :orden, NOW())";
-            $stmtIns = $this->pdo->prepare($sql);
-
-            foreach ($columnas as $c) {
-                // Asegurar formato de meta
-                $meta = isset($c['meta'])
-                    ? (is_array($c['meta']) ? json_encode($c['meta'], JSON_UNESCAPED_UNICODE) : $c['meta'])
-                    : null;
-
-                $stmtIns->execute([
-                    ':tabla'         => $tabla,
-                    ':campo'         => $c['campo'] ?? null,
-                    ':nombre'        => $c['nombre'] ?? ($c['campo'] ?? ''),
-                    ':descripcion'   => $c['descripcion'] ?? '',
-                    ':tipo_dato'     => $c['tipo_dato'] ?? 'texto',
-                    ':longitud'      => isset($c['longitud']) ? (int)$c['longitud'] : null,
-                    ':requerido'     => !empty($c['requerido']) ? 1 : 0,
-                    ':valor_inicial' => $c['valor_inicial'] ?? null,
-                    ':contexto'      => $c['contexto'] ?? 'general',
-                    ':meta'          => $meta,
-                    ':visible'       => !empty($c['visible']) ? 1 : 0,
-                    ':orden'         => isset($c['orden']) ? (int)$c['orden'] : 0
-                ]);
+            foreach ($columnas as $col) {
+                $origen = isset($col['origen']) && $col['origen'] === 'extra' ? 'extra' : 'normal';
+                $agrupados[$origen][] = $col;
             }
+
+            foreach ($agrupados as $origen => $cols) {
+                if (empty($cols)) continue;
+
+                $tablaDestino = ($origen === 'extra') ? 'campos_extra' : 'diccionario_campos';
+
+                // Eliminar anteriores
+                $stmtDel = $this->pdo->prepare("DELETE FROM {$tablaDestino} WHERE tabla = :tabla");
+                $stmtDel->execute([':tabla' => $tabla]);
+
+                // Insertar nuevos
+                $sql = "INSERT INTO {$tablaDestino}
+                (tabla, campo, nombre, descripcion, tipo_dato, longitud, requerido, valor_inicial, contexto, meta, visible, `orden`, fecha_creacion)
+                VALUES (:tabla, :campo, :nombre, :descripcion, :tipo_dato, :longitud, :requerido, :valor_inicial, :contexto, :meta, :visible, :orden, NOW())";
+                $stmtIns = $this->pdo->prepare($sql);
+                $orden = count($cols) ?? 0;
+
+                foreach ($cols as $c) {
+                    $meta = isset($c['meta'])
+                        ? (is_array($c['meta']) ? json_encode($c['meta'], JSON_UNESCAPED_UNICODE) : $c['meta'])
+                        : null;
+
+                    $stmtIns->execute([
+                        ':tabla'         => $tabla,
+                        ':campo'         => $c['campo'] ?? null,
+                        ':nombre'        => $c['nombre'] ?? ($c['campo'] ?? ''),
+                        ':descripcion'   => $c['descripcion'] ?? '',
+                        ':tipo_dato'     => $c['tipo_dato'] ?? 'texto',
+                        ':longitud'      => isset($c['longitud']) ? (int)$c['longitud'] : null,
+                        ':requerido'     => !empty($c['requerido']) ? 1 : 0,
+                        ':valor_inicial' => $c['valor_inicial'] ?? null,
+                        ':contexto'      => $c['contexto'] ?? 'general',
+                        ':meta'          => $meta,
+                        ':visible'       => !empty($c['visible']) ? 1 : 0,
+                        ':orden'         => isset($c['orden']) ? (int)$c['orden'] : $orden + 1
+                    ]);
+                }
+            }
+
+
 
             $this->pdo->commit();
             return true;
@@ -117,13 +153,13 @@ class DiccionarioModel
         }
     }
 
-    /**
-     * Actualiza un registro por id (campos dinámicos)
-     * $data: array (keys: nombre, descripcion, visible, orden, tipo_dato, longitud, requerido, valor_inicial, contexto)
-     */
-    public function actualizar($iddiccionario, array $data)
+    public function actualizarCampo($idcampo, array $data)
     {
-        // Incluir 'meta' en los campos permitidos
+        // Determinar origen
+        $origen = isset($data['origen']) && $data['origen'] === 'extra' ? 'extra' : 'normal';
+        $tablaDestino = ($origen === 'extra') ? 'campos_extra' : 'diccionario_campos';
+        $campoId = 'idcampo'; // ambos usan el mismo identificador
+
         $allowed = [
             'campo',
             'nombre',
@@ -140,18 +176,16 @@ class DiccionarioModel
         ];
 
         $sets = [];
-        $params = [':iddiccionario' => $iddiccionario];
+        $params = [':idcampo' => $idcampo];
 
         foreach ($data as $k => $v) {
             if (!in_array($k, $allowed, true)) continue;
 
-            // Normalización según tipo
             if ($k === 'requerido' || $k === 'visible') {
                 $v = !empty($v) ? 1 : 0;
             } elseif ($k === 'longitud' || $k === 'orden') {
                 $v = ($v !== null && $v !== '') ? (int)$v : null;
             } elseif ($k === 'meta') {
-                // Convertir array o stdClass a JSON
                 if (is_array($v) || is_object($v)) {
                     $v = json_encode($v, JSON_UNESCAPED_UNICODE);
                 }
@@ -163,21 +197,21 @@ class DiccionarioModel
 
         if (empty($sets)) return false;
 
-        $sql = "UPDATE diccionario_campos SET " . implode(", ", $sets) . " WHERE iddiccionario = :iddiccionario";
+        $sql = "UPDATE {$tablaDestino} SET " . implode(", ", $sets) . " WHERE {$campoId} = :idcampo";
         $stmt = $this->pdo->prepare($sql);
         $res = $stmt->execute($params);
 
-        // registrar cambio (si el modelo de registro existe)
+        // Registrar cambio si aplica
         if ($res && $this->registroCambioModel && isset($_SESSION['idusuario'])) {
             $this->registroCambioModel->registrarCambio(
                 $_SESSION['idusuario'],
-                $iddiccionario,
-                'diccionario_campos',
+                $idcampo,
+                $tablaDestino,
                 'actualizacion',
                 null,
                 json_encode($data, JSON_UNESCAPED_UNICODE),
                 null,
-                "Actualización diccionario_campos"
+                "Actualización de campo ({$origen}) en {$tablaDestino}"
             );
         }
 
@@ -185,20 +219,54 @@ class DiccionarioModel
     }
 
     /**
-     * Eliminar por id
+     * Elimina todos los campos de una tabla específica
+     * Puede recibir origen = 'normal', 'extra' o 'todos'
      */
-    public function eliminarPorId($iddiccionario)
+    public function eliminarPorTabla($tabla, $campo, $origen = 'normal')
     {
-        $stmt = $this->pdo->prepare("DELETE FROM diccionario_campos WHERE iddiccionario = ?");
-        return $stmt->execute([$iddiccionario]);
-    }
+        try {
+            $this->pdo->beginTransaction();
 
-    /**
-     * Eliminar por tabla
-     */
-    public function eliminarPorTabla($tabla)
-    {
-        $stmt = $this->pdo->prepare("DELETE FROM diccionario_campos WHERE tabla = ?");
-        return $stmt->execute([$tabla]);
+            $columnasExistentes = $this->registroCambioModel->obtenerCamposTabla($tabla);
+            $totalEliminados = 0;
+
+            // Si se pide eliminar ambos orígenes
+            if ($origen === 'todos' || $origen === 'normal') {
+                $stmt = $this->pdo->prepare("DELETE FROM diccionario_campos WHERE tabla = ? AND campo = ?");
+                $stmt->execute([$tabla, $campo]);
+                $totalEliminados += $stmt->rowCount();
+            }
+
+            if ($origen === 'todos' || $origen === 'extra') {
+                $stmt = $this->pdo->prepare("DELETE FROM campos_extra WHERE tabla = ? AND campo = ?");
+                $stmt->execute([$tabla, $campo]);
+                $totalEliminados += $stmt->rowCount();
+            }
+
+            if (in_array($campo, $columnasExistentes)) {
+                $sqlAlter = "ALTER TABLE `{$tabla}` DROP COLUMN `{$campo}`";
+                $this->pdo->exec($sqlAlter);
+            }
+
+            // Registrar cambio si se eliminaron registros
+            if ($totalEliminados > 0 && $this->registroCambioModel && isset($_SESSION['idusuario'])) {
+                $this->registroCambioModel->registrarCambio(
+                    $_SESSION['idusuario'],
+                    null,
+                    ($origen === 'extra') ? 'campos_extra' : 'diccionario_campos',
+                    'eliminacion',
+                    'tabla',
+                    $tabla,
+                    null,
+                    "Eliminación de campos ({$origen}) para la tabla {$tabla}"
+                );
+            }
+
+            $this->pdo->commit();
+            return $totalEliminados;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw new Exception("Error al eliminar campos por tabla: " . $e->getMessage());
+        }
     }
 }
